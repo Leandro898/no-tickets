@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <!-- Resumen general -->
+    {{-- Recaudación global --}}
     <div class="bg-gray-800 p-6 rounded-lg mb-4">
         <div class="flex justify-between items-center">
             <div>
@@ -19,52 +19,48 @@
         </div>
     </div>
 
-    <div>
-        <!-- Botón Editar Stock -->
-        <a href="{{ route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $this->evento->id]) }}"
+    {{-- Botones principales --}}
+    <div class="flex flex-wrap gap-3 mb-6">
+        {{-- Botón Editar Stock --}}
+        <a href="{{ route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $evento->id]) }}"
             class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-edit mr-2"></i> Editar Stock
         </a>
-        <!-- Botón Reportes -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
-            <i class="fas fa-edit mr-2"></i> Reportes
-        </button>
-    </div>
 
-    <!-- Botones de acción -->
-    <div class="grid grid-cols-2 gap-4">
-        <!-- Botón Editar evento -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
-            <i class="fas fa-edit mr-2"></i> Editar evento
-        </button>
+        {{-- Botón Reportes --}}
+        <a href="{{ \App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $evento->id]) }}"
+            class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-chart-bar mr-2"></i> Reportes
+        </a>
 
-        <!-- Botón Link -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        {{-- Botón Editar Evento --}}
+        <a href="{{ route('filament.admin.resources.eventos.edit', ['record' => $evento->id]) }}"
+            class="bg-blue-600 hover:bg-blue-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-edit mr-2"></i> Editar Evento
+        </a>
+
+        {{-- Otros botones --}}
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-link mr-2"></i> Link
         </button>
 
-        <!-- Botón Lista digital -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-list-alt mr-2"></i> Lista digital
         </button>
 
-        <!-- Botón Enviar productos -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-gift mr-2"></i> Enviar productos
         </button>
 
-        <!-- Botón Productos y cortesías del equipo -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-user-friends mr-2"></i> Productos y cortesías del equipo
         </button>
 
-        <!-- Botón Suspender -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-ban mr-2"></i> Suspender
         </button>
 
-        <!-- Botón Enviar cortesías -->
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-gift mr-2"></i> Enviar cortesías
         </button>
     </div>

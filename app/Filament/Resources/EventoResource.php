@@ -67,19 +67,25 @@ class EventoResource extends Resource
             'edit' => Pages\EditEvento::route('/{record}/edit'),
             'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
             'gestionar-entradas' => Pages\GestionarEntradas::route('/{record}/gestionar-entradas'),
+            'reportes' => Pages\ReportesEvento::route('/{record}/reportes'),
         ];
     }
 
     public static function getRelations(): array
     {
         return [
-            EntradasRelationManager::class,
+            //EntradasRelationManager::class, // Esta linea me activa la vista de la lista de entradas que tiene el evento. Por las dudas que quiera habilitarlo en el futuro
         ];
     }
 
     public static function getRecordUrl($record, string $pageName = 'view'): string
     {
         return static::getUrl('detalles', ['record' => $record]);
+    }
+
+    public static function getModel(): string
+    {
+        return \App\Models\Evento::class;
     }
 }
 
