@@ -16,10 +16,17 @@ class EventoDetalles extends Page
 
     protected bool $shouldGenerateBreadcrumb = false;
 
-    public Evento $evento;
+    public Evento $record;
 
-    public function mount(int $record): void
+    public function mount(Evento $record): void
     {
-        $this->evento = Evento::findOrFail($record);
+        $this->record = $record;
+    }
+
+    protected function getViewData(): array
+    {
+        return [
+            'evento' => $this->record,
+        ];
     }
 }

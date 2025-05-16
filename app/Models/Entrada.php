@@ -27,5 +27,6 @@ class Entrada extends Model
             }
         });
     }
+    
 
 }

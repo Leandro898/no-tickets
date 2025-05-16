@@ -40,9 +40,27 @@
         </a>
 
         {{-- Otros botones --}}
-        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
+        <a href="#" 
+            onclick="event.preventDefault(); copiarAlPortapapeles('{{ route('comprar.entrada', ['evento' => $evento->id]) }}')"
+            class="btn btn-primary">
+            Link
+        </a>
+
+<script>
+function copiarAlPortapapeles(url) {
+    navigator.clipboard.writeText(url)
+        .then(() => alert('URL copiada al portapapeles!'))
+        .catch(() => alert('Error al copiar la URL'));
+}
+</script>
+
+
+
+
+
+        <!-- <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-link mr-2"></i> Link
-        </button>
+        </button> -->
 
         <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
             <i class="fas fa-list-alt mr-2"></i> Lista digital
