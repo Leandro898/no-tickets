@@ -11,7 +11,8 @@ class Evento extends Model
         'nombre', 'ubicacion', 'fecha_inicio', 'fecha_fin', 'descripcion', 'imagen', 'estado',
     ];
 
-    public function entradas(): HasMany {
+    public function entradas()
+    {
         return $this->hasMany(Entrada::class);
     }
 }

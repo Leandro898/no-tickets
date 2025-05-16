@@ -47,4 +47,10 @@ class EntradasRelationManager extends RelationManager
                 ]),
             ]);
     }
+
+    public static function getRelationshipName(): string
+    {
+        return 'entradas';
+    }
+
 }

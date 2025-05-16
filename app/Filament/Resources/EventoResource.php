@@ -65,6 +65,7 @@ class EventoResource extends Resource
             'index' => Pages\ListEventos::route('/'),
             'create' => Pages\CreateEvento::route('/create'),
             'edit' => Pages\EditEvento::route('/{record}/edit'),
+            'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
         ];
     }
 
@@ -73,6 +74,11 @@ class EventoResource extends Resource
         return [
             EntradasRelationManager::class,
         ];
+    }
+
+    public static function getRecordUrl($record, string $pageName = 'view'): string
+    {
+        return static::getUrl('detalles', ['record' => $record]);
     }
 }
 

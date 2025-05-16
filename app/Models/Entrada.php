@@ -15,4 +15,17 @@ class Entrada extends Model
     public function evento(): BelongsTo {
         return $this->belongsTo(Evento::class);
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($entrada) {
+            // Si no viene stock_actual, lo igualamos a stock_inicial
+            if (is_null($entrada->stock_actual)) {
+                $entrada->stock_actual = $entrada->stock_inicial;
+            }
+        });
+    }
+
 }
