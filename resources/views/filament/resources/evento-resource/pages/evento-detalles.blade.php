@@ -19,6 +19,18 @@
         </div>
     </div>
 
+    <div>
+        <!-- Botón Editar Stock -->
+        <a href="{{ route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $this->evento->id]) }}"
+            class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded inline-flex items-center">
+            <i class="fas fa-edit mr-2"></i> Editar Stock
+        </a>
+        <!-- Botón Reportes -->
+        <button class="bg-gray-800 hover:bg-gray-700 text-gray font-bold py-2 px-4 rounded">
+            <i class="fas fa-edit mr-2"></i> Reportes
+        </button>
+    </div>
+
     <!-- Botones de acción -->
     <div class="grid grid-cols-2 gap-4">
         <!-- Botón Editar evento -->

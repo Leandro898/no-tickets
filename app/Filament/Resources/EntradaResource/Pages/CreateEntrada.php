@@ -23,7 +23,7 @@ class CreateEntrada extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return route('filament.resources.entradas.index', ['evento_id' => $this->record->evento_id]);
+        return route('filament.admin.resources.entradas.index', ['evento_id' => $this->record->evento_id]);
     }
 
 }

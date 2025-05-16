@@ -66,6 +66,7 @@ class EventoResource extends Resource
             'create' => Pages\CreateEvento::route('/create'),
             'edit' => Pages\EditEvento::route('/{record}/edit'),
             'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
+            'gestionar-entradas' => Pages\GestionarEntradas::route('/{record}/gestionar-entradas'),
         ];
     }
 
