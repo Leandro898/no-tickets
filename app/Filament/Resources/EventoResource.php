@@ -17,6 +17,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use App\Filament\Resources\EventoResource\RelationManagers\EntradasRelationManager;
+use App\Filament\Resources\EventoResource\Pages\ListEventos;
 
 class EventoResource extends Resource
 {
@@ -62,6 +63,7 @@ class EventoResource extends Resource
     public static function getPages(): array
     {
         return [
+            //'index' => ListEventos::class,
             'index' => Pages\ListEventos::route('/'),
             'create' => Pages\CreateEvento::route('/create'),
             'edit' => Pages\EditEvento::route('/{record}/edit'),

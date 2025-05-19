@@ -7,43 +7,69 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\Action;
-use Filament\Pages\Actions\CreateAction;
+use Filament\Tables\Actions\BulkAction;
+use App\Models\Evento;
 use Closure;
+use Illuminate\Support\Facades\Log;
 
 class ListEventos extends ListRecords
-{
+{   
+
+    public function __construct()
+    {
+        Log::info('✅ Página ListEventos cargada');
+    }
+
     protected static string $resource = EventoResource::class;
 
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn ($query) => $query)
             ->columns([
-                TextColumn::make('nombre')
-                    ->label('Nombre')
-                    ->url(null), // ← Desactiva el link en el nombre
+                TextColumn::make('nombre')->label('Nombre'),
+                TextColumn::make('fecha')->label('Fecha'),
+                TextColumn::make('lugar')->label('Lugar'),
             ])
             ->actions([
                 Action::make('ver_detalles')
                     ->label('Ver detalles')
-                    ->url(fn ($record): string => EventoResource::getUrl('detalles', ['record' => $record->id]))
+                    ->url(fn ($record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
                     ->icon('heroicon-o-eye'),
             ])
-            ->recordUrl(
-                fn ($record) => EventoResource::getUrl('detalles', ['record' => $record->id])
-            );
+            ->recordUrl(fn (Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id])); // <- esta línea hace que toda la fila sea clickeable    
     }
 
-
+    /**
+     * Define la URL a donde ir al hacer clic en una fila
+     */
     protected function getRecordUrlUsing(): ?Closure
     {
-        return fn ($record): string => EventoResource::getUrl('detalles', ['record' => $record->id]);
+        dd('Este método sí se está ejecutando');
+
+        return fn (Evento $record): string => static::getResource()::getUrl('detalles', ['record' => $record]);
     }
 
-    protected function getHeaderActions(): array
+    /**
+     * Muestra el botón de acciones masivas antes de la paginación
+     */
+    public function getTableBulkActionsPosition(): string
     {
-        return [
-            CreateAction::make(),
-        ];
+        return 'before-pagination';
+    }
+
+    /**
+     * Hace que el botón de acciones masivas siempre se muestre
+     */
+    public function shouldRenderTableBulkActions(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Mensaje cuando no hay eventos
+     */
+    public function getTableEmptyStateHeading(): ?string
+    {
+        return 'No se encontraron eventos';
     }
 }
