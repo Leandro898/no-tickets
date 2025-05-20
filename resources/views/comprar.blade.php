@@ -68,7 +68,7 @@
 </style>
 
 <div class="container">
-    <h1>Comprar entrada para: {{ $evento->nombre }}</h1>
+    <h1>Comprar entradas para: {{ $evento->nombre }}</h1>
 
     @if(session('success'))
         <div class="success-message">{{ session('success') }}</div>
@@ -93,15 +93,57 @@
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" value="{{ old('email') }}" required><br>
 
-        <label for="entrada_id">Selecciona tu entrada:</label>
-        <select name="entrada_id" id="entrada_id" required>
+        <div class="row">
             @foreach($entradas as $entrada)
-                <option value="{{ $entrada->id }}">
-                    {{ $entrada->nombre }} - ${{ number_format($entrada->precio, 2) }}
-                </option>
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $entrada->nombre }}</h5>
+                            <p class="card-text">Precio: ${{ number_format($entrada->precio, 2) }}</p>
+                            <p class="card-text">Stock disponible: {{ $entrada->stock_actual }}</p>
+
+                            <div class="form-group">
+                                <label for="cantidad_{{ $entrada->id }}">Cantidad:</label>
+                                <div class="input-group">
+                                    <button type="button" class="btn btn-outline-secondary minus-btn" data-entrada-id="{{ $entrada->id }}">-</button>
+                                    <input type="number" class="form-control cantidad-input" id="cantidad_{{ $entrada->id }}" name="cantidades[{{ $entrada->id }}]" value="0" min="0" max="{{ $entrada->max_por_compra ?? $entrada->stock_actual }}">
+                                    <button type="button" class="btn btn-outline-secondary plus-btn" data-entrada-id="{{ $entrada->id }}">+</button>
+                                </div>
+                                @if ($entrada->max_por_compra)
+                                    <small class="form-text text-muted">Máximo {{ $entrada->max_por_compra }} por compra.</small>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                </div>
             @endforeach
-        </select><br>
+        </div>
 
         <button type="submit">Comprar</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.plus-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const entradaId = this.dataset.entradaId;
+                const cantidadInput = document.getElementById(`cantidad_${entradaId}`);
+                const max = parseInt(cantidadInput.getAttribute('max'));
+                if (parseInt(cantidadInput.value) < max) {
+                    cantidadInput.value = parseInt(cantidadInput.value) + 1;
+                }
+            });
+        });
+
+        document.querySelectorAll('.minus-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const entradaId = this.dataset.entradaId;
+                const cantidadInput = document.getElementById(`cantidad_${entradaId}`);
+                if (parseInt(cantidadInput.value) > 0) {
+                    cantidadInput.value = parseInt(cantidadInput.value) - 1;
+                }
+            });
+        });
+    });
+</script>
