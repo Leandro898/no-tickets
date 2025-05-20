@@ -5,12 +5,14 @@ namespace App\Filament\Resources\EventoResource\Pages;
 use App\Filament\Resources\EventoResource;
 use App\Models\Evento;
 use Filament\Resources\Pages\Page;
-use Illuminate\View\View;
+use Filament\Actions\Action;
+use App\Filament\Resources\EntradaResource\Pages\CreateEntrada;
+use App\Filament\Resources\EntradaResource;
+
 
 class GestionarEntradas extends Page
 {
     protected static string $resource = EventoResource::class;
-
     protected static string $view = 'filament.resources.evento-resource.pages.gestionar-entradas';
 
     public ?Evento $evento = null;
@@ -24,6 +26,18 @@ class GestionarEntradas extends Page
     {
         return [
             'evento' => $this->evento,
+        ];
+    }
+
+    public function getHeaderActions(): array
+    {
+        return [
+            Action::make('crear_entrada')
+                ->label('Nueva entrada')
+                ->url(EntradaResource::getUrl('create', ['evento_id' => $this->evento->id]))
+                ->button()
+                ->color('success')
+                ->icon('heroicon-o-plus'),
         ];
     }
 

@@ -23,25 +23,27 @@ class EventoDetalles extends Page
         $this->record = $record;
     }
 
-    protected function getActions(): array
-    {
-        return [
-            Action::make('Eliminar')
-                ->requiresConfirmation()
-                ->color('danger')
-                ->action(function () {
-                    $this->record->delete();
+    // ESTE METODO ME PERMITE AGREGAR UN BOTON DE FILAMENT PARA ELIMINAR EL EVENTO
+    // protected function getActions(): array
+    // {
+    //     return [
+    //         Action::make('Eliminar')
+    //             ->requiresConfirmation()
+    //             ->color('danger')
+    //             ->action(function () {
+    //                 $this->record->delete();
 
-                    Notification::make()
-                        ->title('Evento eliminado correctamente')
-                        ->success()
-                        ->send();
+    //                 Notification::make()
+    //                     ->title('Evento eliminado correctamente')
+    //                     ->success()
+    //                     ->send();
 
-                    return redirect()->to(static::getResource()::getUrl('index'));
-                }),
-        ];
-    }
+    //                 return redirect()->to(static::getResource()::getUrl('index'));
+    //             }),
+    //     ];
+    // }
 
+    // Aca utilizo otro metodo que se lo asigno al boton "Eliminar Evento"
     public function eliminarEvento()
     {
         $this->record->delete();
