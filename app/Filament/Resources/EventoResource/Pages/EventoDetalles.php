@@ -5,28 +5,48 @@ namespace App\Filament\Resources\EventoResource\Pages;
 use App\Filament\Resources\EventoResource;
 use App\Models\Evento;
 use Filament\Resources\Pages\Page;
+use Filament\Resources\Pages\ViewRecord;
+use Filament\Pages\Actions\Action;
+use Filament\Pages\Actions\DeleteAction;
+use Filament\Notifications\Notification;
 
 class EventoDetalles extends Page
 {
     protected static string $resource = EventoResource::class;
 
-    protected static string $view = 'filament.resources.evento-resource.pages.evento-detalles';
-
-    protected static null|string $slug = 'gestionar-entradas';
-
-    protected bool $shouldGenerateBreadcrumb = false;
-
     public Evento $record;
 
-    public function mount(Evento $record): void
+    protected static string $view = 'filament.resources.evento-resource.pages.evento-detalles';
+
+    public function mount(Evento $record)
     {
         $this->record = $record;
     }
 
-    protected function getViewData(): array
+    protected function getActions(): array
     {
         return [
-            'evento' => $this->record,
+            Action::make('Eliminar')
+                ->requiresConfirmation()
+                ->color('danger')
+                ->action(function () {
+                    $this->record->delete();
+
+                    Notification::make()
+                        ->title('Evento eliminado correctamente')
+                        ->success()
+                        ->send();
+
+                    return redirect()->to(static::getResource()::getUrl('index'));
+                }),
         ];
     }
+
+    public function eliminarEvento()
+    {
+        $this->record->delete();
+        $this->redirect(self::getResource()::getUrl('index'));
+    }
+
+
 }

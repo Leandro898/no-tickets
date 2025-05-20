@@ -67,9 +67,10 @@ class EventoResource extends Resource
             'index' => Pages\ListEventos::route('/'),
             'create' => Pages\CreateEvento::route('/create'),
             'edit' => Pages\EditEvento::route('/{record}/edit'),
-            'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
             'gestionar-entradas' => Pages\GestionarEntradas::route('/{record}/gestionar-entradas'),
             'reportes' => Pages\ReportesEvento::route('/{record}/reportes'),
+            //'view' => Pages\EventoDetalles::route('/{record}'),
+            'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
         ];
     }
 
@@ -80,7 +81,7 @@ class EventoResource extends Resource
         ];
     }
 
-    public static function getRecordUrl($record, string $pageName = 'view'): string
+    public static function getRecordUrl($record, string $pageName = 'detalles'): string
     {
         return static::getUrl('detalles', ['record' => $record]);
     }
