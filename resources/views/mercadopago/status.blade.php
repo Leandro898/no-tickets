@@ -1,5 +1,6 @@
-{{-- Asume que tienes un layout principal, como 'layouts.app' --}}
-@extends('layouts.app')
+{{-- resources/views/mercadopago/status.blade.php --}}
+
+@extends('layouts.app') {{-- O tu layout principal de Filament si lo prefieres para la UI --}}
 
 @section('content')
 <div class="container">
@@ -19,15 +20,21 @@
                     @endif
 
                     @if(auth()->check() && auth()->user()->hasMercadoPagoAccount())
-                        <p>Tu cuenta de Mercado Pago está conectada.</p>
+                        <p class="alert alert-success">¡Tu cuenta de Mercado Pago está conectada!</p>
                         <p>ID de usuario de MP: <strong>{{ auth()->user()->mp_user_id }}</strong></p>
                         <p>Última actualización de token: {{ auth()->user()->mp_expires_in ? auth()->user()->mp_expires_in->diffForHumans() : 'N/A' }}</p>
+
+                        <form action="{{ route('mercadopago.unlink') }}" method="POST" class="mt-3">
+                            @csrf
+                            <button type="submit" class="btn btn-warning">Desvincular Cuenta</button>
+                        </form>
                     @else
-                        <p>Tu cuenta de Mercado Pago no está conectada.</p>
-                        <a href="{{ route('mercadopago.connect') }}" class="btn btn-primary">Conectar con Mercado Pago</a>
+                        <p class="alert alert-warning">Tu cuenta de Mercado Pago no está conectada.</p>
+                        <a href="{{ route('mercadopago.connect') }}" class="btn btn-primary mt-3">Conectar con Mercado Pago</a>
                     @endif
-                    <hr>
-                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a>
+                    <hr class="my-4">
+                    {{-- Ajusta esta URL para que te lleve al dashboard de Filament o donde quieras que regrese el usuario --}}
+                    <a href="{{ url('/admin') }}" class="btn btn-secondary">Volver al Panel de Administración</a>
                 </div>
             </div>
         </div>
