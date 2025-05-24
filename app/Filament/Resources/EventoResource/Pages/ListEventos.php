@@ -23,23 +23,6 @@ class ListEventos extends ListRecords
 
     protected static string $resource = EventoResource::class;
 
-    public function table(Table $table): Table
-    {
-        return $table
-            ->columns([
-                TextColumn::make('nombre')->label('Nombre'),
-                TextColumn::make('fecha')->label('Fecha'),
-                TextColumn::make('lugar')->label('Lugar'),
-            ])
-            ->actions([
-                Action::make('ver_detalles')
-                    ->label('Ver detalles')
-                    ->url(fn ($record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
-                    ->icon('heroicon-o-eye'),
-            ])
-            ->recordUrl(fn (Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id])); // <- esta línea hace que toda la fila sea clickeable    
-    }
-
     /**
      * Define la URL a donde ir al hacer clic en una fila
      */
@@ -74,11 +57,11 @@ class ListEventos extends ListRecords
         return 'No se encontraron eventos';
     }
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\CreateAction::make() // El boton y el texto del boton se configuran desde aca porque parece que este archivo sobreescribre configuracion de EventoResourve
-            ->label('Crear Evento'),
-        ];
-    }
+    // protected function getHeaderActions(): array
+    // {
+    //     return [
+    //         Actions\CreateAction::make() // El boton y el texto del boton se configuran desde aca porque parece que este archivo sobreescribre configuracion de EventoResourve
+    //         ->label('Crear Evento'),
+    //     ];
+    // }
 }

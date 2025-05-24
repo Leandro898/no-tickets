@@ -20,6 +20,8 @@ use App\Filament\Resources\EventoResource\RelationManagers\EntradasRelationManag
 use App\Filament\Resources\EventoResource\Pages\ListEventos;
 use Filament\Forms\Components\Hidden;
 use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\Action;
 
 class EventoResource extends Resource
 {
@@ -66,16 +68,29 @@ class EventoResource extends Resource
                     ->colors([
                         'success' => fn ($state) => $state === 'activo',
                         'danger' => fn ($state) => $state === 'inactivo',
-                    ]),
-                TextColumn::make('organizador.name') // columna organizador
-                        ->label('Organizador')
-                        ->sortable()
-                        ->toggleable(isToggledHiddenByDefault: true),        
+                        'warning' => fn ($state) => $state === 'finalizado',
+                    ]),        
+                ])
+            ->filters([
+                // Aquí puedes añadir filtros adicionales, por ejemplo, por estado:
+                SelectFilter::make('estado')
+                    ->options([
+                        'activo' => 'Activo',
+                        'cancelado' => 'Cancelado',
+                        'finalizado' => 'Finalizado',
+                    ])
+                    ->label('Filtrar por Estado'),
+
+                // Puedes añadir un filtro por organizador si lo necesitas:
+                // SelectFilter::make('organizador')
+                //     ->relationship('organizador', 'name')
+                //     ->label('Filtrar por Organizador'),
                 ])
                 ->headerActions([
                     CreateAction::make()
-                        ->label('Crear Evento'),
-            ]);
+                    ->label('Crear Evento'),                     
+            ])
+            ->recordUrl(fn (Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]));
     }
 
     public static function getPages(): array

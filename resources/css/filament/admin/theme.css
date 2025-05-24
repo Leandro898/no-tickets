@@ -1,0 +1,9 @@
+@import '../../custom-filament.css';
+
+/* Importa las directivas de Tailwind CSS si tu tema las usa */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Aquí puedes añadir tus estilos personalizados del tema */
+

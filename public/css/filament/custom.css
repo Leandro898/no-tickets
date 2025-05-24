@@ -1,0 +1,6 @@
+.fi-ta-search-field {
+    background-color: red!important;
+    width: 400px !important; /* O un valor fijo como 400px */
+    max-width: 500px; /* Limita el ancho máximo para evitar que sea demasiado grande */
+    /* Agrega cualquier otro estilo si es necesario, como padding, etc. */
+}
