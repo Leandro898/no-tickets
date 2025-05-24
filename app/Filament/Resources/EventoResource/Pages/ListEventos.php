@@ -45,7 +45,7 @@ class ListEventos extends ListRecords
      */
     protected function getRecordUrlUsing(): ?Closure
     {
-        dd('Este método sí se está ejecutando');
+        //dd('Este método sí se está ejecutando');
 
         return fn (Evento $record): string => static::getResource()::getUrl('detalles', ['record' => $record]);
     }
