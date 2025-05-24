@@ -11,6 +11,7 @@ use Filament\Tables\Actions\BulkAction;
 use App\Models\Evento;
 use Closure;
 use Illuminate\Support\Facades\Log;
+use Filament\Actions;
 
 class ListEventos extends ListRecords
 {   
@@ -71,5 +72,13 @@ class ListEventos extends ListRecords
     public function getTableEmptyStateHeading(): ?string
     {
         return 'No se encontraron eventos';
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\CreateAction::make() // El boton y el texto del boton se configuran desde aca porque parece que este archivo sobreescribre configuracion de EventoResourve
+            ->label('Crear Evento'),
+        ];
     }
 }

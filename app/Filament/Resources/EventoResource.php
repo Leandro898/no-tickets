@@ -18,6 +18,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use App\Filament\Resources\EventoResource\RelationManagers\EntradasRelationManager;
 use App\Filament\Resources\EventoResource\Pages\ListEventos;
+use Filament\Forms\Components\Hidden;
+use Filament\Tables\Actions\CreateAction;
 
 class EventoResource extends Resource
 {
@@ -41,23 +43,39 @@ class EventoResource extends Resource
                     'cancelado' => 'Cancelado',
                     'finalizado' => 'Finalizado',
                 ])->default('activo')->required(),
+            Hidden::make('organizador_id') // Campo oculto para el organizador
+                ->default(fn () => auth()->id())
+                ->required()
+                ->dehydrated(true),    
         ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
-            TextColumn::make('nombre')->searchable()->sortable(),
-            TextColumn::make('ubicacion'),
-            TextColumn::make('fecha_inicio')->dateTime(),
-            TextColumn::make('estado')
-                ->label('Estado')
-                ->badge()
-                ->colors([
-                    'success' => fn ($state) => $state === 'activo',
-                    'danger' => fn ($state) => $state === 'inactivo',
+        return $table
+            ->columns([
+                TextColumn::make('nombre')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('ubicacion'),
+                TextColumn::make('fecha_inicio')
+                    ->dateTime(),
+                TextColumn::make('estado')
+                    ->label('Estado')
+                    ->badge()
+                    ->colors([
+                        'success' => fn ($state) => $state === 'activo',
+                        'danger' => fn ($state) => $state === 'inactivo',
+                    ]),
+                TextColumn::make('organizador.name') // columna organizador
+                        ->label('Organizador')
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: true),        
                 ])
-        ]);
+                ->headerActions([
+                    CreateAction::make()
+                        ->label('Crear Evento'),
+            ]);
     }
 
     public static function getPages(): array
