@@ -23,6 +23,11 @@ class EventoDetalles extends Page
         $this->record = $record;
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
     // ESTE METODO ME PERMITE AGREGAR UN BOTON DE FILAMENT PARA ELIMINAR EL EVENTO
     // protected function getActions(): array
     // {

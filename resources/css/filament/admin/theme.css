@@ -1,9 +1,16 @@
-@import '../../custom-filament.css';
-
-/* Importa las directivas de Tailwind CSS si tu tema las usa */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Aquí puedes añadir tus estilos personalizados del tema */
+/* Estilos personalizados para el input de búsqueda */
+.fi-input[type="search"] {
+    /* Para hacer el input más alto */
+    @apply py-2 md:py-3 text-lg; /* Aumenta el padding vertical y el tamaño del texto */
+    /* Para hacer el input más ancho */
+    @apply w-full md:w-96; /* Lo hace ancho completo en pantallas pequeñas, y 96 unidades de Tailwind (384px) en medianas y grandes */
+}
 
+/* Si necesitas ajustar el ancho del contenedor padre también, podrías necesitar otra clase */
+/* .fi-global-search-input-wrapper {
+    @apply w-full md:w-96;
+} */
