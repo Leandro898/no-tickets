@@ -24,4 +24,9 @@ class ReportesEvento extends Page
     {
         return $this->record;
     }
+
+    public function getTitle(): string
+    {
+        return ''; // Retorna una cadena vacía para que no se muestre ningún título
+    }
 }

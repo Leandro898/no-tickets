@@ -12,6 +12,7 @@ use App\Models\Evento;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Filament\Actions;
+use App\Filament\Resources\EventoResource\Widgets\CustomHeaderBox;
 
 class ListEventos extends ListRecords
 {   
@@ -22,6 +23,8 @@ class ListEventos extends ListRecords
     }
 
     protected static string $resource = EventoResource::class;
+
+    public string $headerTestMessage = '¡Header cargado desde Livewire!';
 
     /**
      * Define la URL a donde ir al hacer clic en una fila
@@ -57,11 +60,23 @@ class ListEventos extends ListRecords
         return 'No se encontraron eventos';
     }
 
-    // protected function getHeaderActions(): array
-    // {
-    //     return [
-    //         Actions\CreateAction::make() // El boton y el texto del boton se configuran desde aca porque parece que este archivo sobreescribre configuracion de EventoResourve
-    //         ->label('Crear Evento'),
-    //     ];
-    // }
+    public function getTitle(): string
+    {
+        return ''; // Retorna una cadena vacía para que no se muestre ningún título
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            CustomHeaderBox::class, // Registra tu widget aquí para que aparezca en el encabezado
+        ];
+    }
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            // Puedes añadir otros widgets aquí si los necesitas en el pie de la página
+        ];
+    }
+    
 }

@@ -19,6 +19,7 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Assets\Css;
+use App\Filament\Resources\EventoResource;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                //Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -56,7 +57,8 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
-            ->viteTheme('resources/css/filament/admin/theme.css');
+            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->brandName('Innova Ticket');
     }
 
     public function boot(): void
