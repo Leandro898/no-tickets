@@ -23,4 +23,10 @@ class Evento extends Model
     {
         return $this->belongsTo(User::class, 'organizador_id');
     }
+
+    // --- NUEVA RELACIÓN (Ahora Evento tiene muchas Órdenes) ---
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'event_id');
+    }
 }
