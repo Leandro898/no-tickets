@@ -8,18 +8,18 @@ use App\Models\Entrada;
 use App\Models\Order;
 use App\Models\PurchasedTicket;
 use Illuminate\Support\Str;
-// --- INICIO: CAMBIOS REALIZADOS ---
-use MercadoPago\MercadoPagoConfig; // Usar la nueva clase de configuración
-use MercadoPago\Client\Preference\PreferenceClient; // Cliente para crear preferencias
-use MercadoPago\Client\Payment\PaymentClient;     // Cliente para consultar pagos
-use MercadoPago\Exceptions\MPApiException;         // Para manejar excepciones de la API de MP
-// --- FIN: CAMBIOS REALIZADOS ---
+// --- INICIO: Dependencias de Mercado Pago (asegúrate de que estén instaladas vía Composer) ---
+use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\Exceptions\MPApiException;
+// --- FIN: Dependencias de Mercado Pago ---
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\ValidationException;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; // Asegúrate de que este paquete esté instalado
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log; // Asegúrate de importar Log
+use Illuminate\Support\Facades\Log;
 
 class CompraEntradaController extends Controller
 {
@@ -61,6 +61,8 @@ class CompraEntradaController extends Controller
             ]);
 
             // --- Obtener el Access Token del productor del evento ---
+            // Asegúrate de que tu modelo Organizador tenga un campo mp_access_token
+            // y que los organizadores tengan este token guardado.
             $producerAccessToken = $evento->organizador->mp_access_token ?? null;
 
             if (is_null($producerAccessToken)) {
@@ -68,10 +70,8 @@ class CompraEntradaController extends Controller
                 throw new \Exception('El organizador de este evento no tiene una cuenta de Mercado Pago conectada. Intente de nuevo más tarde.');
             }
 
-            // --- INICIO: CAMBIOS REALIZADOS ---
-            // Establecer el Access Token del productor para esta operación de Mercado Pago
+            // --- Establecer el Access Token del productor para esta operación de Mercado Pago ---
             MercadoPagoConfig::setAccessToken($producerAccessToken);
-            // --- FIN: CAMBIOS REALIZADOS ---
 
             $totalAmount = 0;
             $itemsForMercadoPago = [];
@@ -99,16 +99,13 @@ class CompraEntradaController extends Controller
                     $subtotal = $entrada->precio * $cantidad;
                     $totalAmount += $subtotal;
 
-                    // --- INICIO: CAMBIOS REALIZADOS ---
-                    // Los items ahora son arrays asociativos, no objetos Item
                     $itemsForMercadoPago[] = [
                         "title" => $entrada->nombre . ' - ' . $evento->nombre,
-                        "quantity" => $cantidad,
+                        "quantity" => (int) $cantidad, // <<-- ¡CORRECCIÓN APLICADA AQUÍ!
                         "unit_price" => (float) $entrada->precio,
                         "currency_id" => 'ARS',
                         "id" => (string) $entrada->id,
                     ];
-                    // --- FIN: CAMBIOS REALIZADOS ---
 
                     $entradasSeleccionadas[] = [
                         'entrada_id' => $entrada->id,
@@ -135,8 +132,8 @@ class CompraEntradaController extends Controller
                 'items_data' => json_encode($entradasSeleccionadas),
             ]);
 
-            // --- INICIO: CAMBIOS REALIZADOS ---
-            // Construir el array de la preferencia para el cliente
+            // --- Construir el array de la preferencia para el cliente ---
+            // Asegúrate de que config('mercadopago.notification_url') esté definido y sea una URL válida
             $preferenceData = [
                 "items" => $itemsForMercadoPago,
                 "notification_url" => config('mercadopago.notification_url'),
@@ -159,7 +156,6 @@ class CompraEntradaController extends Controller
             // Instanciar el cliente de preferencias y crear la preferencia
             $preferenceClient = new PreferenceClient();
             $preference = $preferenceClient->create($preferenceData);
-            // --- FIN: CAMBIOS REALIZADOS ---
 
             $order->mp_preference_id = $preference->id;
             $order->save();
@@ -171,7 +167,6 @@ class CompraEntradaController extends Controller
         } catch (ValidationException $e) {
             DB::rollBack();
             return redirect()->back()->withErrors($e->validator->getMessageBag())->withInput();
-        // --- INICIO: CAMBIOS REALIZADOS ---
         } catch (MPApiException $e) {
             DB::rollBack();
             $apiResponseContent = $e->getApiResponse()->getContent();
@@ -188,7 +183,6 @@ class CompraEntradaController extends Controller
                 $errorMessage .= 'Status ' . $apiStatusCode . ' - Error desconocido.';
             }
             return redirect()->back()->withErrors(['error' => $errorMessage])->withInput();
-        // --- FIN: CAMBIOS REALIZADOS ---
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error general al iniciar compra con Mercado Pago: ' . $e->getMessage(), ['exception' => $e]);
@@ -222,18 +216,15 @@ class CompraEntradaController extends Controller
                     Log::critical('Webhook: Mercado Pago Platform Access Token es NULL. No se puede consultar el pago.');
                     return response()->json(['status' => 'error', 'message' => 'Configuración de token de plataforma faltante.'], 500);
                 }
-                // --- INICIO: CAMBIOS REALIZADOS ---
                 MercadoPagoConfig::setAccessToken($platformAccessToken); // Usamos el token de la plataforma para consultar el pago
-                // --- FIN: CAMBIOS REALIZADOS ---
 
-                $paymentClient = new PaymentClient(); // Usar el nuevo PaymentClient
+                $paymentClient = new PaymentClient();
                 $payment = $paymentClient->get($paymentId);
 
-                // La propiedad de estado de la respuesta del cliente de pago ya es el status code HTTP,
-                // no un objeto con 'status'. El objeto de pago en sí es lo que necesitas.
-                if ($payment->status === 200) { // Esto es el status del *pago*, no del HTTP
-                    // $payment es el objeto PaymentResource
-                    $externalReference = $payment->external_reference; // Ahora sí, obtenemos el external_reference del pago
+                // <<-- CORRECCIÓN ADICIONAL AQUÍ EN EL WEBHOOK -->>
+                // El status del objeto $payment es el estado del pago ('approved', 'pending', 'rejected'), no un código HTTP.
+                if ($payment->status === 'approved') {
+                    $externalReference = $payment->external_reference;
 
                     $order = Order::find($externalReference);
 
@@ -258,6 +249,8 @@ class CompraEntradaController extends Controller
                                                 $qrPath = 'qrcodes/' . $uniqueCode . '.png';
                                                 $qrContent = route('ticket.validate', ['code' => $uniqueCode]);
 
+                                                // Asegúrate de que el directorio storage/app/public/qrcodes exista y sea escribible
+                                                // php artisan storage:link si no lo has hecho
                                                 QrCode::format('png')->size(300)->generate($qrContent, storage_path('app/public/' . $qrPath));
 
                                                 PurchasedTicket::create([
@@ -290,13 +283,12 @@ class CompraEntradaController extends Controller
                         Log::warning('Webhook: Orden no encontrada o ya procesada con external_reference ' . $externalReference);
                     }
                 } else {
-                    Log::error('Webhook: Error al obtener detalles del pago ' . $paymentId . '. Status (HTTP): ' . $payment->status); // Corregido: payment->status es el estado HTTP de la respuesta de la API
+                    // Si el estado del pago no es 'approved', loguea el estado real para depuración.
+                    Log::warning('Webhook: Pago ' . $paymentId . ' no está en estado "approved". Estado actual: ' . $payment->status);
                 }
-            // --- INICIO: CAMBIOS REALIZADOS ---
             } catch (MPApiException $e) {
                 Log::error('Webhook (CompraEntradaController) MP API Error: ' . $e->getApiResponse()->getContent());
                 return response()->json(['status' => 'error', 'message' => 'Error de API al consultar el pago.'], 500);
-            // --- FIN: CAMBIOS REALIZADOS ---
             } catch (\Exception $e) {
                 Log::error('Error al procesar el pago de Mercado Pago con ID ' . $paymentId . ': ' . $e->getMessage(), ['exception' => $e]);
             }
