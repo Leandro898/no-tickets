@@ -59,6 +59,13 @@ return [
             'throw' => false,
             'report' => false,
         ],
+        
+        'qrcodes' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public/qrcodes'), // Los archivos QR se guardarán físicamente aquí
+            'url' => env('APP_URL').'/storage/qrcodes', // URL pública para acceder a ellos desde el navegador
+            'visibility' => 'public', // Los archivos serán accesibles públicamente
+        ],
 
     ],
 

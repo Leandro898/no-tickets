@@ -11,12 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('purchased_tickets', function (Blueprint $table) { // ¡Tabla purchased_tickets!
+        Schema::create('purchased_tickets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            // ¡Clave foránea a tu tabla 'entradas' existente!
             $table->foreignId('entrada_id')->constrained('entradas')->onDelete('cascade');
             $table->uuid('unique_code')->unique(); // UUID para el QR
+            $table->string('qr_path')->nullable(); // ¡AQUÍ ESTÁ LA COLUMNA QUE FALTABA!
             $table->string('status')->default('valid'); // valid, used, cancelled
             $table->timestamp('scanned_at')->nullable(); // Fecha y hora en que fue escaneada
             $table->timestamps();
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('purchased_tickets'); // ¡Tabla purchased_tickets!
+        Schema::dropIfExists('purchased_tickets');
     }
 };
