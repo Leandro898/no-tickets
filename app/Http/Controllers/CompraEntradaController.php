@@ -134,7 +134,8 @@ class CompraEntradaController extends Controller
 
             // --- Construir el array de la preferencia para el cliente ---
             // Asegúrate de que config('mercadopago.notification_url') esté definido y sea una URL válida
-            $preferenceData = [
+            
+		$preferenceData = [
                 "items" => $itemsForMercadoPago,
                 "notification_url" => config('mercadopago.notification_url'),
                 "back_urls" => [
@@ -143,15 +144,25 @@ class CompraEntradaController extends Controller
                     "pending" => route('purchase.pending', ['order' => $order->id]),
                 ],
                 "auto_return" => "approved",
-                "external_reference" => (string) $order->id, // Asegurarse de que sea string
+                "external_reference" => (string) $order->id,
                 "payer" => [
                     "email" => $validatedData['email'],
                     "name" => $validatedData['nombre'],
                     "phone" => [
                         "number" => $validatedData['buyer_phone'],
                     ],
+                ],
+                // >>>>> AÑADE ESTA LÍNEA AQUÍ PARA LA CONFIGURACIÓN DEL MARKETPLACE <<<<<
+                "marketplace_settings" => [ // Este es el campo correcto para la configuración del marketplace
+                    "application_id" => "1637242895100991" // Usa tu Client ID de prueba aquí
                 ]
             ];
+
+	// Opción 1: Para ver en los logs (y no detener la ejecución):
+            Log::info('Mercado Pago Preference Data (before sending):', $preferenceData);
+
+            // Opción 2: Para ver en el navegador y detener la ejecución (útil para una depuración rápida):
+            // dd($preferenceData);
 
             // Instanciar el cliente de preferencias y crear la preferencia
             $preferenceClient = new PreferenceClient();
