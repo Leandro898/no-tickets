@@ -4,217 +4,338 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use MercadoPago\MercadoPagoConfig;
-use MercadoPago\Client\OAuth\OAuthClient;
-use MercadoPago\Client\OAuth\OAuthCreateRequest;
+use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\Exceptions\MPApiException;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+use MercadoPago\Resources\Preference;
+use App\Models\Entrada;
+use App\Models\Order;
+use App\Models\PurchasedTicket;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User; // Asegúrate de tener este 'use' para tu modelo User
-// Si estás usando un modelo MercadoPagoAccount para guardar los tokens, impórtalo también
-// use App\Models\MercadoPagoAccount;
+use GuzzleHttp\Client;
 
 class MercadoPagoController extends Controller
 {
     public function __construct()
     {
-        // Establece el Access Token de TU PLATAFORMA (el que pusiste en .env)
-        // Este token se usa para llamadas a la API que no son específicas de un vendedor (ej. consultar pagos en el webhook si no tienes el token del vendedor)
         $platformAccessToken = config('mercadopago.platform_access_token');
 
         if (is_null($platformAccessToken)) {
-            Log::critical('Mercado Pago Access Token de Plataforma es NULL. La integración no funcionará correctamente.');
-            // En un entorno de producción, aquí podrías lanzar una excepción o redirigir a una página de error de configuración.
-            // throw new \Exception('Mercado Pago Platform Access Token no configurado.');
+            Log::critical('Mercado Pago Access Token de Plataforma es NULL. La integración de Checkout Pro no funcionará correctamente.');
+        } else {
+            MercadoPagoConfig::setAccessToken($platformAccessToken);
+            // ¡CORRECCIÓN FINAL AQUÍ! Volvemos a usar MercadoPagoConfig::LOCAL y MercadoPagoConfig::SERVER
+            // Estas constantes son las que tu versión del SDK reconoce.
+            MercadoPagoConfig::setRuntimeEnviroment(config('mercadopago.sandbox') ? MercadoPagoConfig::LOCAL : MercadoPagoConfig::SERVER);
+            Log::info('MercadoPagoConfig: Access Token de plataforma configurado en el constructor.');
         }
-
-        MercadoPagoConfig::setAccessToken($platformAccessToken);
-        // Configura el entorno: true para Sandbox, false para Producción
-        MercadoPagoConfig::setRuntimeEnviroment(config('mercadopago.sandbox') ? MercadoPagoConfig::LOCAL : MercadoPagoConfig::SERVER);
     }
 
     /**
-     * Redirige al usuario a la página de autorización de Mercado Pago (OAuth).
-     * @return \Illuminate\Http\RedirectResponse
+     * Crea una preferencia de pago en Mercado Pago para una orden dada.
+     * Este método será llamado *desde* el CompraEntradaController.
+     * No es una ruta web directa para el usuario.
+     *
+     * @param array $items Array de ítems formateado para Mercado Pago.
+     * @param array $payer Array de datos del pagador formateado para Mercado Pago.
+     * @param string $externalReference Tu ID de orden/referencia externa.
+     * @param array $backUrls URLs de retorno (success, failure, pending).
+     * @return Preference El objeto Preference de Mercado Pago.
+     * @throws MPApiException
+     * @throws \Exception
      */
+    public function createPreference(array $items, array $payer, string $externalReference, array $backUrls): Preference
+    {
+        // Asegúrate de que el notification_url está bien configurado en config/mercadopago.php
+        $notificationUrl = config('mercadopago.notification_url');
+        if (empty($notificationUrl)) {
+            Log::critical('Mercado Pago Notification URL es NULL o vacío. El webhook no funcionará correctamente.');
+            throw new \Exception('La URL de notificación de Mercado Pago no está configurada.');
+        }
+
+        $requestData = [
+            "items" => $items,
+            "payer" => $payer,
+            "payment_methods" => [
+                "excluded_payment_methods" => [],
+                "excluded_payment_types" => [],
+                "installments" => 12, // Permite hasta 12 cuotas
+                "default_payment_method_id" => null
+            ],
+            "back_urls" => $backUrls,
+            "statement_descriptor" => "TU_NEGOCIO", // Reemplaza con el nombre de tu negocio en el extracto de tarjeta
+            "external_reference" => $externalReference,
+            "expires" => true,
+            "expiration_date_from" => Carbon::now()->format('Y-m-d\TH:i:s.000O'),
+            "expiration_date_to" => Carbon::now()->copy()->addHours(2)->format('Y-m-d\TH:i:s.000O'), // Preferencia válida por 2 horas
+            "auto_return" => 'approved', // Redirecciona automáticamente solo si el pago es aprobado
+            "notification_url" => $notificationUrl,
+            "binary_mode" => false // Permite que Mercado Pago realice reintentos automáticos
+            // Para Checkout Pro simple, NO incluimos 'marketplace_settings'.
+        ];
+
+        Log::info('Datos de preferencia enviados a Mercado Pago:', ['request' => $requestData]);
+
+        $client = new PreferenceClient();
+        return $client->create($requestData);
+    }
+
+    /**
+     * Maneja las notificaciones de webhook de Mercado Pago.
+     * Esta es la URL a la que Mercado Pago enviará actualizaciones de pago.
+     * La ruta asociada a este método será POST /api/mercadopago/webhook.
+     */
+    public function handleWebhook(Request $request)
+    {
+        Log::info('Webhook de Mercado Pago recibido en MercadoPagoController.', $request->all());
+
+        $topic = $request->input('topic');
+        $type = $request->input('type');
+
+        $paymentId = null;
+
+        if ($topic === 'payment' && $request->has('id')) {
+            $paymentId = $request->input('id');
+            Log::info("Webhook de Mercado Pago: Notificación (topic) con ID: {$paymentId}.");
+        } elseif (($type === 'payment' || $type === 'created_payment' || $type === 'updated_payment') && $request->has('data.id')) {
+            $paymentId = $request->input('data.id');
+            Log::info("Webhook de Mercado Pago: Notificación (type/data.id) con ID: {$paymentId}.");
+        } elseif ($request->has('action') && Str::startsWith($request->input('action'), 'payment.') && $request->has('data.id')) {
+            $paymentId = $request->input('data.id');
+            Log::info("Webhook de Mercado Pago: Notificación (action) con ID: {$paymentId}.");
+        } else {
+            Log::info('Webhook de Mercado Pago: Tipo de notificación no relevante para pago o ID no encontrado.', $request->all());
+            return response()->json(['status' => 'ignored', 'message' => 'Tipo de notificación no relevante o ID de pago no encontrado.'], 200);
+        }
+
+        if (is_null($paymentId)) {
+            Log::warning('Webhook de Mercado Pago: ID de pago no pudo ser extraído de la notificación.', $request->all());
+            return response()->json(['status' => 'error', 'message' => 'ID de pago no pudo ser extraído.'], 400);
+        }
+
+        try {
+            $paymentClient = new PaymentClient();
+            $payment = $paymentClient->get($paymentId);
+
+            Log::info('Detalles del pago de Mercado Pago recuperados.', ['payment_id' => $payment->id, 'status' => $payment->status]);
+
+            $externalReference = $payment->external_reference;
+            if (empty($externalReference)) {
+                Log::error('Webhook: external_reference es nulo o vacío para el pago ' . $payment->id);
+                return response()->json(['status' => 'error', 'message' => 'external_reference no encontrado en el pago de MP'], 400);
+            }
+
+            $order = Order::find($externalReference);
+
+            if ($order) {
+                $currentOrderStatus = $this->mapMercadoPagoStatusToOrderStatus($payment->status);
+
+                if ($order->payment_status !== $currentOrderStatus) {
+                    DB::beginTransaction();
+                    try {
+                        $order->payment_status = $currentOrderStatus;
+                        $order->mp_payment_id = $payment->id;
+                        // Asegúrate de que tu migración tenga este campo 'payment_details' (tipo JSON)
+                        //$order->payment_details = json_encode($payment);
+                        $order->save();
+
+                        // Lógica específica si el pago es aprobado (emitir tickets, decrementar stock)
+                        if ($order->payment_status === 'approved') {
+                            // Asegúrate de que los tickets no se dupliquen si el webhook se llama varias veces.
+                            if (!$order->purchasedTickets()->exists()) {
+                                // Asegúrate de que tu migración tenga este campo 'items_data' (tipo JSON)
+                                $itemsData = json_decode($order->items_data, true);
+
+                                if (is_array($itemsData)) {
+                                    foreach ($itemsData as $item) {
+                                        $entrada = Entrada::find($item['entrada_id']);
+                                        $cantidad = $item['cantidad'];
+
+                                        if ($entrada) {
+                                            for ($i = 0; $i < $cantidad; $i++) {
+                                                $uniqueCode = (string) Str::uuid();
+                                                $qrPath = 'qrcodes/' . $uniqueCode . '.png';
+                                                $qrContent = route('ticket.validate', ['code' => $uniqueCode]);
+
+                                                if (!Storage::disk('public')->exists('qrcodes')) {
+                                                    Storage::disk('public')->makeDirectory('qrcodes');
+                                                }
+                                                QrCode::format('png')->size(300)->generate($qrContent, storage_path('app/public/' . $qrPath));
+
+                                                PurchasedTicket::create([
+                                                    'order_id' => $order->id,
+                                                    'entrada_id' => $entrada->id,
+                                                    'unique_code' => $uniqueCode,
+                                                    'qr_path' => $qrPath,
+                                                    'status' => 'valid',
+                                                ]);
+                                            }
+                                            $entrada->decrement('stock_actual', $cantidad);
+                                            Log::info("Stock de entrada '{$entrada->nombre}' decrementado en {$cantidad}. Nuevo stock: {$entrada->stock_actual}");
+                                        } else {
+                                            Log::warning('Webhook: Entrada ID ' . $item['entrada_id'] . ' no encontrada para la orden ' . $order->id);
+                                        }
+                                    }
+                                    Log::info('Tickets generados y stock actualizado para la orden ' . $order->id);
+                                } else {
+                                    Log::error('Webhook: items_data no es un array válido en la orden ' . $order->id);
+                                }
+                            } else {
+                                Log::info('Webhook: Tickets ya emitidos para la orden ' . $order->id . '. No se requiere re-emisión.');
+                            }
+                        }
+
+                        DB::commit();
+                        Log::info('Orden ' . $order->id . ' actualizada a estado "' . $currentOrderStatus . '" por webhook.');
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        Log::error('Error en transacción de webhook para orden ' . $order->id . ': ' . $e->getMessage(), ['exception' => $e]);
+                        return response()->json(['status' => 'error', 'message' => 'Error al actualizar la orden en transacción.'], 500);
+                    }
+                } else {
+                    Log::info('Webhook: Estado de pago para orden ' . $order->id . ' no ha cambiado. Ignorando.', ['current_status' => $order->payment_status, 'new_status' => $currentOrderStatus]);
+                }
+            } else {
+                Log::warning('Webhook: Orden no encontrada con external_reference ' . $externalReference . ' para el pago ' . $paymentId);
+                return response()->json(['status' => 'not_found', 'message' => 'Orden no encontrada en el sistema.'], 404);
+            }
+        } catch (MPApiException $e) {
+            $apiErrorContent = $e->getApiResponse() ? $e->getApiResponse()->getContent() : 'No API response content';
+            if (is_array($apiErrorContent) || is_object($apiErrorContent)) {
+                $apiErrorContent = json_encode($apiErrorContent);
+            } else {
+                $apiErrorContent = (string) $apiErrorContent;
+            }
+            $statusCode = $e->getApiResponse() ? $e->getApiResponse()->getStatusCode() : 500;
+            Log::error('Webhook MP API Error al consultar pago: ' . $apiErrorContent, ['exception' => $e, 'status_code' => $statusCode]);
+            return response()->json(['status' => 'error', 'message' => 'Error de API al consultar el pago.'], $statusCode);
+        } catch (\Exception $e) {
+            Log::error('Error general al procesar el webhook de Mercado Pago con ID ' . ($paymentId ?? 'N/A') . ': ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['status' => 'error', 'message' => 'Error interno del servidor al procesar webhook.'], 500);
+        }
+
+        return response()->json(['status' => 'success'], 200);
+    }
+
+    /**
+     * Mapea el estado de pago de Mercado Pago a un estado de orden interno.
+     * Puedes personalizar estos estados según tu modelo de Order.
+     */
+    private function mapMercadoPagoStatusToOrderStatus($mpStatus): string
+    {
+        switch ($mpStatus) {
+            case 'approved':
+                return 'approved';
+            case 'pending':
+            case 'in_process':
+            case 'in_mediation':
+                return 'pending';
+            case 'rejected':
+            case 'cancelled':
+            case 'refunded':
+            case 'charged_back':
+                return 'cancelled';
+            default:
+                return 'unknown';
+        }
+    }
+
+    // --- Métodos de retorno de Mercado Pago (para la redirección del usuario) ---
+    public function success(Request $request, Order $order)
+    {
+        Log::info('MercadoPago Success redirección para orden ' . $order->id, $request->all());
+        $order->refresh();
+        return view('purchase.success', compact('order'));
+    }
+
+    public function failure(Request $request, Order $order)
+    {
+        Log::warning('MercadoPago Failed redirección para orden ' . $order->id, $request->all());
+        $order->refresh();
+        return view('purchase.failure', compact('order'));
+    }
+
+    public function pending(Request $request, Order $order)
+    {
+        Log::info('MercadoPago Pending redirección para orden ' . $order->id, $request->all());
+        $order->refresh();
+        return view('purchase.pending', compact('order'));
+    }
+
+    // --- Métodos para OAuth de Mercado Pago (para el futuro Marketplace) ---
     public function connect()
     {
-        // Asegúrate de que el usuario esté autenticado en tu plataforma antes de intentar conectar MP
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Debes iniciar sesión para conectar tu cuenta de Mercado Pago.');
-        }
-
-        // Si el usuario ya tiene una cuenta MP conectada, lo informamos y redirigimos a su estado
-        // Asumiendo que has añadido el método hasMercadoPagoAccount() a tu modelo User
-        if (Auth::user()->mp_access_token) { // O Auth::user()->hasMercadoPagoAccount() si lo implementaste
-            return redirect()->route('mercadopago.status')->with('info', 'Tu cuenta de Mercado Pago ya está conectada.');
-        }
-
         $clientId = config('mercadopago.client_id');
-        // ¡CORRECCIÓN CLAVE AQUÍ! Genera una URL absoluta para el redirect_uri
-        $redirectUri = route('mercadopago.callback', [], true); // El 'true' asegura que sea una URL completa (https://...)
+        $redirectUri = route('mercadopago.callback');
 
-        // Scopes (permisos) necesarios para una integración de Marketplace:
-        $scopes = [
-            'offline_access', // Para obtener un refresh_token y mantener la conexión a largo plazo.
-            'read',           // Para leer información de la cuenta del vendedor (ej. pagos, datos de la cuenta).
-            'write'           // Para realizar acciones en nombre del vendedor (ej. crear pagos, gestionar reembolsos).
-        ];
-        $scopesString = implode('%20', $scopes); // Formato requerido para la URL (espacios codificados como %20)
+        $authUrl = "https://auth.mercadopago.com.ar/oauth/authorize?" .
+            "client_id={$clientId}&" .
+            "response_type=code&" .
+            "platform_id=mp&" .
+            "redirect_uri=" . urlencode($redirectUri);
 
-        // La URL de autorización de Mercado Pago
-        // Nota: Mercado Pago usa 'authorization' o 'oauth/authorize'. Tu URL actual es correcta.
-        $authUrl = "https://auth.mercadopago.com/authorization?client_id={$clientId}&response_type=code&platform_id=mp&redirect_uri={$redirectUri}&scope={$scopesString}";
-
-        Log::info('Mercado Pago Connect: Redirigiendo a URL de autorización: ' . $authUrl);
-
-        try {
-            return redirect()->away($authUrl); // Redirige a una URL externa
-        } catch (\Exception $e) {
-            Log::error('Error al generar URL de autorización de Mercado Pago: ' . $e->getMessage());
-            return redirect()->route('dashboard')->with('error', 'No se pudo iniciar el proceso de conexión con Mercado Pago.');
-        }
+        Log::info('Iniciando conexión OAuth con Mercado Pago', ['url' => $authUrl]);
+        return redirect()->away($authUrl);
     }
 
-    /**
-     * Maneja el callback de Mercado Pago después de la autorización OAuth.
-     * Aquí se intercambia el código de autorización por los tokens de acceso del vendedor.
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function callback(Request $request)
     {
-        Log::info('Mercado Pago OAuth Callback: Inicio del proceso.');
-        Log::info('Mercado Pago OAuth Callback: Request all data:', $request->all());
-
-        $code = $request->input('code');
-
-        // Manejo de errores si el usuario deniega la autorización o hay un error de MP
-        if ($request->has('error') || $request->has('error_description')) {
-            $error = $request->input('error');
-            $errorDescription = $request->input('error_description');
-            Log::warning('Mercado Pago OAuth Callback: Autorización denegada o error. Error: ' . $error . ' - Descripción: ' . $errorDescription);
-            return redirect()->route('mercadopago.status')->with('error', 'Autorización de Mercado Pago denegada o con error: ' . ($errorDescription ?: 'Error desconocido.'));
-        }
-
-        // Verificar si se recibió el código de autorización (esencial para continuar)
+        $code = $request->query('code');
         if (!$code) {
-            Log::error('Mercado Pago OAuth Callback: No se recibió el código de autorización.');
-            return redirect()->route('mercadopago.status')->with('error', 'No se pudo conectar la cuenta de Mercado Pago. Motivo: Código de autorización no recibido.');
+            Log::error('OAuth Callback: No se recibió el código de autorización de Mercado Pago.');
+            return redirect()->route('mercadopago.status')->with('error', 'No se pudo conectar la cuenta de Mercado Pago. Código de autorización no recibido.');
         }
-
-        // ¡CORRECCIÓN CLAVE AQUÍ! Genera una URL absoluta para el redirect_uri también en el callback
-        $redirectUri = route('mercadopago.callback', [], true);
-        $clientId = config('mercadopago.client_id');
-        $clientSecret = config('mercadopago.client_secret');
-
-        // Validar que las credenciales de la aplicación están configuradas en .env y config/mercadopago.php
-        if (is_null($clientSecret) || is_null($clientId)) {
-            Log::critical('Mercado Pago Client ID o Client Secret es NULL en el callback. Verifica tu archivo de configuración.');
-            return redirect()->route('mercadopago.status')->with('error', 'Error de configuración: Credenciales de la aplicación no encontradas.');
-        }
-
-        Log::info('Mercado Pago OAuth Callback: Client ID: ' . $clientId);
-        Log::info('Mercado Pago OAuth Callback: Client Secret cargado (parcial): ' . substr($clientSecret, 0, 5) . '...');
-        Log::info('Mercado Pago OAuth Callback: Redirect URI: ' . $redirectUri);
-        Log::info('Mercado Pago OAuth Callback: Código recibido: ' . $code);
 
         try {
-            // No es necesario establecer el Access Token de la plataforma aquí,
-            // ya que esta llamada es para intercambiar el código por el token del vendedor.
-            // La librería de MP ya usa client_id y client_secret para esta operación.
-
-            $oAuthClient = new OAuthClient();
-            Log::info('Mercado Pago OAuth Callback: Instancia de OAuthClient creada.');
-
-            $requestOAuth = new OAuthCreateRequest();
-            $requestOAuth->code = $code;
-            $requestOAuth->redirect_uri = $redirectUri;
-            $requestOAuth->client_id = $clientId;
-            $requestOAuth->client_secret = $clientSecret;
-            $requestOAuth->grant_type = 'authorization_code';
-
-            Log::info('Mercado Pago OAuth Request data BEFORE SENDING to Mercado Pago API:', [
-                'code' => $requestOAuth->code,
-                'redirect_uri' => $requestOAuth->redirect_uri,
-                'client_id' => $requestOAuth->client_id,
-                'client_secret' => substr($requestOAuth->client_secret, 0, 5) . '...',
-                'grant_type' => $requestOAuth->grant_type
+            $client = new Client();
+            $response = $client->post('https://api.mercadopago.com/oauth/token', [
+                'json' => [
+                    'client_id' => config('mercadopago.client_id'),
+                    'client_secret' => config('mercadopago.client_secret'),
+                    'code' => $code,
+                    'redirect_uri' => route('mercadopago.callback'),
+                    'grant_type' => 'authorization_code',
+                ]
             ]);
 
-            $response = $oAuthClient->create($requestOAuth);
-
-            Log::info('Mercado Pago OAuth Callback: Respuesta de la API de Mercado Pago recibida con éxito.');
-            Log::info('Mercado Pago OAuth Callback: Datos clave de la respuesta:', [
-                'access_token_exists' => !empty($response->access_token),
-                'refresh_token_exists' => !empty($response->refresh_token),
-                'user_id' => $response->user_id ?? 'N/A',
-                'expires_in' => $response->expires_in ?? 'N/A',
-                'public_key_exists' => !empty($response->public_key),
-            ]);
-
-            /** @var \App\Models\User $user */
+            $data = json_decode($response->getBody()->getContents(), true);
             $user = Auth::user();
+            if ($user) {
+                $user->mp_access_token = $data['access_token'];
+                $user->mp_refresh_token = $data['refresh_token'];
+                $user->mp_public_key = $data['public_key'] ?? null;
+                $user->mp_user_id = $data['user_id'] ?? null;
+                $user->mp_expires_in = Carbon::now()->addSeconds($data['expires_in']);
+                $user->save();
 
-            if (!$user) {
-                Log::error('Mercado Pago OAuth Callback: Usuario autenticado no encontrado. No se pudo guardar el token.');
-                return redirect()->route('mercadopago.status')->with('error', 'No se pudo guardar la conexión. Usuario no autenticado.');
-            }
-
-            // Guarda los tokens y el user_id de Mercado Pago en tu base de datos (modelo User)
-            $user->mp_access_token = $response->access_token;
-            $user->mp_refresh_token = $response->refresh_token ?? null;
-            $user->mp_public_key = $response->public_key ?? null;
-            $user->mp_user_id = $response->user_id;
-            $user->mp_expires_in = now()->addSeconds($response->expires_in);
-
-            $user->save();
-
-            Log::info('Mercado Pago OAuth Callback: Cuenta conectada y tokens guardados exitosamente para user_id: ' . $user->id . ' (MP User ID: ' . $user->mp_user_id . ')');
-            return redirect()->route('mercadopago.status')->with('success', 'Cuenta de Mercado Pago conectada exitosamente.');
-
-        } catch (MPApiException $e) {
-            $apiResponseContent = $e->getApiResponse()->getContent();
-            $apiStatusCode = $e->getApiResponse()->getStatusCode();
-
-            Log::error('Mercado Pago OAuth Callback API Error: Status ' . $apiStatusCode . ' - Content: ' . json_encode($apiResponseContent));
-
-            $errorMessage = 'Error de API al conectar con Mercado Pago: ';
-            if (isset($apiResponseContent['message'])) {
-                $errorMessage .= $apiResponseContent['message'];
-            } elseif (isset($apiResponseContent['error_description'])) {
-                $errorMessage .= $apiResponseContent['error_description'];
+                Log::info('Tokens de Mercado Pago guardados para el usuario ' . $user->id, ['mp_user_id' => $data['user_id'] ?? 'N/A']);
+                return redirect()->route('mercadopago.status')->with('success', 'Cuenta de Mercado Pago conectada exitosamente!');
             } else {
-                $errorMessage .= 'Status ' . $apiStatusCode . ' - Error desconocido.';
+                Log::error('OAuth Callback: Usuario no autenticado o no encontrado para guardar tokens de Mercado Pago.');
+                return redirect()->route('mercadopago.status')->with('error', 'Error interno al guardar los tokens de Mercado Pago.');
             }
-
-            return redirect()->route('mercadopago.status')->with('error', $errorMessage);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $errorContent = json_decode($response->getBody()->getContents(), true);
+            Log::error('Error de API al intercambiar código OAuth: ' . $e->getMessage(), ['error_response' => $errorContent]);
+            return redirect()->route('mercadopago.status')->with('error', 'Error al conectar con Mercado Pago: ' . ($errorContent['message'] ?? 'Error desconocido.'));
         } catch (\Exception $e) {
-            Log::error('Mercado Pago OAuth Callback: Error general al conectar con Mercado Pago: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
-            return redirect()->route('mercadopago.status')->with('error', 'Error inesperado al conectar con Mercado Pago: ' . $e->getMessage());
+            Log::error('Error inesperado en OAuth Callback: ' . $e->getMessage());
+            return redirect()->route('mercadopago.status')->with('error', 'Ocurrió un error inesperado al conectar tu cuenta de Mercado Pago.');
         }
     }
 
-    /**
-     * Desvincula la cuenta de Mercado Pago de un usuario (elimina los tokens de la DB).
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function unlinkMPAccount(Request $request)
     {
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Debes iniciar sesión para desvincular tu cuenta de Mercado Pago.');
-        }
-
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-
-        if (!$user->mp_access_token) { // O $user->hasMercadoPagoAccount()
-            return redirect()->route('mercadopago.status')->with('info', 'Tu cuenta de Mercado Pago no está conectada.');
-        }
-
-        try {
-            // Opcional: Si Mercado Pago ofrece una API para revocar el token de forma remota,
-            // la llamarías aquí. Actualmente, solo limpiamos los datos locales.
+        if ($user) {
             $user->mp_access_token = null;
             $user->mp_refresh_token = null;
             $user->mp_public_key = null;
@@ -222,61 +343,9 @@ class MercadoPagoController extends Controller
             $user->mp_expires_in = null;
             $user->save();
 
-            Log::info('Mercado Pago Unlink: Cuenta desvinculada exitosamente para user_id: ' . $user->id);
-            return redirect()->route('mercadopago.status')->with('success', 'Tu cuenta de Mercado Pago ha sido desvinculada.');
-        } catch (\Exception $e) {
-            Log::error('Error al desvincular la cuenta de Mercado Pago para user_id: ' . $user->id . ' - ' . $e->getMessage());
-            return redirect()->route('mercadopago.status')->with('error', 'Error al desvincular tu cuenta de Mercado Pago.');
+            Log::info('Cuenta de Mercado Pago desvinculada para el usuario ' . $user->id);
+            return redirect()->route('mercadopago.status')->with('success', 'Cuenta de Mercado Pago desvinculada.');
         }
-    }
-
-    /**
-     * Maneja las notificaciones de Webhook/IPN de Mercado Pago.
-     * Esta URL debe ser configurada en tu panel de Mercado Pago.
-     * @param Request $request
-     * @return \Illuminate\Http\Response
-     */
-    public function handleWebhook(Request $request)
-    {
-        // Este webhook es para notificaciones generales de la plataforma.
-        // La lógica de creación de tickets y actualización de stock la tenemos en CompraEntradaController.
-        // Si este webhook recibe un 'payment' y necesitas procesarlo, puedes redirigir la lógica
-        // o llamar a un servicio compartido.
-        Log::info('Mercado Pago Webhook Received in MercadoPagoController:', $request->all());
-
-        $type = $request->input('type');
-        $dataId = $request->input('data.id');
-
-        if ($type === 'payment' && $dataId) {
-            try {
-                $platformAccessToken = config('mercadopago.platform_access_token');
-                if (is_null($platformAccessToken)) {
-                    Log::critical('Webhook (MercadoPagoController): Mercado Pago Platform Access Token es NULL. No se puede consultar el pago.');
-                    return response()->json(['status' => 'error', 'message' => 'Configuración de token de plataforma faltante.'], 500);
-                }
-                MercadoPagoConfig::setAccessToken($platformAccessToken); // Asegura que se usa el token de la plataforma para consultar
-
-                $paymentClient = new \MercadoPago\Client\Payment\PaymentClient();
-                $payment = $paymentClient->get($dataId);
-
-                if ($payment->status === 200) {
-                    Log::info('Webhook (MercadoPagoController): Payment fetched. Status: ' . $payment->status . ', External Ref: ' . ($payment->external_reference ?? 'N/A'));
-                    // Aquí podrías tener lógica para actualizar el estado de órdenes si no lo hace CompraEntradaController
-                    // O simplemente loguear y dejar que CompraEntradaController maneje la lógica principal.
-                    return response()->json(['status' => 'success', 'message' => 'Webhook de pago procesado en MercadoPagoController.'], 200);
-                } else {
-                    Log::error('Webhook (MercadoPagoController): Error al obtener detalles del pago ' . $dataId . '. Status: ' . $payment->status);
-                    return response()->json(['status' => 'error', 'message' => 'Error al consultar el pago en MP.'], 500);
-                }
-            } catch (MPApiException $e) {
-                Log::error('Webhook (MercadoPagoController) MP API Error: ' . $e->getApiResponse()->getContent());
-                return response()->json(['status' => 'error', 'message' => 'Error de API al consultar el pago.'], 500);
-            } catch (\Exception $e) {
-                Log::error('Webhook (MercadoPagoController) general Error: ' . $e->getMessage());
-                return response()->json(['status' => 'error', 'message' => 'Error interno del servidor.'], 500);
-            }
-        }
-
-        return response()->json(['status' => 'error', 'message' => 'Tipo de notificación o ID no reconocido en MercadoPagoController.'], 400);
+        return redirect()->route('mercadopago.status')->with('error', 'No se pudo desvincular la cuenta de Mercado Pago.');
     }
 }

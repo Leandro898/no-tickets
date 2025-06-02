@@ -1,11 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CompraEntradaController;
-use App\Http\Controllers\MercadoPagoController;
-use App\Http\Controllers\TicketValidationController;
-use App\Http\Controllers\EventoController;
-// NO necesitarás importar LoginController ni RegisterController si Filament maneja la autenticación.
+use App\Http\Controllers\CompraEntradaController; // Para la compra de entradas
+use App\Http\Controllers\MercadoPagoController;   // Para interacción directa con MP
+use App\Http\Controllers\TicketValidationController; // Para la validación de tickets
+use App\Http\Controllers\EventoController; // Si lo sigues usando para mostrar eventos
 
 /*
 |--------------------------------------------------------------------------
@@ -17,21 +16,18 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// --- NO INCLUIR Auth::routes(); AQUÍ SI USAS FILAMENT PARA AUTENTICACIÓN ---
-
-// ... (el resto de tus rutas existentes) ...
-
-// --- Rutas del flujo de compra de entradas (UNIFICADAS) ---
+// --- Rutas del flujo de compra de entradas (Gestionadas por CompraEntradaController) ---
 Route::get('/eventos/{evento}/comprar', [CompraEntradaController::class, 'show'])->name('comprar.entrada');
 Route::post('/eventos/{evento}/comprar', [CompraEntradaController::class, 'store'])->name('comprar.store');
 
-// Rutas de redirección de Mercado Pago (éxito, fallo, pendiente)
-Route::get('/purchase/success/{order}', [CompraEntradaController::class, 'success'])->name('purchase.success');
-Route::get('/purchase/failure/{order}', [CompraEntradaController::class, 'failure'])->name('purchase.failure');
-Route::get('/purchase/pending/{order}', [CompraEntradaController::class, 'pending'])->name('purchase.pending');
+// --- Rutas de redirección de Mercado Pago (Gestionadas por MercadoPagoController) ---
+// Estas rutas son las 'back_urls' configuradas en la preferencia
+Route::get('/purchase/success/{order}', [MercadoPagoController::class, 'success'])->name('purchase.success');
+Route::get('/purchase/failure/{order}', [MercadoPagoController::class, 'failure'])->name('purchase.failure');
+Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'])->name('purchase.pending');
 
 
-// --- Rutas para la conexión OAuth de Mercado Pago (para vendedores/organizadores) ---
+// --- Rutas para la conexión OAuth de Mercado Pago (siempre en MercadoPagoController) ---
 Route::middleware(['auth'])->group(function () {
     Route::get('/mercadopago/connect', [MercadoPagoController::class, 'connect'])->name('mercadopago.connect');
     Route::get('/mercadopago/callback', [MercadoPagoController::class, 'callback'])->name('mercadopago.callback');
@@ -41,13 +37,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/mercadopago/unlink', [MercadoPagoController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
 });
 
-// --- Ruta para el WEBHOOK de Mercado Pago (¡CRÍTICO!) ---
-Route::post('/api/mercadopago/webhook', [CompraEntradaController::class, 'handleWebhook'])->name('mercadopago.webhook');
+// --- Ruta para el WEBHOOK de Mercado Pago (¡CRÍTICO! - siempre en MercadoPagoController) ---
+// Asegúrate de que esta URL sea accesible públicamente (con ngrok o dominio real)
+//Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
 
 // --- Rutas para la gestión y validación de tickets ---
-Route::get('/tickets', [CompraEntradaController::class, 'index'])->name('tickets.index');
+Route::get('/tickets', [CompraEntradaController::class, 'index'])->name('tickets.index'); // Aquí mostramos las entradas compradas
 Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
 Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 
 //Ruta eventos.show
 Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+
+// --- Puedes eliminar estas rutas de prueba si ya no las necesitas ---
+// Route::get('/pagar', [MercadoPagoController::class, 'showPaymentPage'])->name('mercadopago.pay');
+// Route::post('/pagar/crear-preferencia', [MercadoPagoController::class, 'createPaymentPreference'])->name('mercadopago.create_test_preference');
