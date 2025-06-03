@@ -33,4 +33,17 @@ class Order extends Model
     {
         return $this->belongsTo(Evento::class, 'event_id');
     }
-}
+
+    /**
+     * Relacion de Order con User
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relacion de Order con Ticket
+     */
+ 
+}  
