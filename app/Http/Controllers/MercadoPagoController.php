@@ -135,6 +135,23 @@ class MercadoPagoController extends Controller
             $order = Order::find($externalReference);
 
             if ($order) {
+                // === INICIO DE VALIDACION DEL MONTO ===
+                if (abs($order->total_amount - $payment->transaction_amount) > 0.01) {
+                    Log::error('Webhook: Monto de pago NO COINCIDE para la orden ' . $order->id, [
+                        'order_id' => $order->id,
+                        'expected_amount' => $order->total_amount,
+                        'received_amount' => $payment->transaction_amount,
+                        'mp_payment_id' => $payment->id,
+                        'status' => $payment->status
+                    ]);
+                    // Lo mas seguro es no procesar la orden como aprobada si el monto no coincide
+                    // Se podria cambiar el estado de la orden a 'monto_no_coincide' o similar  alertar
+                    // Por ahora, devolver un 200 OK para no reintentar el webhook pero con un log claro
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'El monto del pago NO coincide con el de la orden.'
+                    ], 200); // 200 OK para que MP no reintente. El error aparece en el log
+                }
                 $currentOrderStatus = $this->mapMercadoPagoStatusToOrderStatus($payment->status);
 
                 if ($order->payment_status !== $currentOrderStatus) {
