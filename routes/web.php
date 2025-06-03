@@ -2,9 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CompraEntradaController; // Para la compra de entradas
+use App\Http\Controllers\MailController;
 use App\Http\Controllers\MercadoPagoController;   // Para interacción directa con MP
 use App\Http\Controllers\TicketValidationController; // Para la validación de tickets
 use App\Http\Controllers\EventoController; // Si lo sigues usando para mostrar eventos
+use Illuminate\Support\Facades\Log;
+
+// PARA ENVIAR EMAIL
+use Illuminate\Support\Facades\Mail;
 
 /*
 |--------------------------------------------------------------------------
@@ -52,3 +57,28 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 // --- Puedes eliminar estas rutas de prueba si ya no las necesitas ---
 // Route::get('/pagar', [MercadoPagoController::class, 'showPaymentPage'])->name('mercadopago.pay');
 // Route::post('/pagar/crear-preferencia', [MercadoPagoController::class, 'createPaymentPreference'])->name('mercadopago.create_test_preference');
+
+// PRUEBA DE ENVIAR EMAIL
+
+Route::get('/send-mail', [MailController::class, 'index']);
+
+// Route::get('/probar-email', function () {
+//     try {
+//         Log::info('Intentando enviar correo...');
+
+//         Mail::send([], [], function ($message) {
+//             $message->from('leandcief@gmail.com', 'Nombre del sitio');
+//             $message->to('neuquenrenault@gmail.com');
+//             $message->subject('Correo de Prueba Laravel');
+
+//             // Esta es la forma correcta en Laravel 12 para correo HTML sin vista
+//             $message->html('<h1>Hola</h1><p>Este es un correo de prueba enviado desde Laravel con Gmail SMTP.</p>');
+//         });
+
+//         Log::info('Correo enviado correctamente.');
+//         return 'Correo enviado correctamente. Revisá tu bandeja de entrada (y también SPAM).';
+//     } catch (\Exception $e) {
+//         Log::error('Error al enviar el correo: ' . $e->getMessage());
+//         return 'Error al enviar correo. Revisá storage/logs/laravel.log';
+//     }
+// });
