@@ -44,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
 
 // --- Ruta para el WEBHOOK de Mercado Pago (¡CRÍTICO! - siempre en MercadoPagoController) ---
 // Asegúrate de que esta URL sea accesible públicamente (con ngrok o dominio real)
-//Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
+Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
 
 // --- Rutas para la gestión y validación de tickets ---
 Route::get('/tickets', [CompraEntradaController::class, 'index'])->name('tickets.index'); // Aquí mostramos las entradas compradas
@@ -57,28 +57,3 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 // --- Puedes eliminar estas rutas de prueba si ya no las necesitas ---
 // Route::get('/pagar', [MercadoPagoController::class, 'showPaymentPage'])->name('mercadopago.pay');
 // Route::post('/pagar/crear-preferencia', [MercadoPagoController::class, 'createPaymentPreference'])->name('mercadopago.create_test_preference');
-
-// PRUEBA DE ENVIAR EMAIL
-
-Route::get('/send-mail', [MailController::class, 'index']);
-
-// Route::get('/probar-email', function () {
-//     try {
-//         Log::info('Intentando enviar correo...');
-
-//         Mail::send([], [], function ($message) {
-//             $message->from('leandcief@gmail.com', 'Nombre del sitio');
-//             $message->to('neuquenrenault@gmail.com');
-//             $message->subject('Correo de Prueba Laravel');
-
-//             // Esta es la forma correcta en Laravel 12 para correo HTML sin vista
-//             $message->html('<h1>Hola</h1><p>Este es un correo de prueba enviado desde Laravel con Gmail SMTP.</p>');
-//         });
-
-//         Log::info('Correo enviado correctamente.');
-//         return 'Correo enviado correctamente. Revisá tu bandeja de entrada (y también SPAM).';
-//     } catch (\Exception $e) {
-//         Log::error('Error al enviar el correo: ' . $e->getMessage());
-//         return 'Error al enviar correo. Revisá storage/logs/laravel.log';
-//     }
-// });

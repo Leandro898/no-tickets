@@ -10,7 +10,15 @@ class PurchasedTicket extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'order_id',
+        'entrada_id',
+        'unique_code',
+        'qr_path',
+        'status',
+        'scanned_at', // si lo asignas programáticamente en algún momento
+        // Si tienes un 'scanned_by_user_id', también debería ir aquí
+    ];
 
     protected $casts = [
         'scanned_at' => 'datetime',

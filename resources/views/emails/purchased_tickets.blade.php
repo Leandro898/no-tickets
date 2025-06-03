@@ -1,7 +1,7 @@
 @component('mail::message')
 # ¡Gracias por tu compra! 🎉
 
-Hola **{{ $order->user->name }}**,
+Hola **{{ $order->buyer_full_name }}**,
 
 ¡Tu compra ha sido aprobada y tus entradas están listas!
 

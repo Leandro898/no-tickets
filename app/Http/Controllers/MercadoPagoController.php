@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PurchasedTicketsMail; // Importa tu clase Mailable
+use Illuminate\Support\Facades\Mail; // Importa la Facade Mail
 use Illuminate\Http\Request;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
+
 
 class MercadoPagoController extends Controller
 {
@@ -70,7 +73,7 @@ class MercadoPagoController extends Controller
                 "default_payment_method_id" => null
             ],
             "back_urls" => $backUrls,
-            "statement_descriptor" => "TU_NEGOCIO", // Reemplaza con el nombre de tu negocio en el extracto de tarjeta
+            "statement_descriptor" => "Innova Ticket", // Reemplaza con el nombre de tu negocio en el extracto de tarjeta
             "external_reference" => $externalReference,
             "expires" => true,
             "expiration_date_from" => Carbon::now()->format('Y-m-d\TH:i:s.000O'),
@@ -132,6 +135,7 @@ class MercadoPagoController extends Controller
                 return response()->json(['status' => 'error', 'message' => 'external_reference no encontrado en el pago de MP'], 400);
             }
 
+            // Asegúrate de que externalReference sea el ID de tu orden
             $order = Order::find($externalReference);
 
             if ($order) {
@@ -171,6 +175,9 @@ class MercadoPagoController extends Controller
                                 $itemsData = json_decode($order->items_data, true);
 
                                 if (is_array($itemsData)) {
+                                    // NO necesitamos $tempGeneratedTickets si vamos a cargar $finalTicketsForEmail desde la BD
+                                    // después de la creación. La relación $order->purchasedTickets recargará lo nuevo.
+
                                     foreach ($itemsData as $item) {
                                         $entrada = Entrada::find($item['entrada_id']);
                                         $cantidad = $item['cantidad'];
@@ -186,13 +193,14 @@ class MercadoPagoController extends Controller
                                                 }
                                                 QrCode::format('png')->size(300)->generate($qrContent, storage_path('app/public/' . $qrPath));
 
-                                                PurchasedTicket::create([
+                                                PurchasedTicket::create([ // <-- Solo necesitamos crear y guardar el ticket
                                                     'order_id' => $order->id,
                                                     'entrada_id' => $entrada->id,
                                                     'unique_code' => $uniqueCode,
                                                     'qr_path' => $qrPath,
                                                     'status' => 'valid',
                                                 ]);
+                                                // Ya NO hacemos push a $tempGeneratedTickets
                                             }
                                             $entrada->decrement('stock_actual', $cantidad);
                                             Log::info("Stock de entrada '{$entrada->nombre}' decrementado en {$cantidad}. Nuevo stock: {$entrada->stock_actual}");
@@ -204,10 +212,31 @@ class MercadoPagoController extends Controller
                                 } else {
                                     Log::error('Webhook: items_data no es un array válido en la orden ' . $order->id);
                                 }
-                            } else {
+                            } else { // Si ya existían tickets para esta orden
                                 Log::info('Webhook: Tickets ya emitidos para la orden ' . $order->id . '. No se requiere re-emisión.');
                             }
-                        }
+
+                            // === CÓDIGO PARA EL ENVÍO DEL EMAIL ===
+                            // **AQUÍ ES DONDE SIEMPRE DEBEMOS OBTENER LOS TICKETS CORRECTOS PARA EL EMAIL**
+                            // Volvemos a cargar los tickets de la base de datos asociados a esta orden
+                            // Esto asegura que siempre obtengamos los tickets correctos, sean recién creados o existentes.
+                            $finalTicketsForEmail = $order->purchasedTickets; // <-- CAMBIO CLAVE: Carga la relación de la orden AQUÍ.
+
+                            Log::info('Contenido de $finalTicketsForEmail antes de enviar el email:', [
+                                'count' => $finalTicketsForEmail->count(),
+                                'first_ticket_qr_path' => $finalTicketsForEmail->first() ? $finalTicketsForEmail->first()->qr_path : 'N/A'
+                            ]);
+
+                            try {
+                                Mail::to($order->buyer_email)->send(new PurchasedTicketsMail($order, $finalTicketsForEmail)); // <-- Pasamos $finalTicketsForEmail
+                                Log::info('Correo de tickets enviado a ' . $order->buyer_email . ' para la orden ' . $order->id);
+                            } catch (\Exception $mailException) {
+                                Log::error('Error al enviar correo de tickets para la orden ' . $order->id . ': ' . $mailException->getMessage(), ['exception' => $mailException]);
+                                // Considera enviar una alerta a los administradores si falla el envío de email crítico
+                            }
+                            // ==========================================
+
+                        } // Fin del if ($order->payment_status === 'approved')
 
                         DB::commit();
                         Log::info('Orden ' . $order->id . ' actualizada a estado "' . $currentOrderStatus . '" por webhook.');

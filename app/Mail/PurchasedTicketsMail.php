@@ -42,7 +42,11 @@ class PurchasedTicketsMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.purchased_tickets', // Crearemos esta vista en el siguiente paso
+            markdown: 'emails.purchased_tickets',
+            with: [ // ¡AÑADIR ESTE BLOQUE!
+                'order' => $this->order,
+                'purchasedTickets' => $this->purchasedTickets,
+            ],
         );
     }
 

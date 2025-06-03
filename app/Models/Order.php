@@ -12,7 +12,19 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'user_id',
+        'event_id',
+        'buyer_full_name',
+        'buyer_email',
+        'buyer_phone',
+        'buyer_dni',        
+        'total_amount',
+        'items_data',
+        'payment_status',
+        'mp_payment_id',
+        'mp_preference_id',        
+    ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
@@ -45,5 +57,4 @@ class Order extends Model
     /**
      * Relacion de Order con Ticket
      */
- 
-}  
+}
