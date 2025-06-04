@@ -57,3 +57,6 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 // --- Puedes eliminar estas rutas de prueba si ya no las necesitas ---
 // Route::get('/pagar', [MercadoPagoController::class, 'showPaymentPage'])->name('mercadopago.pay');
 // Route::post('/pagar/crear-preferencia', [MercadoPagoController::class, 'createPaymentPreference'])->name('mercadopago.create_test_preference');
+
+// Ruta para la interfaz del escáner web (para el operador/guardia)
+Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');

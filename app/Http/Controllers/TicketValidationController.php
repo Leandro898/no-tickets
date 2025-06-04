@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\PurchasedTicket;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class TicketValidationController extends Controller
 {
@@ -43,5 +44,14 @@ class TicketValidationController extends Controller
         Log::info('Ticket escaneado y marcado como utilizado', ['ticket_code' => $code]);
 
         return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.'], 200);
+    }
+
+    /**
+     * Muestra la interfaz del escáner QR dentro de la aplicación.
+     * Esta es la página que usará el operador/guardia para escanear.
+     */
+    public function showScannerInterface()
+    {
+        return view('tickets.scanner_interface');
     }
 }
