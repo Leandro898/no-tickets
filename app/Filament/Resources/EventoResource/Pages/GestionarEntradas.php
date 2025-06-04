@@ -41,4 +41,8 @@ class GestionarEntradas extends Page
         ];
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
 }

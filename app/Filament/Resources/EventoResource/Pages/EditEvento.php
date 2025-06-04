@@ -21,7 +21,7 @@ class EditEvento extends EditRecord
                 ->color('gray')
                 ->icon('heroicon-o-arrow-left'),
 
-            DeleteAction::make(),
+            //DeleteAction::make(),
         ];
     }
     

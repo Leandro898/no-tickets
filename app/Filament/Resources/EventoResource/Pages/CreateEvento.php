@@ -15,4 +15,9 @@ class CreateEvento extends CreateRecord
         return EntradaResource::getUrl('create', ['evento_id' => $this->record->id]);
 
     }
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
 }

@@ -78,6 +78,7 @@ class EntradaResource extends Resource
 
                 // --- Tus campos de FECHA DE DISPONIBILIDAD ---
                 Forms\Components\DateTimePicker::make('disponible_desde')
+                    ->seconds(false)
                     ->label('Disponible Desde')
                     ->nullable(), // Permite que sea nulo si no hay fecha de inicio
 

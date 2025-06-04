@@ -12,8 +12,16 @@ class Entrada extends Model
     use HasFactory;
 
     protected $fillable = [
-        'evento_id', 'nombre', 'descripcion', 'stock_inicial', 'stock_actual',
-        'max_por_compra', 'precio', 'disponible_desde', 'disponible_hasta', 'tipo',
+        'evento_id',
+        'nombre',
+        'descripcion',
+        'stock_inicial',
+        'stock_actual',
+        'max_por_compra',
+        'precio',
+        'disponible_desde',
+        'disponible_hasta',
+        'tipo',
     ];
 
     // Añadimos los casts para asegurar tipos de datos correctos, especialmente para fechas y decimales
@@ -27,7 +35,8 @@ class Entrada extends Model
         'max_por_compra' => 'integer',
     ];
 
-    public function evento(): BelongsTo {
+    public function evento(): BelongsTo
+    {
         return $this->belongsTo(Evento::class);
     }
 
@@ -48,6 +57,13 @@ class Entrada extends Model
             }
         });
     }
-    
 
+    protected static function booted()
+    {
+        static::creating(function ($entrada) {
+            if (is_null($entrada->stock_inicial)) {
+                $entrada->stock_inicial = $entrada->stock_actual;
+            }
+        });
+    }
 }

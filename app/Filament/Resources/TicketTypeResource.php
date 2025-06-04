@@ -21,10 +21,10 @@ use Filament\Tables\Columns\ToggleColumn;
 
 class TicketTypeResource extends Resource
 {
-    protected static ?string $model = TicketType::class;
+    //protected static ?string $model = TicketType::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
-    protected static ?string $navigationGroup = 'Gestión de Eventos'; // Puedes ajustarlo a un grupo existente o crear uno nuevo
+    //protected static ?string $navigationIcon = 'heroicon-o-ticket';
+    //protected static ?string $navigationGroup = 'Gestión de Eventos'; // Puedes ajustarlo a un grupo existente o crear uno nuevo
 
     public static function form(Form $form): Form
     {
@@ -167,5 +167,13 @@ class TicketTypeResource extends Resource
 
         // Si no hay usuario autenticado o no es un productor, no mostrar nada
         return parent::getEloquentQuery()->where('id', null); // O abort(403) si prefieres
+    }
+
+    // ESTE METODO OCULTA EL TICKET TYPES DEL MENU LATERAL IZQUIERDO
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Retorna false si no quieres que aparezca en el menú.
+        // Puedes añadir lógica aquí para mostrarlo solo para ciertos roles, por ejemplo.
+        return false;
     }
 }

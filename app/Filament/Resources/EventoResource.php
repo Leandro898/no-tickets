@@ -35,8 +35,10 @@ class EventoResource extends Resource
         return $form->schema([
             TextInput::make('nombre')->required(),
             TextInput::make('ubicacion')->required(),
-            DateTimePicker::make('fecha_inicio')->required(),
-            DateTimePicker::make('fecha_fin')->required(),
+            DateTimePicker::make('fecha_inicio')->required()
+                ->seconds(false),
+            DateTimePicker::make('fecha_fin')->required()
+                ->seconds(false),
             Textarea::make('descripcion'),
             FileUpload::make('imagen')->image()->directory('eventos'),
             Select::make('estado')

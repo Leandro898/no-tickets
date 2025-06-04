@@ -49,15 +49,14 @@ class CreateEntrada extends CreateRecord
                     ->label('Precio'),
 
                 // TUS CAMPOS DE STOCK
-                TextInput::make('stock_inicial')
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->label('Stock Inicial (Cantidad total disponible)'),
-
+                // TextInput::make('stock_inicial')
+                //     ->numeric()
+                //     ->minValue(0)
+                //     ->label('Stock Inicial (Cantidad total disponible)'),
+                    
                 TextInput::make('stock_actual')
                     ->numeric()
-                    ->readOnly() // Normalmente no se edita directamente en la creación
+                    ->required()
                     ->label('Stock Actual (Cantidad restante para vender)'),
 
                 TextInput::make('max_por_compra')
@@ -70,11 +69,13 @@ class CreateEntrada extends CreateRecord
                 // TUS CAMPOS DE FECHA DE DISPONIBILIDAD
                 DateTimePicker::make('disponible_desde')
                     ->label('Disponible Desde')
-                    ->nullable(),
+                    ->nullable()
+                    ->seconds(false),
 
                 DateTimePicker::make('disponible_hasta')
                     ->label('Disponible Hasta')
-                    ->nullable(),
+                    ->nullable()
+                    ->seconds(false),
 
                 Checkbox::make('valido_todo_el_evento')
                     ->label('Este producto es válido para cualquier día del evento'),
@@ -129,5 +130,10 @@ class CreateEntrada extends CreateRecord
             ->title('Entrada creada exitosamente')
             ->success()
             ->send();
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
     }
 }
