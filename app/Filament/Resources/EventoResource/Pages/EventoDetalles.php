@@ -4,11 +4,10 @@ namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EventoResource;
 use App\Models\Evento;
+use App\Models\Order; // Importa el modelo Order
+use App\Jobs\RefundMercadoPagoPayment; // Importa tu Job de reembolso
 use Filament\Resources\Pages\Page;
-use Filament\Resources\Pages\ViewRecord;
-use Filament\Pages\Actions\Action;
-use Filament\Pages\Actions\DeleteAction;
-use Filament\Notifications\Notification;
+use Filament\Notifications\Notification; // Para enviar notificaciones
 
 class EventoDetalles extends Page
 {
@@ -34,10 +33,14 @@ class EventoDetalles extends Page
         return []; // el array vacio quita las migas de pan
     }
 
-    // Aca utilizo otro metodo que se lo asigno al boton "Eliminar Evento"
+    // Metodo para eliminar evento (diferente de suspender)
     public function eliminarEvento()
     {
         $this->record->delete();
+        Notification::make()
+            ->title('Evento eliminado correctamente.')
+            ->success()
+            ->send();
         $this->redirect(self::getResource()::getUrl('index'));
     }
 
@@ -68,27 +71,68 @@ class EventoDetalles extends Page
         $this->confirmacionTexto = ''; // Limpiar el texto
     }
 
-    // Método para la confirmación final del segundo modal
+    /**
+     * Método para la confirmación final del segundo modal.
+     * Aquí se despacha el Job de reembolso y se actualiza el estado del evento.
+     */
     public function confirmarSuspension()
     {
+        // 1. Validar el texto de confirmación
         if ($this->confirmacionTexto !== 'Reembolsar todas las compras') {
             Notification::make()
-                ->title('Texto incorrecto. Escribí: "Reembolsar todas las compras"')
+                ->title('Texto de confirmación incorrecto.')
+                ->body('Debes escribir "Reembolsar todas las compras" para confirmar la suspensión y los reembolsos.')
                 ->danger()
                 ->send();
             return;
         }
 
-        // Si el texto es correcto, procede a eliminar el evento
-        $this->record->delete();
+        // 2. Cerrar los modales inmediatamente para dar feedback visual al usuario
+        $this->cerrarModales();
 
+        // 3. Obtener las órdenes asociadas a este evento que NECESITAN reembolso.
+        $ordersToRefund = $this->record->orders()
+                                       ->whereIn('payment_status', ['paid', 'approved']) // Ajusta según tus estados de pago
+                                       ->whereNotIn('payment_status', ['refunded', 'cancelled', 'refund_failed'])
+                                       ->get();
+
+        // 4. Actualizar el estado del evento en tu base de datos a 'suspended'
+        // ¡USANDO TU COLUMNA 'estado' EXISTENTE!
+        $this->record->estado = 'suspended'; // <-- CAMBIO CLAVE AQUÍ
+        $this->record->save();
+
+        // 5. Notificación inicial para el administrador
         Notification::make()
-            ->title('Evento suspendido correctamente.')
+            ->title('Evento suspendido.')
+            ->body('El evento ha sido marcado como "suspendido". Iniciando el proceso de reembolso de las compras.')
             ->success()
             ->send();
 
-        // Redirigir al índice de eventos después de la suspensión
+
+        if ($ordersToRefund->isEmpty()) {
+            Notification::make()
+                ->title('No hay compras activas para reembolsar')
+                ->body('No se encontraron compras pagadas activas para este evento que necesiten ser reembolsadas.')
+                ->info()
+                ->send();
+            // Redirigir al índice de eventos si no hay reembolsos pendientes
+            $this->redirect(self::getResource()::getUrl('index'));
+            return;
+        }
+
+        // 6. Despachar el Job de reembolso para cada orden
+        foreach ($ordersToRefund as $order) {
+            RefundMercadoPagoPayment::dispatch($order);
+        }
+
+        // 7. Notificación final después de despachar los jobs
+        Notification::make()
+            ->title('Reembolsos en proceso.')
+            ->body('Se han puesto en cola ' . $ordersToRefund->count() . ' compras para reembolso. El proceso puede tardar unos minutos.')
+            ->success()
+            ->send();
+
+        // 8. Redirigir al índice de eventos
         $this->redirect(self::getResource()::getUrl('index'));
     }
-
 }

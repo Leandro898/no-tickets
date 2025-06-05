@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.fi-sidebar {
+    background-color: #f70d0d !important;
+    width: 160px;
+}
+
 /* Estilos personalizados para el input de búsqueda */
 .fi-input[type="search"] {
     /* Para hacer el input más alto */

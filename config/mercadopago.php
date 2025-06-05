@@ -11,7 +11,8 @@ return [
     'notification_url' => env('MERCADO_PAGO_WEBHOOK_URL'),
 
     // Entorno de ejecución (true para Sandbox, false para Producción)
-    'sandbox' => env('APP_ENV') === 'local' || env('APP_ENV') === 'development', // O un env('MP_SANDBOX', true)
+    // === CAMBIO CLAVE AQUÍ: Leer directamente de MERCADO_PAGO_SANDBOX en .env ===
+    'sandbox' => env('MERCADO_PAGO_SANDBOX', true), // Por defecto, es true (sandbox) si la variable no existe en .env
 
     // Puedes añadir otras configuraciones si las necesitas
 ];

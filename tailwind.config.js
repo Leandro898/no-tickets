@@ -23,6 +23,7 @@ module.exports = {
         './vendor/filament/infolists/resources/views/**/*.blade.php',
         './vendor/filament/support/resources/views/**/*.blade.php',
         './vendor/filament/widgets/resources/views/**/*.blade.php',
+        './resources/css/filament/admin/theme.css',
     ],
     theme: {
         extend: {
