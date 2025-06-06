@@ -1,5 +1,5 @@
 // vite.config.js
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'; // No necesitas loadEnv si no usas variables
 import laravel from 'laravel-vite-plugin';
 
 export default defineConfig({
@@ -15,12 +15,11 @@ export default defineConfig({
     ],
     server: {
         host: '0.0.0.0', // Permite acceso desde tu red local
-        // ¡¡¡AQUÍ ESTÁ LA CLAVE PARA EL ERROR DE CONTENIDO MIXTO!!!
-        origin: 'https://e1a7-191-80-168-239.ngrok-free.app:5173', // <-- Usa la URL de Ngrok CON HTTPS y el puerto de Vite
         hmr: {
-            host: 'e1a7-191-80-168-239.ngrok-free.app', // Solo el dominio de Ngrok
-            protocol: 'wss', // Mantén 'wss' para WebSockets seguros
-            clientPort: 5173,
+            // ¡AQUÍ ES DONDE DEBES PONER EL DOMINIO DE NGROK!
+            host: 'e1a7-191-80-168-239.ngrok-free.app', // Ejemplo: 'abcd-1234-5678.ngrok-free.app'
+            protocol: 'wss', // Usa 'wss' si tu URL de Ngrok es HTTPS (lo más común). Si fuera HTTP, sería 'ws'.
+            clientPort: 5173, // Opcional, pero recomendado mantenerlo.
         },
     },
 });
