@@ -3,8 +3,12 @@
 @tailwind utilities;
 
 .fi-sidebar {
-    background-color: #f70d0d !important;
-    width: 160px;
+    width: 12rem;
+}
+
+.fi-ta-row .fi-ta-cell{
+    padding-top: 2.5rem;    /* Espaciado superior */
+    padding-bottom: 2.5rem; /* Espaciado inferior */
 }
 
 /* Estilos personalizados para el input de búsqueda */

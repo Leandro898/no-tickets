@@ -20,6 +20,11 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Assets\Css;
 use App\Filament\Resources\EventoResource;
+use Filament\Navigation\NavigationBuilder; // Asegúrate de importar esto
+use Filament\Navigation\NavigationGroup;   // Asegúrate de importar esto (si lo usas)
+use Filament\Navigation\NavigationItem;    // Asegúrate de importar esto
+use Filament\Pages\Dashboard;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -42,6 +47,12 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+            ])
+            ->navigationItems([
+                NavigationItem::make('Scanner QR')
+                    ->url('/scan-interface')
+                    ->icon('heroicon-o-qr-code')
+                    ->sort(2),
             ])
             ->middleware([
                 EncryptCookies::class,
