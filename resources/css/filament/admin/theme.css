@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-.fi-sidebar {
+/* .fi-sidebar {
     width: 12rem;
-}
+} */
 
 .fi-ta-row .fi-ta-cell{
     padding-top: 2.5rem;    /* Espaciado superior */
