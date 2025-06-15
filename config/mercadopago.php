@@ -1,18 +1,15 @@
 <?php
 
 return [
-    // Credenciales de tu aplicación/plataforma (las que obtienes al crear la app en MP)
+
+    // Credenciales para iniciar el flujo OAuth (para obtener access_token del vendedor)
     'client_id' => env('MP_CLIENT_ID'),
     'client_secret' => env('MP_CLIENT_SECRET'),
-    'platform_access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'), // Tu Access Token de la plataforma
-    'public_key' => env('MP_PUBLIC_KEY'), // Tu Public Key de la plataforma
+    'redirect_uri' => env('MP_REDIRECT_URI'),
 
-    // URL de notificación para webhooks
+    // Configuración opcional para plataforma (si vas a hacer pagos como plataforma)
+    'platform_access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
+    'public_key' => env('MP_PUBLIC_KEY'),
     'notification_url' => env('MERCADO_PAGO_WEBHOOK_URL'),
-
-    // Entorno de ejecución (true para Sandbox, false para Producción)
-    // === CAMBIO CLAVE AQUÍ: Leer directamente de MERCADO_PAGO_SANDBOX en .env ===
-    'sandbox' => env('MERCADO_PAGO_SANDBOX', true), // Por defecto, es true (sandbox) si la variable no existe en .env
-
-    // Puedes añadir otras configuraciones si las necesitas
+    'sandbox' => env('MERCADO_PAGO_SANDBOX', true),
 ];

@@ -3,12 +3,17 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\PurchasedTicket;
+use App\Models\PurchasedTicket; // Asegúrate de que esta ruta sea correcta para tu modelo Ticket
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class TicketValidationController extends Controller
 {
+    /**
+     * Muestra la página de validación de un ticket específico.
+     * @param string $code El código único del ticket.
+     * @return \Illuminate\View\View
+     */
     public function showValidationPage($code)
     {
         $ticket = PurchasedTicket::with('entrada.evento')->where('unique_code', $code)->first();
@@ -20,38 +25,79 @@ class TicketValidationController extends Controller
         return view('ticket_validation_page', compact('ticket'));
     }
 
-    public function scanTicket(Request $request, $code)
+    /**
+     * Procesa la lógica de validación de un ticket.
+     * Esta lógica puede ser llamada desde una API o desde un componente Livewire.
+     *
+     * @param string $code El código único del ticket a validar.
+     * @return array Un array asociativo con 'status' ('success'/'error') y 'message').
+     */
+    public function processTicketValidation(string $code): array
     {
         $ticket = PurchasedTicket::where('unique_code', $code)->first();
 
         if (!$ticket) {
-            return response()->json(['status' => 'error', 'message' => 'Ticket no encontrado.'], 404);
+            return ['status' => 'error', 'message' => 'Ticket no encontrado.'];
         }
 
         if ($ticket->status === 'used') {
-            return response()->json(['status' => 'error', 'message' => 'Este ticket ya ha sido utilizado.'], 409);
+            return ['status' => 'error', 'message' => 'Este ticket ya ha sido utilizado.'];
         }
 
         if ($ticket->status === 'invalid') {
-            return response()->json(['status' => 'error', 'message' => 'Este ticket no es válido.'], 410);
+            return ['status' => 'error', 'message' => 'Este ticket no es válido.'];
         }
 
         // Marcar el ticket como usado
         $ticket->status = 'used';
-        $ticket->scan_date = now();
+        $ticket->scan_date = now(); // Registra la fecha y hora del escaneo
         $ticket->save();
 
         Log::info('Ticket escaneado y marcado como utilizado', ['ticket_code' => $code]);
 
-        return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.'], 200);
+        return ['status' => 'success', 'message' => 'Ticket validado exitosamente.'];
+    }
+
+    /**
+     * Maneja la solicitud de escaneo de un ticket desde una API o ruta web.
+     * Usa la lógica de processTicketValidation.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string $code El código único del ticket.
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function scanTicket(Request $request, $code)
+    {
+        $result = $this->processTicketValidation($code);
+
+        // Define el código de estado HTTP basado en el resultado
+        $httpStatusCode = 200; // Por defecto OK
+        if ($result['status'] === 'error') {
+            switch ($result['message']) {
+                case 'Ticket no encontrado.':
+                    $httpStatusCode = 404;
+                    break;
+                case 'Este ticket ya ha sido utilizado.':
+                    $httpStatusCode = 409; // Conflict
+                    break;
+                case 'Este ticket no es válido.':
+                    $httpStatusCode = 410; // Gone (Recurso no disponible/válido)
+                    break;
+                default:
+                    $httpStatusCode = 400; // Bad Request para otros errores
+            }
+        }
+
+        return response()->json($result, $httpStatusCode);
     }
 
     /**
      * Muestra la interfaz del escáner QR dentro de la aplicación.
-     * Esta es la página que usará el operador/guardia para escanear.
+     * Esta ruta ya no sería necesaria si la página del escáner es gestionada por Filament + Livewire.
+     * Solo la mantengo por si la usas en otro contexto.
      */
     public function showScannerInterface()
     {
-        return view('tickets.scanner_interface');
+        return view('tickets.scanner_interface'); // Asumiendo que esta es la ruta de tu vista Blade original
     }
 }
