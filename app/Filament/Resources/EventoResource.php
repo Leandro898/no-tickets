@@ -22,6 +22,7 @@ use Filament\Forms\Components\Hidden;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
+use Illuminate\Database\Eloquent\Builder;
 
 class EventoResource extends Resource
 {
@@ -30,7 +31,7 @@ class EventoResource extends Resource
     protected static ?string $navigationLabel = 'Eventos';
     protected static ?string $pluralModelLabel = 'Eventos';
     protected static ?string $navigationGroup = null; // **NULL para que no esté en grupo**
-    protected static ?int $navigationSort = 1;       
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -50,9 +51,9 @@ class EventoResource extends Resource
                     'finalizado' => 'Finalizado',
                 ])->default('activo')->required(),
             Hidden::make('organizador_id') // Campo oculto para el organizador
-                ->default(fn () => auth()->id())
+                ->default(fn() => auth()->id())
                 ->required()
-                ->dehydrated(true),    
+                ->dehydrated(true),
         ]);
     }
 
@@ -70,11 +71,11 @@ class EventoResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->colors([
-                        'success' => fn ($state) => $state === 'activo',
-                        'danger' => fn ($state) => $state === 'inactivo',
-                        'warning' => fn ($state) => $state === 'finalizado',
-                    ]),        
-                ])
+                        'success' => fn($state) => $state === 'activo',
+                        'danger' => fn($state) => $state === 'inactivo',
+                        'warning' => fn($state) => $state === 'finalizado',
+                    ]),
+            ])
             ->filters([
                 // Aquí puedes añadir filtros adicionales, por ejemplo, por estado:
                 SelectFilter::make('estado')
@@ -89,12 +90,12 @@ class EventoResource extends Resource
                 // SelectFilter::make('organizador')
                 //     ->relationship('organizador', 'name')
                 //     ->label('Filtrar por Organizador'),
-                ])
-                ->headerActions([
-                    CreateAction::make()
-                    ->label('Crear Evento'),                     
             ])
-            ->recordUrl(fn (Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]));
+            ->headerActions([
+                CreateAction::make()
+                    ->label('Crear Evento'),
+            ])
+            ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]));
     }
 
     public static function getPages(): array
@@ -127,5 +128,10 @@ class EventoResource extends Resource
     {
         return \App\Models\Evento::class;
     }
-}
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where('organizador_id', auth()->id());
+    }
+}

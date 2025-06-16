@@ -13,8 +13,8 @@ class EventoController extends Controller
      */
     public function index()
     {
-        $eventos = Evento::all(); // O puedes paginar: Evento::paginate(10);
-        return view('eventos.index', compact('eventos')); // Asumiendo que tienes una vista eventos/index.blade.php
+        $eventos = Evento::all();
+        return view('eventos.index', compact('eventos'));
     }
 
     /**

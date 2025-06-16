@@ -87,7 +87,7 @@ class EntradaResource extends Resource
                     ->nullable(), // Permite que sea nulo si no hay fecha de fin
 
                 Forms\Components\Hidden::make('evento_id')
-                    ->default(fn () => request()->get('evento_id'))
+                    ->default(fn() => request()->get('evento_id'))
                     ->required(),
             ]);
     }
@@ -164,9 +164,39 @@ class EntradaResource extends Resource
                 $eventoQuery->where('organizador_id', $user->id);
             });
         }
-        
+
         // Si no hay usuario o no es productor, no mostrar nada
         return $query->where('id', null);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereHas('evento', function ($query) {
+                $query->where('organizador_id', auth()->id());
+            });
+    }
+
+    public static function mutateFormDataBeforeCreate(array $data): array
+    {
+        $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
+
+        if (!$evento || $evento->organizador_id !== auth()->id()) {
+            abort(403, 'No estás autorizado para crear entradas en este evento.');
+        }
+
+        return $data;
+    }
+
+
+    public static function mutateFormDataBeforeSave(array $data): array
+    {
+        $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
+
+        if (!$evento || $evento->organizador_id !== auth()->id()) {
+            abort(403, 'No estás autorizado para modificar entradas en este evento.');
+        }
+
+        return $data;
+    }
 }

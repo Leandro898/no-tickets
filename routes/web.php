@@ -8,6 +8,7 @@ use App\Http\Controllers\TicketValidationController; // Para la validación de t
 use App\Http\Controllers\EventoController; // Si lo sigues usando para mostrar eventos
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\MercadoPagoOAuthController;
+use App\Http\Controllers\PagoController;
 
 // PARA ENVIAR EMAIL
 use Illuminate\Support\Facades\Mail;
@@ -22,9 +23,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
+
+
 // --- Rutas del flujo de compra de entradas (Gestionadas por CompraEntradaController) ---
-Route::get('/eventos/{evento}/comprar', [CompraEntradaController::class, 'show'])->name('comprar.entrada');
 Route::post('/eventos/{evento}/comprar', [CompraEntradaController::class, 'store'])->name('comprar.store');
+
+Route::get('/eventos/{evento}/comprar', [CompraEntradaController::class, 'show'])->name('eventos.comprar');
+
 
 // --- Rutas de redirección de Mercado Pago (Gestionadas por MercadoPagoController) ---
 // Estas rutas son las 'back_urls' configuradas en la preferencia
@@ -68,3 +74,9 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 
 // Ruta para la interfaz del escáner web (para el operador/guardia)
 Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
+
+// PRUEBA SPLIT DE PAGO
+Route::get('/pago/prueba', [PagoController::class, 'crearPreferencia'])->name('pago.prueba');
+Route::get('/pago/exito', [PagoController::class, 'exito'])->name('pago.exito');
+Route::get('/pago/fallo', [PagoController::class, 'fallo'])->name('pago.fallo');
+Route::get('/pago/pendiente', [PagoController::class, 'pendiente'])->name('pago.pendiente');

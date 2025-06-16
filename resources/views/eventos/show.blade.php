@@ -88,7 +88,8 @@
 
                             @if ($saleActive)
                                 {{-- ESTE ES EL ENLACE CLAVE: Apunta a la ruta 'comprar.entrada' y le pasa el ID del evento --}}
-                                <a href="{{ route('comprar.entrada', ['evento' => $evento->id]) }}"
+                                <a href="{{ route('eventos.comprar', ['evento' => $evento->id]) }}"
+
                                    class="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-center w-full transition-colors duration-300">
                                     Comprar Entradas
                                 </a>
