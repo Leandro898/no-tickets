@@ -54,6 +54,7 @@ Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'
 
 Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])->name('mercadopago.callback');
 Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
+Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
 
 
 // --- Ruta para el WEBHOOK de Mercado Pago (¡CRÍTICO! - siempre en MercadoPagoController) ---

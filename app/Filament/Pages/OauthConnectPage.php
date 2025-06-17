@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Auth;
 
 class OauthConnectPage extends Page
 {
@@ -11,10 +12,16 @@ class OauthConnectPage extends Page
 
     protected static ?string $title = 'Cobros';
     protected static ?string $navigationLabel = 'Cobros';
-    protected static ?int $navigationSort = 3; // Cambia la posición en el menú si querés
+    protected static ?int $navigationSort = 3;
 
     public static function shouldRegisterNavigation(): bool
     {
         return true;
     }
+
+    public function getUser()
+    {
+        return Auth::user();
+    }
 }
+

@@ -63,7 +63,7 @@ class User extends Authenticatable
      */
     public function hasMercadoPagoAccount(): bool
     {
-        return !is_null($this->mp_access_token) && !is_null($this->mp_user_id);
+        return $this->mp_access_token && $this->mp_refresh_token && $this->mp_user_id && $this->mp_expires_in;
     }
 
     /**
