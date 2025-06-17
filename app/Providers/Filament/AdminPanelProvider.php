@@ -23,6 +23,8 @@ use App\Filament\Resources\EventoResource;
 use Filament\Navigation\NavigationBuilder; // Para el closure del navigation()
 use Filament\Navigation\NavigationItem; // Para NavigationItem::make()
 use App\Filament\Pages\ScannerInterface; // Para ScannerInterface::class
+use App\Filament\Pages\OauthConnectPage;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -40,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 ScannerInterface::class, // Registro explícito de la página del escáner
+                OauthConnectPage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -54,6 +57,11 @@ class AdminPanelProvider extends PanelProvider
                         ->url(ScannerInterface::getUrl()) // O '/admin/scanner' si conoces la URL
                         ->icon('heroicon-o-qr-code') // Icono fijo
                         ->sort(2),
+                    NavigationItem::make('Cobros')
+                        ->url(OauthConnectPage::getUrl())
+                        ->icon('heroicon-o-banknotes')
+                        ->group('Cuenta')
+                        ->sort(3),
                 ]);
             })
             ->middleware([
