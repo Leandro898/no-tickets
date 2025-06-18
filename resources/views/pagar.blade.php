@@ -10,7 +10,7 @@
     <div id="wallet_container"></div>
 
     <script>
-        const mp = new MercadoPago('APP_USR-029daf4b-c8e6-4220-874f-cbe813d526e7'); // ← REEMPLAZÁ AQUÍ
+        const mp = new MercadoPago('APP_USR-29fe24d9-b4f6-4007-ab4c-e059653699a7'); // ← REEMPLAZÁ AQUÍ
 
         mp.checkout({
             preference: {
@@ -24,3 +24,4 @@
     </script>
 </body>
 </html>
+

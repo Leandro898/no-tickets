@@ -127,7 +127,7 @@
             <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-md text-center">
                 <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Link del evento</h2>
                 <input type="text"
-                    value="{{ route('eventos.comprar', ['evento' => $record->id]) }}"
+                    value="{{ route('eventos.pago.directo', ['evento' => $record->id]) }}"
                     readonly
                     id="enlaceEvento"
                     class="w-full p-2 border rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white mb-4" />

@@ -14,7 +14,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4">
     <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">
-        <a href="/" class="text-blue-600 hover:underline mb-6 inline-block">← Volver a la lista de eventos</a>
+        <a href="/" class="text-blue-600 hover:underline mb-6 inline-block"> Volver a la lista de eventos</a>
 
         <div class="flex flex-col md:flex-row gap-8 mb-8">
             <div class="md:w-1/2">
@@ -88,8 +88,7 @@
 
                             @if ($saleActive)
                                 {{-- ESTE ES EL ENLACE CLAVE: Apunta a la ruta 'comprar.entrada' y le pasa el ID del evento --}}
-                                <a href="{{ route('eventos.comprar', ['evento' => $evento->id]) }}"
-
+                                <a href="{{ route('eventos.comprar.split', ['evento' => $evento->id]) }}"
                                    class="inline-block bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-center w-full transition-colors duration-300">
                                     Comprar Entradas
                                 </a>
@@ -113,3 +112,4 @@
     </div>
 </body>
 </html>
+
