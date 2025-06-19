@@ -43,7 +43,7 @@ class MercadoPagoController extends Controller
 
     /**
      * Crea una preferencia de pago en Mercado Pago para una orden dada.
-     * Este método será llamado *desde* el CompraEntradaController.
+     * Este método ser llamado *desde* el CompraEntradaController.
      * No es una ruta web directa para el usuario.
      *
      * @param array $items Array de ítems formateado para Mercado Pago.
@@ -106,169 +106,93 @@ class MercadoPagoController extends Controller
 
         if ($topic === 'payment' && $request->has('id')) {
             $paymentId = $request->input('id');
-            Log::info("Webhook de Mercado Pago: Notificación (topic) con ID: {$paymentId}.");
         } elseif (($type === 'payment' || $type === 'created_payment' || $type === 'updated_payment') && $request->has('data.id')) {
             $paymentId = $request->input('data.id');
-            Log::info("Webhook de Mercado Pago: Notificación (type/data.id) con ID: {$paymentId}.");
-        } elseif ($request->has('action') && Str::startsWith($request->input('action'), 'payment.') && $request->has('data.id')) {
+        } elseif ($request->has('action') && \Illuminate\Support\Str::startsWith($request->input('action'), 'payment.') && $request->has('data.id')) {
             $paymentId = $request->input('data.id');
-            Log::info("Webhook de Mercado Pago: Notificación (action) con ID: {$paymentId}.");
         } else {
-            Log::info('Webhook de Mercado Pago: Tipo de notificación no relevante para pago o ID no encontrado.', $request->all());
-            return response()->json(['status' => 'ignored', 'message' => 'Tipo de notificación no relevante o ID de pago no encontrado.'], 200);
+            return response()->json(['status' => 'ignored'], 200);
         }
 
-        if (is_null($paymentId)) {
-            Log::warning('Webhook de Mercado Pago: ID de pago no pudo ser extraído de la notificación.', $request->all());
-            return response()->json(['status' => 'error', 'message' => 'ID de pago no pudo ser extraído.'], 400);
+        if (!$paymentId) {
+            return response()->json(['status' => 'error', 'message' => 'ID no encontrado.'], 400);
         }
 
         try {
             $paymentClient = new PaymentClient();
             $payment = $paymentClient->get($paymentId);
 
-            Log::info('Detalles del pago de Mercado Pago recuperados.', ['payment_id' => $payment->id, 'status' => $payment->status]);
+            DB::transaction(function () use ($payment) {
+                $order = Order::where('id', $payment->external_reference)->lockForUpdate()->first();
 
-            $externalReference = $payment->external_reference;
-            if (empty($externalReference)) {
-                Log::error('Webhook: external_reference es nulo o vacío para el pago ' . $payment->id);
-                return response()->json(['status' => 'error', 'message' => 'external_reference no encontrado en el pago de MP'], 400);
-            }
-
-            // Asegúrate de que externalReference sea el ID de tu orden
-            $order = Order::find($externalReference);
-
-            if ($order) {
-                // === INICIO DE VALIDACION DEL MONTO ===
-                if (abs($order->total_amount - $payment->transaction_amount) > 0.01) {
-                    Log::error('Webhook: Monto de pago NO COINCIDE para la orden ' . $order->id, [
-                        'order_id' => $order->id,
-                        'expected_amount' => $order->total_amount,
-                        'received_amount' => $payment->transaction_amount,
-                        'mp_payment_id' => $payment->id,
-                        'status' => $payment->status
-                    ]);
-                    // Lo mas seguro es no procesar la orden como aprobada si el monto no coincide
-                    // Se podria cambiar el estado de la orden a 'monto_no_coincide' o similar  alertar
-                    // Por ahora, devolver un 200 OK para no reintentar el webhook pero con un log claro
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'El monto del pago NO coincide con el de la orden.'
-                    ], 200); // 200 OK para que MP no reintente. El error aparece en el log
+                if (!$order) {
+                    Log::warning('Webhook: Orden no encontrada con external_reference ' . $payment->external_reference);
+                    return;
                 }
-                $currentOrderStatus = $this->mapMercadoPagoStatusToOrderStatus($payment->status);
 
-                if ($order->payment_status !== $currentOrderStatus) {
-                    DB::beginTransaction();
-                    try {
-                        $order->payment_status = $currentOrderStatus;
-                        $order->mp_payment_id = $payment->id;
-                        // Asegúrate de que tu migración tenga este campo 'payment_details' (tipo JSON)
-                        //$order->payment_details = json_encode($payment);
-                        $order->save();
+                $currentStatus = $this->mapMercadoPagoStatusToOrderStatus($payment->status);
 
-                        // Lógica específica si el pago es aprobado (emitir tickets, decrementar stock)
-                        if ($order->payment_status === 'approved') {
-                            // Asegúrate de que los tickets no se dupliquen si el webhook se llama varias veces.
-                            if (!$order->purchasedTickets()->exists()) {
-                                // Asegúrate de que tu migración tenga este campo 'items_data' (tipo JSON)
-                                $itemsData = json_decode($order->items_data, true);
+                if ($order->payment_status === $currentStatus) {
+                    Log::info('Webhook: Estado de orden sin cambios para ID ' . $order->id);
+                    return;
+                }
 
-                                if (is_array($itemsData)) {
-                                    // NO necesitamos $tempGeneratedTickets si vamos a cargar $finalTicketsForEmail desde la BD
-                                    // después de la creación. La relación $order->purchasedTickets recargará lo nuevo.
+                $order->payment_status = $currentStatus;
+                $order->mp_payment_id = $payment->id;
+                $order->save();
 
-                                    foreach ($itemsData as $item) {
-                                        $entrada = Entrada::find($item['entrada_id']);
-                                        $cantidad = $item['cantidad'];
-
-                                        if ($entrada) {
-                                            for ($i = 0; $i < $cantidad; $i++) {
-                                                $uniqueCode = (string) Str::uuid();
-                                                $qrPath = 'qrcodes/' . $uniqueCode . '.png';
-                                                $qrContent = route('ticket.validate', ['code' => $uniqueCode]);
-
-                                                if (!Storage::disk('public')->exists('qrcodes')) {
-                                                    Storage::disk('public')->makeDirectory('qrcodes');
-                                                }
-                                                QrCode::format('png')->size(300)->generate($qrContent, storage_path('app/public/' . $qrPath));
-
-                                                PurchasedTicket::create([ // <-- Solo necesitamos crear y guardar el ticket
-                                                    'order_id' => $order->id,
-                                                    'entrada_id' => $entrada->id,
-                                                    'unique_code' => $uniqueCode,
-                                                    'qr_path' => $qrPath,
-                                                    'status' => 'valid',
-                                                ]);
-                                                // Ya NO hacemos push a $tempGeneratedTickets
-                                            }
-                                            $entrada->decrement('stock_actual', $cantidad);
-                                            Log::info("Stock de entrada '{$entrada->nombre}' decrementado en {$cantidad}. Nuevo stock: {$entrada->stock_actual}");
-                                        } else {
-                                            Log::warning('Webhook: Entrada ID ' . $item['entrada_id'] . ' no encontrada para la orden ' . $order->id);
-                                        }
-                                    }
-                                    Log::info('Tickets generados y stock actualizado para la orden ' . $order->id);
-                                } else {
-                                    Log::error('Webhook: items_data no es un array válido en la orden ' . $order->id);
+                if ($currentStatus === 'approved') {
+                    if (!$order->purchasedTickets()->exists()) {
+                        $itemsData = json_decode($order->items_data, true);
+                        foreach ($itemsData as $item) {
+                            $entrada = Entrada::find($item['entrada_id']);
+                            $cantidad = $item['cantidad'];
+                            for ($i = 0; $i < $cantidad; $i++) {
+                                $uniqueCode = (string) Str::uuid();
+                                $qrPath = 'qrcodes/' . $uniqueCode . '.png';
+                                $qrContent = route('ticket.validate', ['code' => $uniqueCode]);
+                                if (!Storage::disk('public')->exists('qrcodes')) {
+                                    Storage::disk('public')->makeDirectory('qrcodes');
                                 }
-                            } else { // Si ya existían tickets para esta orden
-                                Log::info('Webhook: Tickets ya emitidos para la orden ' . $order->id . '. No se requiere re-emisión.');
+                                QrCode::format('png')->size(300)->margin(4)->generate($qrContent, storage_path('app/public/' . $qrPath));
+                                PurchasedTicket::create([
+                                    'order_id' => $order->id,
+                                    'entrada_id' => $entrada->id,
+                                    'unique_code' => $uniqueCode,
+                                    'qr_path' => $qrPath,
+                                    'status' => 'valid',
+                                ]);
                             }
-
-                            // === CÓDIGO PARA EL ENVÍO DEL EMAIL ===
-                            // **AQUÍ ES DONDE SIEMPRE DEBEMOS OBTENER LOS TICKETS CORRECTOS PARA EL EMAIL**
-                            // Volvemos a cargar los tickets de la base de datos asociados a esta orden
-                            // Esto asegura que siempre obtengamos los tickets correctos, sean recién creados o existentes.
-                            $finalTicketsForEmail = $order->purchasedTickets; // <-- CAMBIO CLAVE: Carga la relación de la orden AQUÍ.
-
-                            Log::info('Contenido de $finalTicketsForEmail antes de enviar el email:', [
-                                'count' => $finalTicketsForEmail->count(),
-                                'first_ticket_qr_path' => $finalTicketsForEmail->first() ? $finalTicketsForEmail->first()->qr_path : 'N/A'
-                            ]);
-
-                            try {
-                                Mail::to($order->buyer_email)->send(new PurchasedTicketsMail($order, $finalTicketsForEmail)); // <-- Pasamos $finalTicketsForEmail
-                                Log::info('Correo de tickets enviado a ' . $order->buyer_email . ' para la orden ' . $order->id);
-                            } catch (\Exception $mailException) {
-                                Log::error('Error al enviar correo de tickets para la orden ' . $order->id . ': ' . $mailException->getMessage(), ['exception' => $mailException]);
-                                // Considera enviar una alerta a los administradores si falla el envío de email crítico
-                            }
-                            // ==========================================
-
-                        } // Fin del if ($order->payment_status === 'approved')
-
-                        DB::commit();
-                        Log::info('Orden ' . $order->id . ' actualizada a estado "' . $currentOrderStatus . '" por webhook.');
-                    } catch (\Exception $e) {
-                        DB::rollBack();
-                        Log::error('Error en transacción de webhook para orden ' . $order->id . ': ' . $e->getMessage(), ['exception' => $e]);
-                        return response()->json(['status' => 'error', 'message' => 'Error al actualizar la orden en transacción.'], 500);
+                            $entrada->decrement('stock_actual', $cantidad);
+                        }
                     }
-                } else {
-                    Log::info('Webhook: Estado de pago para orden ' . $order->id . ' no ha cambiado. Ignorando.', ['current_status' => $order->payment_status, 'new_status' => $currentOrderStatus]);
-                }
-            } else {
-                Log::warning('Webhook: Orden no encontrada con external_reference ' . $externalReference . ' para el pago ' . $paymentId);
-                return response()->json(['status' => 'not_found', 'message' => 'Orden no encontrada en el sistema.'], 404);
-            }
-        } catch (MPApiException $e) {
-            $apiErrorContent = $e->getApiResponse() ? $e->getApiResponse()->getContent() : 'No API response content';
-            if (is_array($apiErrorContent) || is_object($apiErrorContent)) {
-                $apiErrorContent = json_encode($apiErrorContent);
-            } else {
-                $apiErrorContent = (string) $apiErrorContent;
-            }
-            $statusCode = $e->getApiResponse() ? $e->getApiResponse()->getStatusCode() : 500;
-            Log::error('Webhook MP API Error al consultar pago: ' . $apiErrorContent, ['exception' => $e, 'status_code' => $statusCode]);
-            return response()->json(['status' => 'error', 'message' => 'Error de API al consultar el pago.'], $statusCode);
-        } catch (\Exception $e) {
-            Log::error('Error general al procesar el webhook de Mercado Pago con ID ' . ($paymentId ?? 'N/A') . ': ' . $e->getMessage(), ['exception' => $e]);
-            return response()->json(['status' => 'error', 'message' => 'Error interno del servidor al procesar webhook.'], 500);
-        }
 
-        return response()->json(['status' => 'success'], 200);
+                    if (is_null($order->email_sent_at)) {
+                        $tickets = $order->purchasedTickets;
+                        try {
+                            Mail::to($order->buyer_email)->send(new PurchasedTicketsMail($order, $tickets));
+                            $order->email_sent_at = now();
+                            $order->save();
+                            Log::info('Correo enviado a ' . $order->buyer_email);
+                        } catch (\Exception $e) {
+                            Log::error('Error al enviar el email: ' . $e->getMessage());
+                        }
+                    } else {
+                        Log::info('El correo ya fue enviado previamente para la orden ' . $order->id);
+                    }
+                }
+
+                Log::info('Orden ' . $order->id . ' actualizada a "' . $currentStatus . '" por webhook.');
+            });
+
+            return response()->json(['status' => 'success'], 200);
+        } catch (\Exception $e) {
+            Log::error('Error en webhook: ' . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => 'Error interno'], 500);
+        }
     }
+
+
 
     /**
      * Mapea el estado de pago de Mercado Pago a un estado de orden interno.
@@ -293,7 +217,7 @@ class MercadoPagoController extends Controller
         }
     }
 
-    // --- Métodos de retorno de Mercado Pago (para la redirección del usuario) ---
+    // --- Mtodos de retorno de Mercado Pago (para la redirección del usuario) ---
     public function success(Request $request, Order $order)
     {
         Log::info('MercadoPago Success redirección para orden ' . $order->id, $request->all());
@@ -303,17 +227,16 @@ class MercadoPagoController extends Controller
 
     public function failure(Request $request, Order $order)
     {
-        Log::warning('MercadoPago Failed redirección para orden ' . $order->id, $request->all());
+        Log::warning('MercadoPago Failed redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.failure', compact('order'));
     }
 
     public function pending(Request $request, Order $order)
     {
-        Log::info('MercadoPago Pending redirección para orden ' . $order->id, $request->all());
+        Log::info('MercadoPago Pending redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.pending', compact('order'));
     }
-
-    
 }
+

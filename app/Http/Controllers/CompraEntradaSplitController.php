@@ -96,7 +96,7 @@ class CompraEntradaSplitController extends Controller
                     'order_id' => $order->id,
                 ],
                 'statement_descriptor' => 'ENTRADAS',
-                'external_reference' => 'orden_' . $order->id,
+                'external_reference' => (string) $order->id,
                 'marketplace_fee' => round($total * 0.10, 2), // Comision para la plataforma
             ]);
 
@@ -115,4 +115,5 @@ class CompraEntradaSplitController extends Controller
         }
     }
 }
+
 

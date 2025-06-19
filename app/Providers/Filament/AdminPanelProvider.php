@@ -24,7 +24,7 @@ use Filament\Navigation\NavigationBuilder; // Para el closure del navigation()
 use Filament\Navigation\NavigationItem; // Para NavigationItem::make()
 use App\Filament\Pages\ScannerInterface; // Para ScannerInterface::class
 use App\Filament\Pages\OauthConnectPage;
-
+use App\Filament\Pages\ScanQrPage;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -54,7 +54,7 @@ class AdminPanelProvider extends PanelProvider
                     ...EventoResource::getNavigationItems(), // Carga ítems del recurso Evento
                     // **** ALTERNATIVA "HARDCODEADA" SI LAS ANTERIORES FALLAN ****
                     NavigationItem::make('Scanner de Tickets') // Título fijo
-                        ->url(ScannerInterface::getUrl()) // O '/admin/scanner' si conoces la URL
+                        ->url('/scanner-test')
                         ->icon('heroicon-o-qr-code') // Icono fijo
                         ->sort(2),
                     NavigationItem::make('Cobros')

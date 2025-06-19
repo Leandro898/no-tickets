@@ -6,6 +6,9 @@ use App\Http\Controllers\CompraEntradaSplitController;
 use App\Http\Controllers\TicketValidationController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\MercadoPagoOAuthController;
+use App\Livewire\TestScanner;
+use App\Http\Controllers\ScannerController;
+use App\Http\Controllers\TicketScanController;
 
 Route::get('/', function () {
     return view('inicio');
@@ -37,3 +40,17 @@ Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showV
 Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
+Route::get('/scanner-test', TestScanner::class);
+
+// ULTIMO SCANNER
+Route::middleware(['auth'])->get('/scanner', function () {
+    return view('filament.pages.scan-qr-redirect');
+})->name('scanner.index');
+
+// OTRO TEST FUERA DE FILAMENT
+Route::get('/scanner-test', function () {
+    return view('test-scanner');
+});
+
+// VALIDAR QRs
+Route::post('/validar-ticket', [TicketScanController::class, 'validar']);

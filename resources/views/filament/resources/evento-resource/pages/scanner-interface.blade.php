@@ -6,6 +6,6 @@
     </x-slot>
 
     {{-- ¡Aquí es donde inyectas tu componente Livewire QrScanner! --}}
-    @livewire('qr-scanner')
+    
 
 </x-filament-panels::page>
