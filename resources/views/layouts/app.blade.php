@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Innova Ticket')</title>
+    <style>[x-cloak] { display: none !important; }</style>
     @vite('resources/css/app.css')
 </head>
 <body class="bg-gray-100 text-gray-900">

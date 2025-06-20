@@ -17,6 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Support\Facades\FilamentView; // Esto sirve para agregar menu hambuerguesa
 use Filament\Support\Facades\FilamentAsset; // Si usas FilamentAsset
 use Filament\Support\Assets\Css; // Si usas Css
 use App\Filament\Resources\EventoResource;
@@ -30,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
+      	     
         return $panel
             ->default()
             ->id('admin')
@@ -46,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
+              	\App\Filament\Widgets\FloatingMenu::class,
                 \Filament\Widgets\AccountWidget::class, // Usando el namespace completo para evitar ambigüedades
                 \Filament\Widgets\FilamentInfoWidget::class, // Usando el namespace completo
             ])

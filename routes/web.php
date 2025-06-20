@@ -56,4 +56,3 @@ Route::middleware(['auth'])->get('/scanner', function () {
 Route::middleware(['auth', 'role:scanner'])->group(function () {
     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
 });
-	
