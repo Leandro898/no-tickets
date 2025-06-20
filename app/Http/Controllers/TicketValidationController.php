@@ -11,7 +11,7 @@ class TicketValidationController extends Controller
 {
     /**
      * Muestra la página de validación de un ticket específico.
-     * @param string $code El código único del ticket.
+     * @param string $code El cdigo único del ticket.
      * @return \Illuminate\View\View
      */
     public function showValidationPage($code)
@@ -68,28 +68,31 @@ class TicketValidationController extends Controller
      */
     public function scanTicket(Request $request, $code)
     {
-        $result = $this->processTicketValidation($code);
+        $ticket = PurchasedTicket::where('unique_code', $code)->first();
 
-        // Define el código de estado HTTP basado en el resultado
-        $httpStatusCode = 200; // Por defecto OK
-        if ($result['status'] === 'error') {
-            switch ($result['message']) {
-                case 'Ticket no encontrado.':
-                    $httpStatusCode = 404;
-                    break;
-                case 'Este ticket ya ha sido utilizado.':
-                    $httpStatusCode = 409; // Conflict
-                    break;
-                case 'Este ticket no es válido.':
-                    $httpStatusCode = 410; // Gone (Recurso no disponible/válido)
-                    break;
-                default:
-                    $httpStatusCode = 400; // Bad Request para otros errores
-            }
+        if (!$ticket) {
+            return response()->json(['status' => 'error', 'message' => 'Ticket no encontrado.'], 404);
         }
 
-        return response()->json($result, $httpStatusCode);
+        // 🔐 PROTECCIÓN: solo marcar como usado si el usuario está logueado como validador
+        if (auth()->check() && auth()->user()->hasRole('scanner')) {
+            if ($ticket->status === 'valid') {
+                $ticket->status = 'used';
+                $ticket->scan_date = now();
+                $ticket->save();
+
+                Log::info('Ticket escaneado y marcado como utilizado por validador', ['ticket_code' => $code]);
+
+                return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.']);
+            }
+
+            return response()->json(['status' => 'error', 'message' => 'Ticket no es válido para escanear.']);
+        }
+
+        // Si lo visita un comprador o público general, NO lo marca como usado
+        return response()->json(['status' => 'ok', 'message' => 'Visualización sin validacin.']);
     }
+
 
     /**
      * Muestra la interfaz del escáner QR dentro de la aplicación.

@@ -37,20 +37,23 @@ Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'
 // --------------------------- TICKETS --------------------------
 Route::get('/tickets', [CompraEntradaSplitController::class, 'index'])->name('tickets.index');
 Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
-Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
+//Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
-Route::get('/scanner-test', TestScanner::class);
+//Route::get('/scanner-test', TestScanner::class);
+
+// OTRO TEST FUERA DE FILAMENT
+Route::middleware(['auth', 'role:scanner'])->group(function () {
+    Route::get('/scanner-test', [ScannerController::class, 'index']);
+});
 
 // ULTIMO SCANNER
 Route::middleware(['auth'])->get('/scanner', function () {
     return view('filament.pages.scan-qr-redirect');
 })->name('scanner.index');
 
-// OTRO TEST FUERA DE FILAMENT
-Route::get('/scanner-test', function () {
-    return view('test-scanner');
-});
-
 // VALIDAR QRs
-Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
+Route::middleware(['auth', 'role:scanner'])->group(function () {
+    Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
+});
+	

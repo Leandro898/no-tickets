@@ -150,7 +150,7 @@ class MercadoPagoController extends Controller
                             for ($i = 0; $i < $cantidad; $i++) {
                                 $uniqueCode = (string) Str::uuid();
                                 $qrPath = 'qrcodes/' . $uniqueCode . '.png';
-                                $qrContent = route('ticket.validate', ['code' => $uniqueCode]);
+                                $qrContent = $uniqueCode;
                                 if (!Storage::disk('public')->exists('qrcodes')) {
                                     Storage::disk('public')->makeDirectory('qrcodes');
                                 }
@@ -161,6 +161,8 @@ class MercadoPagoController extends Controller
                                     'unique_code' => $uniqueCode,
                                     'qr_path' => $qrPath,
                                     'status' => 'valid',
+                                    'buyer_name' => $order->buyer_full_name,
+                                    'ticket_type' => $entrada->nombre, // Asegurate que el campo en la tabla entradas se llama 'nombre'
                                 ]);
                             }
                             $entrada->decrement('stock_actual', $cantidad);

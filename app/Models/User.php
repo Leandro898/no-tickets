@@ -6,13 +6,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 // La línea "use Laravel\Sanctum\HasApiTokens;" debe estar comentada o eliminada
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    // ¡IMPORTANTE!: Quita 'HasApiTokens' de esta línea si no vas a usar Sanctum
-    use HasFactory, Notifiable; 
+    // ¡IMPORTANTE!: Quita 'HasApiTokens' de esta lnea si no vas a usar Sanctum
+    use HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -40,7 +41,7 @@ class User extends Authenticatable
         'remember_token',
         'mp_access_token',      // <--- AÑADIDO: Ocultar por seguridad
         'mp_refresh_token',     // <--- AÑADIDO: Ocultar por seguridad
-        'mp_public_key',        // <--- AÑADIDO: Ocultar por seguridad
+        'mp_public_key',        // <--- AADIDO: Ocultar por seguridad
     ];
 
     /**

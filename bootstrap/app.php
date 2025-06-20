@@ -2,7 +2,7 @@
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware; // Asegúrate de que esta línea esté presente
+use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,19 +12,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // ¡DEBES AÑADIR ESTA LÍNEA AQUÍ DENTRO!
+        // Excepciones para CSRF
         $middleware->validateCsrfTokens(except: [
-            '/api/mercadopago/webhook', // <--- Esta es la línea que falta
+            '/api/mercadopago/webhook',
         ]);
 
-        // Si tienes otros middlewares, irían aquí también.
-        // Por ejemplo, si tu grupo 'web' tuviera otros middlewares:
-        // $middleware->web(append: [
-        //     \App\Http\Middleware\EncryptCookies::class,
-        //     // etc.
-        // ]);
-
+        // Alias para middleware de Spatie (roles y permisos)
+        $middleware->alias([
+            'role' => \App\Http\Middleware\Spatie\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
-    })->create();
+    })
+    ->create();
