@@ -9,6 +9,8 @@ use App\Http\Controllers\MercadoPagoOAuthController;
 use App\Livewire\TestScanner;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\TicketScanController;
+use App\Http\Controllers\Auth\RegistroProductorController;
+
 
 Route::get('/', function () {
     return view('inicio');
@@ -56,3 +58,23 @@ Route::middleware(['auth'])->get('/scanner', function () {
 Route::middleware(['auth', 'role:scanner'])->group(function () {
     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
 });
+
+// RUTAS PARA REGISTRO CON EMAIL
+Route::get('/registro', function () {
+    return view('auth.productor.opciones');
+})->name('registro.opciones');
+
+Route::get('/registro/email', [RegistroProductorController::class, 'showEmailForm'])->name('registro.email');
+Route::post('/registro/email', [RegistroProductorController::class, 'handleEmail']);
+
+//REGISTRO CONTRASEÑA
+Route::get('/registro/password', [RegistroProductorController::class, 'showPasswordForm'])->name('registro.password');
+Route::post('/registro/password', [RegistroProductorController::class, 'handlePassword']);
+
+//RUTAS PARA VERIFICACION DE EMAIL
+Route::get('/registro/verificacion', [RegistroProductorController::class, 'showVerificationForm'])->name('registro.verificacion');
+Route::post('/registro/verificacion', [RegistroProductorController::class, 'verifyCode']);
+
+//RUTA PARA REENVIO DE CODIGO
+Route::post('/registro/re-enviar-codigo', [RegistroProductorController::class, 'reenviarCodigo'])->name('registro.reenviar');
+
