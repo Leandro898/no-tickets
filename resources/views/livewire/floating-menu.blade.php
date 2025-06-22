@@ -1,32 +1,70 @@
-<div x-data="{ open: false }" class="fixed bottom-6 right-6 z-50">
-    <!-- Fondo oscurecido -->
-    <div x-show="open" x-transition.opacity class="fixed inset-0 bg-black/30 backdrop-blur-sm z-40" @click="open = false"></div>
+<div>
+    @auth
+    <div x-data="{ open: false }" class="relative z-[99]">
+        <style>
+            .menu-enter {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            .menu-enter-active {
+                transition: all 0.3s ease;
+                opacity: 1;
+                transform: translateX(0);
+            }
+            .menu-leave {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            .menu-leave-active {
+                transition: all 0.3s ease;
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        </style>
 
-    <!-- Contenedor del menú -->
-    <div
-        x-show="open"
-        x-transition
-        class="absolute bottom-16 right-0 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl w-56 py-2 z-50"
-    >
-        <!-- Items del menú -->
-        <a href="/admin/eventos" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-            Eventos
-        </a>
-        <a href="/admin/scanner-test" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-            Scanner
-        </a>
-        <a href="/admin/cobros" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700">
-            Cobros
-        </a>
+        <!-- Overlay + Menú -->
+        <template x-if="open">
+            <div class="fixed inset-0 z-[90] flex items-end justify-end">
+                <!-- Fondo oscuro -->
+                <div @click="open = false"
+                     class="absolute inset-0 bg-black/50 transition-opacity duration-300"></div>
+
+                <!-- Menú -->
+                <div x-ref="menu"
+                     x-init="$nextTick(() => {
+                         $refs.menu.classList.add('menu-enter');
+                         requestAnimationFrame(() => {
+                             $refs.menu.classList.add('menu-enter-active');
+                         });
+                     })"
+                     @mouseleave="$refs.menu.classList.add('menu-leave-active'); setTimeout(() => open = false, 300)"
+                     class="relative mt-auto mr-6 w-60 bg-white text-black rounded-xl shadow-2xl p-4 z-[99]"
+                     style="margin-bottom: 120px"
+                >
+                    <nav class="space-y-2 text-sm">
+                        <a href="https://prueba.cyberespacio.online/admin/eventos" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
+                            🗓️ <span>Eventos</span>
+                        </a>
+                        <a href="https://prueba.cyberespacio.online/scanner-test" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
+                            🔍 <span>Scanner</span>
+                        </a>
+                        <a href="https://prueba.cyberespacio.online/admin/oauth-connect-page" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
+                            💳 <span>Pagos</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </template>
+
+        <!-- Botón flotante -->
+        <button @click="open = !open"
+            class="fixed bottom-6 right-6 z-[100] bg-white rounded-full p-3 shadow-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2"
+                 viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
     </div>
-
-    <!-- Botón flotante -->
-    <button @click="open = !open"
-        class="w-16 h-16 bg-primary-600 text-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white"
-        aria-label="Abrir menú">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2"
-             viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-    </button>
+    @endauth
 </div>

@@ -124,7 +124,7 @@
           iniciarScanner();
       </script>
 
-
+    @include('livewire.floating-menu')
 
 </body>
 </html>

@@ -23,3 +23,23 @@
 /* .fi-global-search-input-wrapper {
     @apply w-full md:w-96;
 } */
+
+@media (max-width: 767px) {
+    /* Ocultar el sidebar */
+    aside.fi-sidebar {
+        display: none !important;
+    }
+
+    /* Ocultar el botón hamburguesa con title (más confiable) */
+    button[title="Expand sidebar"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Forzar el contenido a ocupar todo */
+    .fi-main {
+        margin-left: 0 !important;
+    }
+}

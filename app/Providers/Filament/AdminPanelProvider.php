@@ -87,6 +87,9 @@ class AdminPanelProvider extends PanelProvider
 
     public function boot(): void
     {
-        //FilamentAsset::registerCss('css/custom-filament.css');
+        FilamentView::registerRenderHook(
+            'panels::topbar.start',
+            fn () => view('components.logo-mobile')
+        );
     }
 }
