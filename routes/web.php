@@ -82,3 +82,6 @@ Route::post('/registro/re-enviar-codigo', [RegistroProductorController::class, '
 //RUTAS PARA REGISTRARTE CON GOOGLE
 Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
 Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+
+//RUTA PARA COPIAR EVENTOS DESDE EL PANEL DE DETALLES DE EVENTO DE UN PRODUCTOR
+Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
