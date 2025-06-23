@@ -10,6 +10,7 @@ use App\Livewire\TestScanner;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\TicketScanController;
 use App\Http\Controllers\Auth\RegistroProductorController;
+use App\Http\Controllers\Auth\GoogleController;
 
 
 Route::get('/', function () {
@@ -78,3 +79,6 @@ Route::post('/registro/verificacion', [RegistroProductorController::class, 'veri
 //RUTA PARA REENVIO DE CODIGO
 Route::post('/registro/re-enviar-codigo', [RegistroProductorController::class, 'reenviarCodigo'])->name('registro.reenviar');
 
+//RUTAS PARA REGISTRARTE CON GOOGLE
+Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleController::class, 'callback']);

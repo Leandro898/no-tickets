@@ -10,6 +10,7 @@
         "filament/filament": "^3.3",
         "guzzlehttp/guzzle": "^7.9",
         "laravel/framework": "^12.0",
+        "laravel/socialite": "^5.21",
         "laravel/tinker": "^2.10.1",
         "mercadopago/dx-php": "^3.4",
         "simplesoftwareio/simple-qrcode": "^4.2",

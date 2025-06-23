@@ -18,10 +18,11 @@
             </a>
 
             <!-- Google (placeholder por ahora) -->
-            <button disabled
-                class="w-full flex items-center justify-center gap-2 bg-gray-700 text-white py-2 px-4 rounded font-medium opacity-50 cursor-not-allowed">
-                🌐 Continuar con Google
-            </button>
+            <a href="{{ route('auth.google') }}" class="w-full inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5" alt="Google Logo">
+                Registrarse con Google
+            </a>
+
 
             <!-- Apple (placeholder por ahora) -->
             <button disabled
