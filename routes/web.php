@@ -15,6 +15,8 @@ use App\Http\Controllers\TicketScanController;
 use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\MisEntradasController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\TicketReenvioController;
+use App\Livewire\MostrarTicket;
 
 Route::get('/', function () {
     return view('inicio');
@@ -124,6 +126,17 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
+
+// REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
+Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
+
+//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO
+Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
+
+
+
+
+
 
 
 //esto conecta las rutas de autenticación
