@@ -62,12 +62,15 @@
 
             {{-- FILA 3 --}}
             <x-filament::button
-                color="gray"
+                :href="App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $this->record->id])"
                 icon="heroicon-o-list-bullet"
-                type="button"
-                class="w-full h-12">
+                tag="a"
+            >
                 Lista digital
             </x-filament::button>
+
+
+
 
             <x-filament::button
                 color="gray"

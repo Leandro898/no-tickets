@@ -29,12 +29,11 @@ class ListEventos extends ListRecords
     /**
      * Define la URL a donde ir al hacer clic en una fila
      */
-    protected function getRecordUrlUsing(): ?Closure
+    protected function getTableRecordUrlUsing(): ?\Closure
     {
-        //dd('Este método sí se está ejecutando');
-
-        return fn (Evento $record): string => static::getResource()::getUrl('detalles', ['record' => $record]);
+        return fn($record) => EventoResource::getUrl('detalles', ['record' => $record->id]);
     }
+
 
     /**
      * Muestra el botón de acciones masivas antes de la paginación

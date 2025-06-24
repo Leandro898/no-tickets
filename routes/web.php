@@ -8,10 +8,11 @@ use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\MercadoPagoOAuthController;
 use App\Livewire\TestScanner;
 use App\Http\Controllers\ScannerController;
-use App\Http\Controllers\TicketScanController;
 use App\Http\Controllers\Auth\RegistroProductorController;
 use App\Http\Controllers\Auth\GoogleController;
-
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\TicketScanController;
+use Illuminate\Support\Facades\Response;
 
 Route::get('/', function () {
     return view('inicio');
@@ -85,3 +86,29 @@ Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
 //RUTA PARA COPIAR EVENTOS DESDE EL PANEL DE DETALLES DE EVENTO DE UN PRODUCTOR
 Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+
+// //RUTA PARA DESCARGAR ENTRADAS POR WhatsApp
+// Route::get('/descargar/qr/{filename}', function ($filename) {
+//     $path = 'qrcodes/' . $filename;
+
+//     if (!Storage::disk('public')->exists($path)) {
+//         abort(404);
+//     }
+
+//     return Storage::disk('public')->download($path, 'entrada-' . $filename);
+// })->name('qr.download');
+
+// //OPCION PARA RECIBIR O DESCARGAR ENTRADAS POR WHATSAPP
+// Route::get('/orden/{order}/reenviar-whatsapp', [TicketScanController::class, 'reenviarWhatsApp'])->name('orden.reenviar.whatsapp');
+
+//RUTA PARA QUE SE PUEDA DESCARGAR LA ENTRADA DESPUES DE COMPRARLA
+
+Route::get('/descargar-entrada/{filename}', function ($filename) {
+    $path = storage_path('app/public/qrcodes/' . $filename);
+
+    if (!file_exists($path)) {
+        abort(404);
+    }
+
+    return Response::download($path);
+})->name('qr.descargar');

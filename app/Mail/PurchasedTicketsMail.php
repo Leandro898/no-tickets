@@ -23,7 +23,7 @@ class PurchasedTicketsMail extends Mailable
     public function __construct(Order $order, $purchasedTickets)
     {
         $this->order = $order;
-        $this->purchasedTickets = $purchasedTickets;
+        $this->purchasedTickets = collect($purchasedTickets); // <== esta línea
     }
 
     /**

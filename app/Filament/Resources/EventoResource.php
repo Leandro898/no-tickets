@@ -23,6 +23,8 @@ use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\EventoResource\Pages\ListaDigital;
+
 
 class EventoResource extends Resource
 {
@@ -94,8 +96,8 @@ class EventoResource extends Resource
             ->headerActions([
                 CreateAction::make()
                     ->label('Crear Evento'),
-            ])
-            ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]));
+            ]);
+            // ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
     }
 
     public static function getPages(): array
@@ -109,6 +111,7 @@ class EventoResource extends Resource
             'reportes' => Pages\ReportesEvento::route('/{record}/reportes'),
             //'view' => Pages\EventoDetalles::route('/{record}'),
             'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
+            'lista-digital' => Pages\ListaDigital::route('/{record}/lista-digital'),
         ];
     }
 

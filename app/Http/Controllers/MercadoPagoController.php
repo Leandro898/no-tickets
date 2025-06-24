@@ -176,6 +176,19 @@ class MercadoPagoController extends Controller
                             $order->email_sent_at = now();
                             $order->save();
                             Log::info('Correo enviado a ' . $order->buyer_email);
+
+                            // Enviar mensaje por WhatsApp
+                            if ($order->buyer_phone && $order->purchasedTickets()->exists()) {
+                                $firstTicket = $order->purchasedTickets()->first();
+                                $linkQR = route('qr.download', ['filename' => basename($firstTicket->qr_path)]);
+                                $mensaje = "🎟️ ¡Gracias por tu compra!\nDescargá tu entrada aquí:\n$linkQR";
+
+                                $numero = preg_replace('/\D/', '', $order->buyer_phone);
+                                $urlWhatsApp = "https://api.whatsapp.com/send?phone=$numero&text=" . urlencode($mensaje);
+
+                                // Log opcional para saber que se intentó enviar
+                                Log::info('Link para enviar por WhatsApp: ' . $urlWhatsApp);
+                            }
                         } catch (\Exception $e) {
                             Log::error('Error al enviar el email: ' . $e->getMessage());
                         }

@@ -15,11 +15,13 @@ class CompraEntradaSplitController extends Controller
 {
     public function show(Evento $evento)
     {
+        $evento->load('entradas'); // importante: 'entradas' con el nombre de la relación
         return view('comprar-entrada-split', compact('evento'));
     }
 
     public function store(Request $request, Evento $evento)
     {
+        // esto sirve para mostrar por pantalla lo que se envia -> dd($request->all());
         $validated = $request->validate([
             'nombre' => 'required|string|max:255',
             'email' => 'required|email',
@@ -27,6 +29,7 @@ class CompraEntradaSplitController extends Controller
             'entradas' => 'required|array',
             'entradas.*.id' => 'required|integer',
             'entradas.*.cantidad' => 'required|integer|min:1',
+            'whatsapp' => 'nullable|string|max:30',
         ]);
 
         $total = 0;
@@ -53,6 +56,7 @@ class CompraEntradaSplitController extends Controller
                 'buyer_full_name' => $validated['nombre'],
                 'buyer_email' => $validated['email'],
                 'buyer_dni' => $validated['buyer_dni'],
+                'buyer_phone' => $validated['whatsapp'],
                 'total_amount' => $total,
                 'payment_status' => 'pending',
                 'items_data' => json_encode($items),
