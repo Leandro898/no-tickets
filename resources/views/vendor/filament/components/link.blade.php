@@ -92,8 +92,8 @@
                 default => null,
             },
             match ($color) {
-                'gray' => 'text-gray-700 dark:text-gray-200',
-                default => 'text-custom-600 dark:text-custom-400',
+                'gray' => 'text-gray-700',
+                default => 'text-custom-600',
             },
             'group-hover/link:underline group-focus-visible/link:underline',
         ]);
@@ -118,8 +118,8 @@
             default => $iconSize,
         },
         match ($color) {
-            'gray' => 'text-gray-400 dark:text-gray-500',
-            default => 'text-custom-600 dark:text-custom-400',
+            'gray' => 'text-gray-400',
+            default => 'text-custom-600',
         },
     ]);
 
@@ -131,7 +131,7 @@
         ) => $color !== 'gray',
     ]);
 
-    $badgeContainerClasses = 'fi-link-badge-ctn absolute start-full top-0 z-[1] w-max -translate-x-1/4 -translate-y-3/4 rounded-md bg-white dark:bg-gray-900 rtl:translate-x-1/4';
+    $badgeContainerClasses = 'fi-link-badge-ctn absolute start-full top-0 z-[1] w-max -translate-x-1/4 -translate-y-3/4 rounded-md bg-white rtl:translate-x-1/4';
 
     $wireTarget = $loadingIndicator ? $attributes->whereStartsWith(['wire:target', 'wire:click'])->filter(fn ($value): bool => filled($value))->first() : null;
 

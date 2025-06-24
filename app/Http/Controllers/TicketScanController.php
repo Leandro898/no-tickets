@@ -60,5 +60,19 @@ class TicketScanController extends Controller
 
         return back()->with('error', 'No se pudo generar el link de WhatsApp.');
     }
+
+    // METODO PARA DESCARGAR LOS TICKETS DESDE EL PANEL DE USUARIO COMPRADOR
+    public function download($ticketId)
+    {
+        $ticket = \App\Models\PurchasedTicket::findOrFail($ticketId);
+
+        $path = storage_path('app/public/' . $ticket->qr_path);
+
+        if (!file_exists($path)) {
+            abort(404, 'QR no encontrado');
+        }
+
+        return response()->download($path, 'entrada-' . $ticket->id . '.png');
+    }
 }
 

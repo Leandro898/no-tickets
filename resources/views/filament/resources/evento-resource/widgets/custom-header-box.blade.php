@@ -1,6 +1,6 @@
 {{-- resources/views/filament/resources/evento-resource/widgets/custom-header-box.blade.php --}}
 <x-filament::widget> {{-- Esta es la etiqueta base para widgets en Filament --}}
-    <div class="bg-blue-500 dark:bg-blue-700 text-white p-6 rounded-lg shadow-md mb-6">
+    <div class="bg-blue-500 text-white p-6 rounded-lg shadow-md mb-6">
         <div class="flex items-center space-x-3">
             <x-heroicon-o-information-circle class="w-8 h-8 flex-shrink-0" />
             <div>

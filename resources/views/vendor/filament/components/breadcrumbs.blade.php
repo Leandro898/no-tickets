@@ -3,8 +3,8 @@
 ])
 
 @php
-    $iconClasses = 'fi-breadcrumbs-item-separator flex h-5 w-5 text-gray-400 dark:text-gray-500';
-    $itemLabelClasses = 'fi-breadcrumbs-item-label text-sm font-medium text-gray-500 dark:text-gray-400';
+    $iconClasses = 'fi-breadcrumbs-item-separator flex h-5 w-5 text-gray-400';
+    $itemLabelClasses = 'fi-breadcrumbs-item-label text-sm font-medium text-gray-500';
 @endphp
 
 <nav {{ $attributes->class(['fi-breadcrumbs']) }}>
@@ -39,7 +39,7 @@
                 @else
                     <a
                         {{ \Filament\Support\generate_href_html($url) }}
-                        class="{{ $itemLabelClasses }} transition duration-75 hover:text-gray-700 dark:hover:text-gray-200"
+                        class="{{ $itemLabelClasses }} transition duration-75 hover:text-gray-700"
                     >
                         {{ $label }}
                     </a>

@@ -122,7 +122,7 @@
             x-show="isOpen"
             x-transition.duration.300ms.opacity
             @class([
-                'fi-modal-close-overlay fixed inset-0 z-40 bg-gray-950/50 dark:bg-gray-950/75',
+                'fi-modal-close-overlay fixed inset-0 z-40 bg-gray-950/50',
             ])
         ></div>
 
@@ -181,7 +181,7 @@
                     @endif
                     {{
                         ($extraModalWindowAttributeBag ?? new \Illuminate\View\ComponentAttributeBag)->class([
-                            'fi-modal-window pointer-events-auto relative row-start-2 flex w-full cursor-default flex-col bg-white shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10',
+                            'fi-modal-window pointer-events-auto relative row-start-2 flex w-full cursor-default flex-col bg-white shadow-xl ring-1 ring-gray-950/5',
                             'fi-modal-slide-over-window ms-auto overflow-y-auto' => $slideOver,
                             // Using an arbitrary value instead of the h-dvh class that was added in Tailwind CSS v3.4.0
                             // to ensure compatibility with custom themes that may use an older version of Tailwind CSS.
@@ -224,7 +224,7 @@
                             @class([
                                 'fi-modal-header flex px-6 pt-6',
                                 'pb-6' => (! $hasSlot) && (! $hasFooter),
-                                'fi-sticky sticky top-0 z-10 border-b border-gray-200 bg-white pb-6 dark:border-white/10 dark:bg-gray-900' => $stickyHeader,
+                                'fi-sticky sticky top-0 z-10 border-b border-gray-200 bg-white pb-6' => $stickyHeader,
                                 'rounded-t-xl' => $stickyHeader && ! ($slideOver || ($width === MaxWidth::Screen)),
                                 match ($alignment) {
                                     Alignment::Start, Alignment::Left => 'gap-x-5',
@@ -268,8 +268,8 @@
                                             @class([
                                                 'rounded-full',
                                                 match ($iconColor) {
-                                                    'gray' => 'bg-gray-100 dark:bg-gray-500/20',
-                                                    default => 'fi-color-custom bg-custom-100 dark:bg-custom-500/20',
+                                                    'gray' => 'bg-gray-100',
+                                                    default => 'fi-color-custom bg-custom-100',
                                                 },
                                                 is_string($iconColor) ? "fi-color-{$iconColor}" : null,
                                                 match ($alignment) {
@@ -292,8 +292,8 @@
                                                 @class([
                                                     'fi-modal-icon h-6 w-6',
                                                     match ($iconColor) {
-                                                        'gray' => 'text-gray-500 dark:text-gray-400',
-                                                        default => 'text-custom-600 dark:text-custom-400',
+                                                        'gray' => 'text-gray-500',
+                                                        default => 'text-custom-600',
                                                     },
                                                 ])
                                             />
@@ -352,7 +352,7 @@
                                 'fi-modal-footer w-full',
                                 'pe-6 ps-[5.25rem]' => $hasIcon && ($alignment === Alignment::Start) && ($footerActionsAlignment !== Alignment::Center) && (! $stickyFooter),
                                 'px-6' => ! ($hasIcon && ($alignment === Alignment::Start) && ($footerActionsAlignment !== Alignment::Center) && (! $stickyFooter)),
-                                'fi-sticky sticky bottom-0 border-t border-gray-200 bg-white py-5 dark:border-white/10 dark:bg-gray-900' => $stickyFooter,
+                                'fi-sticky sticky bottom-0 border-t border-gray-200 bg-white py-5' => $stickyFooter,
                                 'rounded-b-xl' => $stickyFooter && ! ($slideOver || ($width === MaxWidth::Screen)),
                                 'pb-6' => ! $stickyFooter,
                                 'mt-6' => (! $stickyFooter) && (! $hasSlot),

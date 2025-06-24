@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
+use Illuminate\Support\Str;
 
 class PurchasedTicket extends Model
 {
@@ -20,6 +21,7 @@ class PurchasedTicket extends Model
         'scanned_at',
         'buyer_name',
         'ticket_type',
+        'ticket_code',
     ];
 
 
@@ -56,5 +58,12 @@ class PurchasedTicket extends Model
             'entrada_id',   // local key en PurchasedTicket (relación hacia Entrada)
             'evento_id'     // local key en Entrada (relación hacia Evento)
         );
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function ($ticket) {
+            $ticket->ticket_code = 'T-' . strtoupper(Str::random(6)); // ej: "3A9F7QK21B"
+        });
     }
 }

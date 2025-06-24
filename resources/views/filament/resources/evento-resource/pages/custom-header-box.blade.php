@@ -1,5 +1,5 @@
 {{-- resources/views/filament/resources/evento-resource/pages/custom-header-box.blade.php --}}
-<div class="bg-blue-500 dark:bg-blue-700 text-white p-6 rounded-lg shadow-md mb-6">
+<div class="bg-blue-500 text-white p-6 rounded-lg shadow-md mb-6">
     <div class="flex items-center space-x-3">
         <x-heroicon-o-information-circle class="w-8 h-8 flex-shrink-0" />
         <div>

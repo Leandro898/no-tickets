@@ -6,15 +6,15 @@
     <div x-data="{ mostrarModal: false, mostrarToast: false }" class="space-y-6">
 
         {{-- RECAUDACIÓN GLOBAL --}}
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
             <div class="flex justify-between items-center">
                 <div>
                     <h3 class="text-2xl font-bold text-primary-500">Recaudación global</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400"># Unidades vendidas</p>
+                    <p class="text-sm text-gray-500"># Unidades vendidas</p>
                 </div>
                 <div class="text-right">
                     <span class="text-2xl font-bold text-primary-500">$0</span>
-                    <span class="block text-sm text-gray-500 dark:text-gray-400">0 de 100</span>
+                    <span class="block text-sm text-gray-500">0 de 100</span>
                 </div>
             </div>
         </div>
@@ -89,7 +89,7 @@
                     class="w-full h-auto py-4 px-4 text-left flex items-start space-x-3">
                     <div>
                         <div class="font-medium">Productos y cortesías del equipo</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <div class="text-xs text-gray-500 mt-1">
                             Habilita productos y cortesías para los miembros de tu equipo.
                         </div>
                     </div>
@@ -127,13 +127,13 @@
             x-transition
             x-cloak
             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-md text-center">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Link del evento</h2>
+            <div class="bg-white p-6 rounded shadow-lg w-full max-w-md text-center">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Link del evento</h2>
                 <input type="text"
                     value="{{ route('eventos.show', ['evento' => $record->id]) }}"
                     readonly
                     id="enlaceEvento"
-                    class="w-full p-2 border rounded bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-white mb-4" />
+                    class="w-full p-2 border rounded bg-gray-100 text-gray-700 mb-4" />
 
                 <x-filament::button
                     color="primary"

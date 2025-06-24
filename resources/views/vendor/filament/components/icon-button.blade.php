@@ -88,8 +88,8 @@
             ],
         },
         match ($color) {
-            'gray' => 'text-gray-400 hover:text-gray-500 focus-visible:ring-primary-600 dark:text-gray-500 dark:hover:text-gray-400 dark:focus-visible:ring-primary-500',
-            default => 'fi-color-custom text-custom-500 hover:text-custom-600 focus-visible:ring-custom-600 dark:text-custom-400 dark:hover:text-custom-300 dark:focus-visible:ring-custom-500',
+            'gray' => 'text-gray-400 hover:text-gray-500 focus-visible:ring-primary-600',
+            default => 'fi-color-custom text-custom-500 hover:text-custom-600 focus-visible:ring-custom-600',
         },
         is_string($color) ? "fi-color-{$color}" : null,
     ]);
@@ -110,7 +110,7 @@
         },
     ]);
 
-    $badgeContainerClasses = 'fi-icon-btn-badge-ctn absolute start-full top-1 z-[1] w-max -translate-x-1/2 -translate-y-1/2 rounded-md bg-white dark:bg-gray-900 rtl:translate-x-1/2';
+    $badgeContainerClasses = 'fi-icon-btn-badge-ctn absolute start-full top-1 z-[1] w-max -translate-x-1/2 -translate-y-1/2 rounded-md bg-white rtl:translate-x-1/2';
 
     $wireTarget = $loadingIndicator ? $attributes->whereStartsWith(['wire:target', 'wire:click'])->filter(fn ($value): bool => filled($value))->first() : null;
 

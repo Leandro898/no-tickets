@@ -87,4 +87,13 @@ class User extends Authenticatable
     {
         return $this->mp_public_key;
     }
+
+    /**
+     * Relación con los eventos organizados por el usuario.
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class, 'buyer_email', 'email');
+    }
 }

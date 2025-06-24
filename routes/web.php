@@ -13,6 +13,8 @@ use App\Http\Controllers\Auth\GoogleController;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\TicketScanController;
 use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\MisEntradasController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 Route::get('/', function () {
     return view('inicio');
@@ -112,3 +114,17 @@ Route::get('/descargar-entrada/{filename}', function ($filename) {
 
     return Response::download($path);
 })->name('qr.descargar');
+
+//RUTA PARA VER MIS ENTRADAS
+Route::middleware(['auth'])->group(function () {
+    Route::get('/mis-entradas', [MisEntradasController::class, 'index'])->name('mis-entradas');
+});
+
+// Rutas DASHBOARD USUARIO
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
+
+
+//esto conecta las rutas de autenticación
+require __DIR__ . '/auth.php';

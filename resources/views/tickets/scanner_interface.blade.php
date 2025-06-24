@@ -2,7 +2,7 @@
 
 <x-filament-panels::page>
     <x-slot name="header">
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 class="text-xl font-semibold text-gray-900">
             {{ $this->getTitle() }}
         </h2>
     </x-slot>

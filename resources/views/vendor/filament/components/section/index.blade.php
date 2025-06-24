@@ -68,7 +68,7 @@
             'fi-section',
             match ($aside) {
                 true => 'fi-aside grid grid-cols-1 items-start gap-x-6 gap-y-4 md:grid-cols-3',
-                false => 'rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10',
+                false => 'rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5',
             },
         ])
     }}
@@ -94,8 +94,8 @@
                         @class([
                             'fi-section-header-icon self-start',
                             match ($iconColor) {
-                                'gray' => 'text-gray-400 dark:text-gray-500',
-                                default => 'fi-color-custom text-custom-500 dark:text-custom-400',
+                                'gray' => 'text-gray-400',
+                                default => 'fi-color-custom text-custom-500',
                             },
                             is_string($iconColor) ? "fi-color-{$iconColor}" : null,
                             match ($iconSize) {
@@ -178,8 +178,8 @@
         @endif
         @class([
             'fi-section-content-ctn',
-            'border-t border-gray-200 dark:border-white/10' => $hasHeader && (! $aside),
-            'rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10 md:col-span-2' => $aside,
+            'border-t border-gray-200' => $hasHeader && (! $aside),
+            'rounded-xl bg-white shadow-sm ring-1 ring-gray-950/5 md:col-span-2' => $aside,
             'md:order-first' => $contentBefore,
         ])
     >
@@ -198,7 +198,7 @@
         @if ($hasFooterActions)
             <footer
                 @class([
-                    'fi-section-footer border-t border-gray-200 dark:border-white/10',
+                    'fi-section-footer border-t border-gray-200',
                     'px-6 py-4' => ! $compact,
                     'px-4 py-2.5' => $compact,
                 ])

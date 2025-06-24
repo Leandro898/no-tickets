@@ -236,9 +236,40 @@ class MercadoPagoController extends Controller
     public function success(Request $request, Order $order)
     {
         Log::info('MercadoPago Success redirección para orden ' . $order->id, $request->all());
-        $order->refresh();
-        return view('purchase.success', compact('order'));
+
+        $order->refresh(); // Asegurarse de que el estado está actualizado
+
+        if ($order->payment_status === 'approved') {
+            // Crear o buscar el usuario por email
+            $user = User::firstOrCreate(
+                ['email' => $order->buyer_email],
+                [
+                    'name' => $order->buyer_full_name,
+                    'password' => bcrypt(Str::random(12)) // contraseña temporal aleatoria
+                ]
+            );
+
+            // Asignar rol "cliente" si no lo tiene
+            if (!$user->hasRole('cliente')) {
+                $user->assignRole('cliente');
+            }
+
+            // Loguear al usuario si aún no está logueado
+            if (!Auth::check()) {
+                Auth::login($user);
+            }
+
+            // Redirigir a "Mis Entradas"
+            return redirect()->route('mis-entradas')
+                ->with('success', '¡Compra exitosa! Tus entradas están disponibles.');
+        }
+
+        // Si el pago no está aprobado aún
+        return redirect()->route('purchase.pending', ['order' => $order->id])
+            ->with('info', 'Estamos procesando tu pago. Te avisaremos cuando esté confirmado.');
     }
+
+
 
     public function failure(Request $request, Order $order)
     {

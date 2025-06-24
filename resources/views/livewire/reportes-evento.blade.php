@@ -20,7 +20,7 @@
         {{-- QRs generados --}}
         <x-filament::card>
             <h3 class="text-xl font-bold text-primary-500">QRs generados</h3>
-            <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-2">
+            <p class="text-3xl font-extrabold text-gray-900 mt-2">
                 {{ $qrsGenerados }}
             </p>
         </x-filament::card>
@@ -28,7 +28,7 @@
         {{-- QRs validados --}}
         <x-filament::card>
             <h3 class="text-xl font-bold text-primary-500">QRs validados</h3>
-            <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-2">
+            <p class="text-3xl font-extrabold text-gray-900 mt-2">
                 {{ $qrsValidados }}
             </p>
         </x-filament::card>

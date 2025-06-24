@@ -49,7 +49,7 @@
             default => $iconSize,
         },
         match ($color) {
-            'gray' => 'text-gray-400 dark:text-gray-500',
+            'gray' => 'text-gray-400',
             default => 'text-custom-500',
         },
     ]);
@@ -109,8 +109,8 @@
                     default => $size,
                 },
                 match ($color) {
-                    'gray' => 'bg-gray-50 text-gray-600 ring-gray-600/10 dark:bg-gray-400/10 dark:text-gray-400 dark:ring-gray-400/20',
-                    default => 'fi-color-custom bg-custom-50 text-custom-600 ring-custom-600/10 dark:bg-custom-400/10 dark:text-custom-400 dark:ring-custom-400/30',
+                    'gray' => 'bg-gray-50 text-gray-600 ring-gray-600/10',
+                    default => 'fi-color-custom bg-custom-50 text-custom-600 ring-custom-600/10',
                 },
                 is_string($color) ? "fi-color-{$color}" : null,
             ])
@@ -177,8 +177,8 @@
                     ->class([
                         'fi-badge-delete-button -my-1 -me-2 -ms-1 flex items-center justify-center p-1 outline-none transition duration-75',
                         match ($color) {
-                            'gray' => 'text-gray-700/50 hover:text-gray-700/75 focus-visible:text-gray-700/75 dark:text-gray-300/50 dark:hover:text-gray-300/75 dark:focus-visible:text-gray-300/75',
-                            default => 'text-custom-700/50 hover:text-custom-700/75 focus-visible:text-custom-700/75 dark:text-custom-300/50 dark:hover:text-custom-300/75 dark:focus-visible:text-custom-300/75',
+                            'gray' => 'text-gray-700/50 hover:text-gray-700/75 focus-visible:text-gray-700/75',
+                            default => 'text-custom-700/50 hover:text-custom-700/75 focus-visible:text-custom-700/75',
                         },
                     ])
                     ->style([
