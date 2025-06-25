@@ -17,56 +17,49 @@ class PurchasedTicketsMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
-    public function __construct(Order $order, $purchasedTickets)
+    public $order;
+    public $purchasedTickets;
+    public $resetUrl;
+
+    public function __construct(Order $order, $purchasedTickets, ?string $resetUrl = null)
     {
         $this->order = $order;
-        $this->purchasedTickets = collect($purchasedTickets); // <== esta línea
+        $this->purchasedTickets = collect($purchasedTickets);
+        $this->resetUrl = $resetUrl;
     }
 
-    /**
-     * Get the message envelope.
-     */
+
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '¡Tus entradas para ' . $this->order->event->nombre . ' han llegado! 🎉', // Asunto dinámico
+            subject: 'Reenvio de entradas ' . $this->order->event->nombre . ' 🎟️',
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.purchased_tickets',
-            with: [ // ¡AÑADIR ESTE BLOQUE!
+            view: 'emails.purchased_tickets',
+            with: [
                 'order' => $this->order,
                 'purchasedTickets' => $this->purchasedTickets,
+                'resetUrl' => $this->resetUrl,
             ],
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     * Aquí es donde adjuntaremos los códigos QR.
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
+
     public function attachments(): array
     {
         $attachments = [];
 
         foreach ($this->purchasedTickets as $ticket) {
-            // Asegúrate de que qr_path contenga la ruta correcta al archivo del QR (ej. qrcodes/codigo-unico.png)
             $filePath = storage_path('app/public/' . $ticket->qr_path);
 
             if (file_exists($filePath)) {
                 $attachments[] = Attachment::fromPath($filePath)
-                                ->as('qr_ticket_' . $ticket->unique_code . '.png') // Nombre del archivo adjunto
-                                ->withMime('image/png'); // Tipo MIME del archivo
+                    ->as('qr_ticket_' . $ticket->unique_code . '.png')
+                    ->withMime('image/png');
             } else {
                 \Log::warning('QR file not found for ticket: ' . $ticket->id . ' at path: ' . $filePath);
             }
@@ -75,3 +68,4 @@ class PurchasedTicketsMail extends Mailable
         return $attachments;
     }
 }
+

@@ -46,19 +46,49 @@
                         <td class="px-4 py-3 align-middle">${{ number_format($ticket->order->total_amount, 0, ',', '.') }}</td>
                         <td class="px-4 py-3 align-middle">{{ $ticket->ticket_code }}</td>
                         <td class="px-4 py-3 align-middle">
+                            
+                            <!-- LISTA DE BOTONES -->
+                            
                             <div class="flex flex-col gap-1 items-center">
-                                <a href="#" class="bg-yellow-500 hover:bg-yellow-600 text-gray px-3 py-1 rounded text-xs">Detalle</a>
+
+                                {{-- BOTON DE DETALLES PARA FUTURO USO --}}
+                                {{-- <a href="#" class="bg-blue-500 hover:bg-blue-600 text-white w-40 py-1 rounded text-xs">Detalle</a> --}}
                                 
                                 {{-- BOTON PARA MOSTRAR E-TICKET --}}
-                                
-                                <a href="{{ route('ticket.mostrar', $ticket->id) }}" target="_blank" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded">
+                                <!-- eTicket: Azul -->
+                                <a href="{{ route('ticket.mostrar', $ticket->id) }}" target="_blank"
+                                    class="bg-blue-500 w-40 py-1 text-white rounded ">
                                     eTICKET
-                                </a>                                
+                                 </a>
+                                 
+                            
 
                                 <!-- Componente livewire para reenviar email con QRs -->
                                 <livewire:reenviar-ticket :ticket-id="$ticket->id" />
 
-                                <a href="#" class="bg-yellow-500 hover:bg-yellow-600 text-gray px-3 py-1 rounded text-xs">WHATSAPP</a>
+                                @php
+                                    $mensaje = rawurlencode(
+                                        "¡Hola! Gracias por tu compra en *Innova Ticket*.
+
+                                    *Evento:* {$evento->nombre}
+                                    *Lugar:* {$evento->ubicacion}
+                                    *Fecha:* " . \Carbon\Carbon::parse($evento->fecha_inicio)->format('d/m/Y H:i') . "
+
+                                    *Podés descargar tu entrada en PDF desde este enlace:*"
+                                    );
+
+                                    $link = route('ticket.descargar', ['ticket' => $ticket->id]);
+                                    $whatsappUrl = "https://wa.me/{$ticket->order->whatsapp_number}?text={$mensaje}%0A{$link}";
+                                @endphp
+
+
+
+                                <!-- WhatsApp: Verde -->
+                                <a href="{{ $whatsappUrl }}" target="_blank"
+                                    class="w-40 py-1 text-white block bg-green-500">
+                                    WHATSAPP
+                                </a>
+
                             </div>
                         </td>
                     </tr>

@@ -17,6 +17,7 @@ use App\Http\Controllers\MisEntradasController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\TicketReenvioController;
 use App\Livewire\MostrarTicket;
+use App\Http\Controllers\TicketPdfController;
 
 Route::get('/', function () {
     return view('inicio');
@@ -133,6 +134,10 @@ Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioCont
 //RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO
 Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 
+//RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
+Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
+    ->name('ticket.descargar')
+    ->middleware('auth');
 
 
 

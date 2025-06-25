@@ -84,6 +84,11 @@
         <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=T-AY3P41" alt="QR Code" />
       </div>
 
+      <a href="{{ route('ticket.descargar', $ticket->id) }}" class="btn btn-purple">
+        Descargar entrada (PDF)
+    </a>
+    
+
       <div class="ticket-footer">
         Presenta esta entrada en la puerta del evento.<br />
         No es necesario imprimirla.

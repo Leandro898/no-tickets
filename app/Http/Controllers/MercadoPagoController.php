@@ -22,7 +22,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use GuzzleHttp\Client;
-
+use Illuminate\Support\Facades\Password;
+use App\Mail\CuentaCreadaMail;
 
 class MercadoPagoController extends Controller
 {
@@ -172,7 +173,47 @@ class MercadoPagoController extends Controller
                     if (is_null($order->email_sent_at)) {
                         $tickets = $order->purchasedTickets;
                         try {
-                            Mail::to($order->buyer_email)->send(new PurchasedTicketsMail($order, $tickets));
+                            $user = User::where('email', $order->buyer_email)->first();
+
+                            //cambiar de aca
+                            try {
+                                $user = \App\Models\User::firstOrCreate(
+                                    ['email' => $order->buyer_email],
+                                    [
+                                        'name' => $order->buyer_full_name,
+                                        'password' => bcrypt(Str::random(12))
+                                    ]
+                                );
+                            
+                                $token = Password::createToken($user);
+                            
+                                $resetUrl = url(route('password.reset', [
+                                    'token' => $token,
+                                    'email' => $user->email,
+                                ]));
+                            
+                                Mail::to($user->email)->send(new CuentaCreadaMail(
+                                    $user->name,
+                                    $resetUrl,
+                                    $tickets
+                                ));
+                            
+                                info("Correo enviado con enlace de contraseña a {$user->email}");
+                            
+                            } catch (\Throwable $e) {
+                                // Si algo falla, lo logueás
+                                \Log::error('Error al crear usuario o enviar correo de cuenta creada: ' . $e->getMessage());
+                            
+                                // Como fallback, mandás el correo sin link
+                                Mail::to($order->buyer_email)->send(new CuentaCreadaMail(
+                                    $order->buyer_full_name,
+                                    null,
+                                    $tickets
+                                ));
+                            }
+
+                            // hasta aca
+
                             $order->email_sent_at = now();
                             $order->save();
                             Log::info('Correo enviado a ' . $order->buyer_email);
@@ -248,6 +289,21 @@ class MercadoPagoController extends Controller
                     'password' => bcrypt(Str::random(12)) // contraseña temporal aleatoria
                 ]
             );
+
+            // if ($user->wasRecentlyCreated) {
+            //     $token = Password::createToken($user);
+            //     $resetLink = url("/reset-password/{$token}?email={$user->email}");
+            
+            //     $tickets = $order->purchasedTickets; // agregá esta línea
+            
+            //     Mail::to($user->email)->send(new \App\Mail\CuentaCreadaMail(
+            //         $user->name,
+            //         $resetLink,
+            //         $tickets // pasá los tickets también acá
+            //     ));
+            // }
+                 
+            
 
             // Asignar rol "cliente" si no lo tiene
             if (!$user->hasRole('cliente')) {
