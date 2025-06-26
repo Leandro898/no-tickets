@@ -26,18 +26,19 @@ class ReenviarTicket extends Component
         try {
             $ticket = PurchasedTicket::find($this->ticketId);
             if (!$ticket || !$ticket->order?->buyer_email) {
-                $this->dispatch('toast', [
-                    'title' => 'Error',
-                    'message' => 'No se pudo reenviar.',
-                    'type' => 'error',
-                ]);
+                $this->dispatch('toast',
+                    title: 'Error',
+                    message: 'No se pudo reenviar.',
+                    type: 'error'
+                );
+
             } else {
                 Mail::to($ticket->order->buyer_email)->send(new PurchasedTicketsMail($ticket->order, [$ticket]));
-                $this->dispatch('toast', [
-                    'title' => 'Enviado',
-                    'message' => 'Entrada reenviada correctamente.',
-                    'type' => 'success',
-                ]);
+                $this->dispatch('toast',
+                    title: 'Enviado',
+                    message: 'Entrada reenviada correctamente.',
+                    type: 'success'
+                );               
             }
         } finally {
             $this->enviando = false;
