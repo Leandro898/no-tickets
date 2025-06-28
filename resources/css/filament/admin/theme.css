@@ -2,48 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* .fi-sidebar {
-    width: 12rem;
-} */
-
-.mio{
-    background-color: red !important;
+/* Estilo para la pestaña activa del menú lateral en Filament */
+.fi-sidebar-item.fi-active,
+.fi-sidebar-item.fi-sidebar-item-active {
+    background-color: #ede9fe !important;
+    /* Violeta muy claro */
 }
 
-.fi-ta-row .fi-ta-cell{
-    padding-top: 2.5rem;    /* Espaciado superior */
-    padding-bottom: 2.5rem; /* Espaciado inferior */
-}
-
-/* Estilos personalizados para el input de búsqueda */
-.fi-input[type="search"] {
-    /* Para hacer el input más alto */
-    @apply py-2 md:py-3 text-lg; /* Aumenta el padding vertical y el tamaño del texto */
-    /* Para hacer el input más ancho */
-    @apply w-full md:w-96; /* Lo hace ancho completo en pantallas pequeñas, y 96 unidades de Tailwind (384px) en medianas y grandes */
-}
-
-/* Si necesitas ajustar el ancho del contenedor padre también, podrías necesitar otra clase */
-/* .fi-global-search-input-wrapper {
-    @apply w-full md:w-96;
-} */
-
-@media (max-width: 767px) {
-    /* Ocultar el sidebar */
-    aside.fi-sidebar {
-        display: none !important;
-    }
-
-    /* Ocultar el botón hamburguesa con title (más confiable) */
-    button[title="Expand sidebar"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-
-    /* Forzar el contenido a ocupar todo */
-    .fi-main {
-        margin-left: 0 !important;
-    }
+.fi-sidebar-item.fi-active .fi-sidebar-item-button,
+.fi-sidebar-item.fi-sidebar-item-active .fi-sidebar-item-button {
+    color: #7c3aed !important;
+    /* Violeta intenso */
+    font-weight: bold !important;
+    border-left: 4px solid #7c3aed !important;
+    /* Línea violeta a la izquierda */
+    background-color: #ede9fe !important;
+    /* Igual al li por si acaso */
+    border-radius: 0.75rem;
+    /* Opcional: igual que px-2 py-2 rounded-lg */
 }
