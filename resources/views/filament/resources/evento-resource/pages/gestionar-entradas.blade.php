@@ -1,58 +1,83 @@
+{{-- resources/views/filament/resources/evento-resource/pages/gestionar-entradas.blade.php --}}
+
+@php
+    use App\Filament\Resources\EntradaResource;
+    use App\Filament\Resources\EventoResource\Pages\EventoDetalles;
+@endphp
+
 <x-filament::page>
     <div class="space-y-6">
+        {{-- Header --}}
+        <div class="flex items-center justify-between">
+            
+            <x-filament::button
+                :href="EventoDetalles::getUrl(['record' => $evento->id])"
+                color="warning"
+                icon="heroicon-o-arrow-left"
+                tag="a"
+                size="sm"
+            >
+                Volver a Detalles
+            </x-filament::button>
+        </div>
 
-        {{-- Título --}}
-        <h2 class="text-2xl font-bold text-gray-800">
-            Entradas del evento: {{ $evento->nombre }}
-        </h2>
+        {{-- Subtítulo --}}
+        <p class="text-lg font-medium">
+            Entradas del evento: <span class="font-semibold">{{ $evento->nombre }}</span>
+        </p>
 
-        {{-- Botón Volver a Detalles --}}
-        <x-filament::button
-            :href="\App\Filament\Resources\EventoResource\Pages\EventoDetalles::getUrl(['record' => $evento->id])"
-            color="primary"
-            icon="heroicon-o-arrow-left"
-            tag="a"
-            size="sm"
-        >
-            Volver a Detalles
-        </x-filament::button>
+        {{-- Grid de cards --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @forelse ($evento->entradas as $entrada)
+                <x-filament::card class="flex flex-col justify-between">
+                    <div class="space-y-2">
+                        <h2 class="text-lg font-semibold text-gray-900">
+                            {{ $entrada->nombre }}
+                        </h2>
 
-        {{-- Listado de Entradas --}}
-        @if($evento->entradas && $evento->entradas->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                @foreach ($evento->entradas as $entrada)
-                    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-5 space-y-4">
-                        <div>
-                            <p class="text-sm text-gray-500">Nombre</p>
-                            <p class="font-semibold text-gray-900">{{ $entrada->nombre }}</p>
-                        </div>
+                        <p class="text-md text-gray-600">
+                            Precio:
+                            <span class="font-medium">ARS$ {{ number_format($entrada->precio, 2) }}</span>
+                        </p>
 
-                        <div>
-                            <p class="text-sm text-gray-500">Stock actual</p>
-                            <p class="font-semibold text-gray-900">{{ $entrada->stock_actual }}</p>
-                        </div>
+                        @if($entrada->max_por_compra)
+                        <p class="text-md text-gray-600">
+                            Máximo por compra:
+                            <span class="font-medium">{{ $entrada->max_por_compra }}</span>
+                        </p>
+                        @endif
 
-                        {{-- Botón Editar --}}
-                        <div>
-                            <x-filament::button
-                                :href="route('filament.admin.resources.entradas.edit', ['record' => $entrada->id])"
-                                color="info"
-                                icon="heroicon-o-pencil"
-                                tag="a"
-                                size="sm"
-                                class="w-full"
-                            >
-                                Editar Entrada
-                            </x-filament::button>
-                        </div>
+                        @if($entrada->disponible_hasta)
+                        <p class="text-md text-gray-600">
+                            Válido hasta:
+                            <span class="font-medium">
+                                {{ $entrada->disponible_hasta->format('d/m/Y H:i') }}
+                            </span>
+                        </p>
+                        @endif
+
+                        <p class="text-md text-gray-600">
+                            Stock actual:
+                            <span class="font-medium">{{ $entrada->stock_actual }}</span>
+                        </p>
+                    </br>
                     </div>
-                @endforeach
-            </div>
-        @else
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                <p class="text-gray-600">No hay entradas registradas para este evento.</p>
-            </div>
-        @endif
 
+                    <x-filament::button
+                        :href="\App\Filament\Resources\EntradaResource::getUrl('edit', ['record' => $entrada->id])"
+                        size="sm"
+                        icon="heroicon-o-pencil"
+                        class="mt-4 w-full"
+                        tag="a"
+                    >
+                        Editar Entrada
+                    </x-filament::button>
+                </x-filament::card>
+            @empty
+                <div class="col-span-full bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-gray-600">
+                    No hay entradas registradas para este evento.
+                </div>
+            @endforelse
+        </div>
     </div>
 </x-filament::page>

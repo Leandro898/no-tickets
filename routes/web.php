@@ -18,10 +18,10 @@ use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\TicketReenvioController;
 use App\Livewire\MostrarTicket;
 use App\Http\Controllers\TicketPdfController;
+use App\Http\Controllers\HomeController;
 
-Route::get('/', function () {
-    return view('inicio');
-});
+//RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // --------------------------- EVENTOS ---------------------------
 Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
@@ -124,21 +124,22 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Rutas DASHBOARD USUARIO
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+Route::middleware(['auth'])->group(function () {
+    // Redirige /dashboard a /mis-entradas
+    Route::redirect('/dashboard', '/mis-entradas')
+         ->name('dashboard');
+});
 
 // REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
 Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
 
-//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO
+//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO -bien perrito malvado con la docu
 Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 
 //RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
 Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
     ->name('ticket.descargar')
     ->middleware('auth');
-
 
 
 

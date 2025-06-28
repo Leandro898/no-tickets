@@ -14,6 +14,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Get;
 
 
 class CreateEntrada extends CreateRecord
@@ -57,7 +58,7 @@ class CreateEntrada extends CreateRecord
                 TextInput::make('stock_actual')
                     ->numeric()
                     ->required()
-                    ->label('Stock Actual (Cantidad restante para vender)'),
+                    ->label('Stock Inicial'),
 
                 TextInput::make('max_por_compra')
                     ->numeric()
@@ -66,23 +67,44 @@ class CreateEntrada extends CreateRecord
                     ->label('Máximo por Compra')
                     ->placeholder('Dejar vacío para ilimitado por compra'),
 
-                // TUS CAMPOS DE FECHA DE DISPONIBILIDAD
+                Checkbox::make('valido_todo_el_evento')
+                    ->label('Este producto es válido para cualquier día del evento')
+                    ->default(true)
+                    ->reactive(),
+
                 DateTimePicker::make('disponible_desde')
-                    ->label('Disponible Desde')
+                    ->label('Válido desde')
                     ->nullable()
-                    ->seconds(false),
+                    ->seconds(false)
+                    ->hidden(fn($get) => $get('valido_todo_el_evento')),
 
                 DateTimePicker::make('disponible_hasta')
-                    ->label('Disponible Hasta')
+                    ->label('Válido hasta')
                     ->nullable()
-                    ->seconds(false),
+                    ->seconds(false)
+                    ->hidden(fn($get) => $get('valido_todo_el_evento')),
 
-                Checkbox::make('valido_todo_el_evento')
-                    ->label('Este producto es válido para cualquier día del evento'),
+            Toggle::make('sold_out')
+                ->label('Sold out')
+                ->default(false)
+                ->reactive()
+                ->hidden(fn(Get $get) => ! $get('visible'))
+                ->helperText(
+                    fn(Get $get) => $get('sold_out')
+                        ? 'Este producto ya no está disponible para la venta'
+                        : 'Tus clientes podrán comprar este producto'
+                ),
 
-                Toggle::make('visible') // Este campo 'visible' lo tenías aquí y no en EntradaResource. Ahora estará en ambos.
-                    ->label('Visible')
-                    ->default(true),
+            Toggle::make('visible')
+                ->label('Visible')
+                ->default(true)
+                ->reactive()
+                ->helperText(
+                    fn(Get $get) => $get('visible')
+                        ? 'Tus clientes podrán ver este producto'
+                        : 'Este producto no es visible para tus clientes'
+                )
+                ->columnSpanFull(),
             ]);
     }
 
@@ -124,16 +146,54 @@ class CreateEntrada extends CreateRecord
     //     return "/admin/eventos/{$this->record->evento_id}/gestionar-entradas";
     // }
 
-    protected function afterCreate(): void
-    {
-        Notification::make()
-            ->title('Entrada creada exitosamente')
-            ->success()
-            ->send();
-    }
+    // protected function afterCreate(): void
+    // {
+    //     Notification::make()
+    //         ->title('Entrada creada exitosamente')
+    //         ->success()
+    //         ->send();
+    // }
 
     public function getBreadcrumbs(): array
     {
         return [];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Crear Entrada / Ticket';
+    }
+
+    /**
+     * Aquí redefinimos las acciones del formulario:
+     * – getCreateFormAction(): el botón principal (“Crear”)
+     * – getCreateAndCreateAnotherFormAction(): “Crear y crear otra”
+     * – getCancelFormAction(): “Cancelar”
+     */
+    protected function getFormActions(): array
+    {
+        return [
+            $this
+                ->getCreateFormAction()
+                ->label('Crear Entrada'),
+
+            $this
+                ->getCancelFormAction()
+                ->label('Cancelar'),
+        ];
+    }
+
+    // Notificaciones al crearse una entrada
+    // protected function getCreatedNotificationTitle(): ?string
+    // {
+    //     return '¡Entrada Generada!';
+    // }
+
+    protected function getCreatedNotification(): ?Notification
+    {
+        return Notification::make()
+            ->success()
+            ->title('¡Entrada Generada!')
+            ->body('La entrada se creó correctamente y ya está disponible.');
     }
 }

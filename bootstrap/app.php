@@ -20,8 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
         // Alias para middleware de Spatie (roles y permisos)
         $middleware->alias([
             'role' => \App\Http\Middleware\Spatie\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

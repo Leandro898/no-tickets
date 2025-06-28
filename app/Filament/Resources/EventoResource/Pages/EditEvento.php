@@ -24,5 +24,29 @@ class EditEvento extends EditRecord
             //DeleteAction::make(),
         ];
     }
-    
+
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Editar Evento';
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this
+                ->getSaveFormAction()
+                ->label('Guardar Cambios')
+                ->color('success'),
+
+
+            $this
+                ->getCancelFormAction()
+                ->label('Cancelar'),
+        ];
+    }
 }

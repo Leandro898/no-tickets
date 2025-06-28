@@ -6,16 +6,16 @@ use App\Filament\Resources\EventoResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\BulkAction;
 use App\Models\Evento;
 use Closure;
 use Illuminate\Support\Facades\Log;
 use Filament\Actions;
 use App\Filament\Resources\EventoResource\Widgets\CustomHeaderBox;
+use Filament\Tables\Actions\Action;
 
 class ListEventos extends ListRecords
-{   
+{
 
     public function __construct()
     {
@@ -77,5 +77,13 @@ class ListEventos extends ListRecords
             // Puedes añadir otros widgets aquí si los necesitas en el pie de la página
         ];
     }
-    
+
+
+    /**
+     * (Opcional) quita cualquier botón en el header de la tabla
+     */
+    protected function getTableHeaderActions(): array
+    {
+        return [];
+    }
 }

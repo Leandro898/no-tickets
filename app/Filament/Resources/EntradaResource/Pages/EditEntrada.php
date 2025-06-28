@@ -13,6 +13,8 @@ use App\Filament\Resources\EventoResource;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Get;
+
 
 class EditEntrada extends EditRecord
 {
@@ -96,5 +98,25 @@ class EditEntrada extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Editar Entrada / Ticket';
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this
+                ->getSaveFormAction()
+                ->label('Guardar Cambios')
+                ->color('success'),
+
+
+            $this
+                ->getCancelFormAction()
+                ->label('Cancelar'),
+        ];
     }
 }

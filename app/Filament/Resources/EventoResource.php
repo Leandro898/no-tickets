@@ -24,6 +24,10 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\EventoResource\Pages\ListaDigital;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Toggle;
+use App\Filament\Resources\EntradaResource;
 
 
 class EventoResource extends Resource
@@ -38,20 +42,93 @@ class EventoResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            TextInput::make('nombre')->required(),
-            TextInput::make('ubicacion')->required(),
-            DateTimePicker::make('fecha_inicio')->required()
-                ->seconds(false),
+            TextInput::make('nombre')
+                ->label('Título del Evento')
+                ->required()
+                ->validationAttribute('Título del evento')
+                ->validationMessages([
+                    'required' => 'Por favor, ingresa el :attribute.',
+                    'unique'   => 'El :attribute ya está registrado.',
+                ]),
+            Textarea::make('ubicacion')
+                ->label('Ubicación')
+                ->rows(4)
+                ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
+                ->columnSpanFull() // Hace que ocupe todo el ancho disponible (opcional)
+                ->required()
+                ->validationMessages([
+                    'required' => 'Por favor, ingresa la :attribute.',
+                    'unique'   => 'El :attribute ya está registrado.',
+                ]),
+            DateTimePicker::make('fecha_inicio')
+                ->label('Fecha y Hora de Inicio')
+                ->required()
+                ->seconds(false)
+                ->validationMessages([
+                    'required' => 'Por favor, ingresa la :attribute.',
+                    'unique'   => 'El :attribute ya está registrado.',
+                ]),
             DateTimePicker::make('fecha_fin')->required()
-                ->seconds(false),
-            Textarea::make('descripcion'),
-            FileUpload::make('imagen')->image()->directory('eventos'),
-            Select::make('estado')
-                ->options([
-                    'activo' => 'Activo',
-                    'cancelado' => 'Cancelado',
-                    'finalizado' => 'Finalizado',
-                ])->default('activo')->required(),
+                ->seconds(false)
+                ->label('Fecha y Hora de Fin')
+                ->validationMessages([
+                    'required' => 'Por favor, ingresa la :attribute.',
+                    'unique'   => 'El :attribute ya está registrado.',
+                ]),
+            Section::make('Edad mínima')
+                ->schema([
+                    Toggle::make('enable_min_age')
+                        ->label('Edad mínima habilitada')
+                        ->reactive(),
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('min_age_male')
+                                ->label('Hombres')
+                                ->numeric()
+                                ->default(18),
+                            TextInput::make('min_age_female')
+                                ->label('Mujeres')
+                                ->numeric()
+                                ->default(18),
+                        ])
+                        ->columns(2)
+                        ->visible(fn(callable $get) => $get('enable_min_age')),
+                ]),
+            Section::make('Requerir datos')
+                ->schema([
+                    Toggle::make('require_dni')
+                        ->label('Requerir DNI para la compra')
+                        ->helperText('Tus asistentes deberán ingresar su DNI al comprar.'),
+                ]),
+            Textarea::make('descripcion')
+                ->label('Descripción')
+                ->rows(4)
+                ->placeholder('Agrega aquí una descripción detallada del evento. Ejemplo: temática, artistas, detalles importantes, etc.')
+                ->columnSpanFull() // Hace que ocupe todo el ancho disponible (opcional)
+                ->required()
+                ->validationMessages([
+                    'required' => 'Por favor, ingresa la :attribute.',
+                    'unique'   => 'El :attribute ya está registrado.',
+                ]),
+            FileUpload::make('imagen')
+                ->label('Banner (imágen) del evento')
+                ->placeholder(__('Arrastra y suelta el banner o haz clic para buscarlo
+'))
+                // …resto de tu configuración…
+                ->image()                                // sólo imágenes
+                ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                ->maxSize(2048)                          // 2 MB (en KB)
+                ->preserveFilenames()                    // guarda el nombre original
+                ->directory('eventos')                   // carpeta en tu disco
+                ->disk('public')                         // disco configurado en filesystems.php
+                ->visibility('public')                   // URL pública
+                ->enableOpen()                           // permite abrir la imagen en modal
+                ->imagePreviewHeight(200)                // alto de la previsualización
+                ->helperText('')
+                ->columnSpanFull(),                      // ocupa todo el ancho del formulario               
+            Hidden::make('estado') //en el futuro si quiero volver a mostrar este campo en la interfaz de crear un evento le cambio "Hidden" por "Select"
+                ->default(fn() => 'activo')  // o recuperar el valor del modelo en edición
+                ->dehydrated(true), 
             Hidden::make('organizador_id') // Campo oculto para el organizador
                 ->default(fn() => auth()->id())
                 ->required()
@@ -62,6 +139,8 @@ class EventoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No hay eventos')
+            ->emptyStateDescription('Crea un evento para comenzar.')
             ->columns([
                 TextColumn::make('nombre')
                     ->searchable()
@@ -88,16 +167,14 @@ class EventoResource extends Resource
                     ])
                     ->label('Filtrar por Estado'),
 
-                // Puedes añadir un filtro por organizador si lo necesitas:
-                // SelectFilter::make('organizador')
-                //     ->relationship('organizador', 'name')
-                //     ->label('Filtrar por Organizador'),
-            ])
-            ->headerActions([
-                CreateAction::make()
-                    ->label('Crear Evento'),
-            ]);
-            // ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
+                // // Puedes añadir un filtro por organizador si lo necesitas:
+                // // SelectFilter::make('organizador')
+                // //     ->relationship('organizador', 'name')
+                // //     ->label('Filtrar por Organizador'),
+                 ]);
+            
+
+        // ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
     }
 
     public static function getPages(): array

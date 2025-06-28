@@ -62,15 +62,12 @@
 
             {{-- FILA 3 --}}
             <x-filament::button
-                :href="App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $this->record->id])"
+                :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])"
                 icon="heroicon-o-list-bullet"
                 tag="a"
-            >
+                class="w-full h-12">
                 Lista digital
             </x-filament::button>
-
-
-
 
             <x-filament::button
                 color="gray"
@@ -106,9 +103,6 @@
                     wire:click="abrirPrimerModal">
                     Suspender evento
                 </x-filament::button>
-
-                {{-- MODALES DE CONFIRMACIÓN DE SUSPENSIÓN --}}
-                {{-- (sin cambios aquí para no duplicar contenido innecesario) --}}
             </div>
 
             {{-- FILA 6 --}}
@@ -126,8 +120,9 @@
             x-show="mostrarModal"
             x-transition
             x-cloak
+            @click.self="mostrarModal = false"
             class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white p-6 rounded shadow-lg w-full max-w-md text-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
                 <h2 class="text-lg font-semibold mb-4 text-gray-800">Link del evento</h2>
                 <input type="text"
                     value="{{ route('eventos.show', ['evento' => $record->id]) }}"
@@ -139,7 +134,9 @@
                     color="primary"
                     icon="heroicon-o-clipboard"
                     @click="
-                        navigator.clipboard.writeText(document.getElementById('enlaceEvento').value).then(() => {
+                        navigator.clipboard.writeText(
+                            document.getElementById('enlaceEvento').value
+                        ).then(() => {
                             mostrarToast = true;
                             mostrarModal = false;
                             setTimeout(() => mostrarToast = false, 2000);
@@ -153,11 +150,18 @@
         {{-- TOAST DE CONFIRMACIÓN --}}
         <div
             x-show="mostrarToast"
-            x-transition
+            x-transition.opacity.duration.300ms
             x-cloak
-            class="fixed bottom-6 right-6 bg-primary-600 text-white px-4 py-3 rounded shadow-lg z-50">
-            ✅ Link copiado al portapapeles
+            class="fixed bottom-6 right-6 flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-lg space-x-2 pointer-events-none z-50">
+            <div class="text-green-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8.414 8.414a1 1 0 01-1.414 0L3.293 10.707a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd" />
+                </svg>
+            </div>
+            <span class="text-gray-800 font-medium">Link copiado al portapapeles</span>
         </div>
+
     </div>
 </x-filament::page>
-

@@ -3,9 +3,9 @@
 
         <a href="{{ url('/') }}" class="text-2xl font-bold text-purple-700">Innova Ticket</a>
         <nav class="flex items-center text-base space-x-8">
-            <a href="{{ route('eventos.index') }}" class="text-gray-700 hover:text-purple-700 font-medium">Eventos</a>
+            <a href="{{ route('eventos.index') }}" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop">Eventos</a>
             @auth
-                <a href="{{ route('mis-entradas') }}" class="text-gray-700 hover:text-purple-700 font-medium">Mis Entradas</a>
+                <a href="{{ route('mis-entradas') }}" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop">Mis Entradas</a>
                 <!-- Dropdown -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center text-gray-700 hover:text-purple-700 font-medium focus:outline-none">
@@ -36,4 +36,12 @@
             @endauth
         </nav>
     </div>
+    <style>
+        @media (max-width: 767px) {
+            .nav-desktop {
+                display: none !important;
+            }
+        }
+        </style>
+        
 </header>

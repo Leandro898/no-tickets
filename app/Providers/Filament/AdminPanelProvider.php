@@ -17,7 +17,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Facades\FilamentView; // Esto sirve para agregar menu hambuerguesa
+use Filament\Support\Facades\FilamentView;
 use Filament\Support\Facades\FilamentAsset; // Si usas FilamentAsset
 use Filament\Support\Assets\Css; // Si usas Css
 use App\Filament\Resources\EventoResource;
@@ -26,6 +26,9 @@ use Filament\Navigation\NavigationItem; // Para NavigationItem::make()
 use App\Filament\Pages\ScannerInterface; // Para ScannerInterface::class
 use App\Filament\Pages\OauthConnectPage;
 use App\Filament\Pages\ScanQrPage;
+use Illuminate\Support\ServiceProvider;
+use Filament\Facades\Filament;
+
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -36,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->darkMode(false) // deshabilita el modo oscuro
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -80,6 +84,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                \Spatie\Permission\Middleware\RoleMiddleware::class . ':admin|productor', // Esta línea es clave
             ])
             //->viteTheme('resources/css/filament/admin/theme.css')
             ->brandName('Innova Ticket');
@@ -87,6 +92,13 @@ class AdminPanelProvider extends PanelProvider
 
     public function boot(): void
     {
+        // 1) Orbital Menu
+        FilamentView::registerRenderHook(
+            'panels::body.end',
+            fn () => view('components.floating-menu')
+        );
+
+        // 2) Registrar tu logo-mobile al inicio de la topbar
         FilamentView::registerRenderHook(
             'panels::topbar.start',
             fn () => view('components.logo-mobile')

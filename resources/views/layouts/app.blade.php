@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdn.tailwindcss.com"></script>
     @livewireStyles
+    {{-- <<< AÑADE ESTO: --}}
+    @stack('styles')
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -22,8 +24,11 @@
     <div class="max-w-7xl mx-auto px-4 py-8">
         <main class="py-8">
             @yield('content')
+            @include('components.front-floating-menu')
         </main>
     </div>
     @livewireScripts
+    @stack('scripts')
+
 </body>
 </html>
