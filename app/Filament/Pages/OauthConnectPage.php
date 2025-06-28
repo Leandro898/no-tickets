@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 class OauthConnectPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static string $view = 'filament.pages.conectar-cobros';
+    protected static string $view = 'filament.pages.oauth-connect-page';
 
     protected static ?string $title = 'Cobros';
     protected static ?string $navigationLabel = 'Cobros';

@@ -21,56 +21,52 @@ class MercadoPagoOAuthController extends Controller
     }
 
     public function handleCallback(Request $request)
-  {
-      if (!$request->has('code')) {
-          return redirect()->route('mercadopago.error')->with('error', 'No se recibió el código de autorización.');
-      }
+    {
+        if (!$request->has('code')) {
+            return redirect()->route('filament.admin.pages.oauth-connect-page')
+                ->with('error', 'Mensaje desde MercadoPagoOAuthController.');
+        }
 
-      $code = $request->code;
+        $code = $request->code;
 
-      $response = Http::asForm()->post('https://api.mercadopago.com/oauth/token', [
-          'grant_type'    => 'authorization_code',
-          'client_id'     => config('mercadopago.client_id'),
-          'client_secret' => config('mercadopago.client_secret'),
-          'code'          => $code,
-          'redirect_uri'  => config('mercadopago.redirect_uri'),
-      ]);
+        $response = Http::asForm()->post('https://api.mercadopago.com/oauth/token', [
+            'grant_type'    => 'authorization_code',
+            'client_id'     => config('mercadopago.client_id'),
+            'client_secret' => config('mercadopago.client_secret'),
+            'code'          => $code,
+            'redirect_uri'  => config('mercadopago.redirect_uri'),
+        ]);
 
-      if ($response->failed()) {
-          Log::error('Error al obtener el access token de MP', ['body' => $response->body()]);
-          return redirect()->route('mercadopago.error')->with('error', 'No se pudo obtener el token de acceso.');
-      }
+        if ($response->failed()) {
+            Log::error('Error al obtener el access token de MP', ['body' => $response->body()]);
+            return redirect()->route('mercadopago.error')->with('error', 'No se pudo obtener el token de acceso.');
+        }
 
-      $data = $response->json();
+        $data = $response->json();
 
-      // Guardar los tokens
-      $user = Auth::user();
-      $user->mp_access_token = $data['access_token'];
-      $user->mp_refresh_token = $data['refresh_token'];
-      $user->mp_user_id = $data['user_id'];
-      $user->mp_expires_in = now()->addSeconds($data['expires_in']);
-      $user->save();
+        // Guardar los tokens
+        $user = Auth::user();
+        $user->mp_access_token = $data['access_token'];
+        $user->mp_refresh_token = $data['refresh_token'];
+        $user->mp_user_id = $data['user_id'];
+        $user->mp_expires_in = now()->addSeconds($data['expires_in']);
+        $user->save();
 
-      return redirect('/admin/oauth-connect-page')->with('success', 'Cuenta Mercado Pago vinculada correctamente.');
-  }
+        return redirect('/admin/oauth-connect-page')->with('success', 'Cuenta Mercado Pago vinculada correctamente.');
+    }
 
-  public function unlinkMPAccount(Request $request)
-  {
-      $user = auth()->user();
+    public function unlinkMPAccount(Request $request)
+    {
+        $user = auth()->user();
 
-      $user->update([
-          'mp_access_token' => null,
-          'mp_refresh_token' => null,
-          'mp_user_id' => null,
-          'mp_expires_in' => null,
-          'mp_public_key' => null,
-      ]);
+        $user->update([
+            'mp_access_token' => null,
+            'mp_refresh_token' => null,
+            'mp_user_id' => null,
+            'mp_expires_in' => null,
+            'mp_public_key' => null,
+        ]);
 
-      return redirect()->back()->with('success', 'Cuenta de Mercado Pago desvinculada correctamente.');
-  }
-
+        return redirect()->back()->with('success', 'Cuenta de Mercado Pago desvinculada correctamente.');
+    }
 }
-
-
-
-

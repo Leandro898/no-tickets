@@ -10,4 +10,9 @@ class ScanQrPage extends Page
     protected static ?string $navigationLabel = 'Scanner de Tickets';
     protected static ?string $slug = 'scanner';
     protected static string $view = 'filament.pages.scan-qr-page';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false; // Esto OCULTA el ítem en el menú
+    }
 }

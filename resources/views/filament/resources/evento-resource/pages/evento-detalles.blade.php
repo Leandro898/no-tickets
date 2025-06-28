@@ -1,165 +1,131 @@
+{{-- resources/views/filament/resources/evento-resource/pages/detalles.blade.php --}}
 <x-filament::page>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight"></h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            {{ $record->nombre }}
+        </h2>
     </x-slot>
 
-    <div x-data="{ mostrarModal: false, mostrarToast: false }" class="space-y-6">
+    <div x-data="{ mostrarModal: false, mostrarToast: false }" class="space-y-12">
 
         {{-- RECAUDACIÓN GLOBAL --}}
-        <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
-            <div class="flex justify-between items-center">
+        <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-2xl font-bold text-primary-500">Recaudación global</h3>
+                    <h3 class="text-2xl font-bold text-violet-700">Recaudación global</h3>
                     <p class="text-sm text-gray-500"># Unidades vendidas</p>
                 </div>
                 <div class="text-right">
-                    <span class="text-2xl font-bold text-primary-500">$0</span>
-                    <span class="block text-sm text-gray-500">0 de 100</span>
+                    <span class="text-2xl font-bold text-violet-700">$0</span>
+                    <p class="text-sm text-gray-500">0 de 100</p>
                 </div>
             </div>
         </div>
 
-        {{-- BOTONES ACCIONES --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {{-- Espaciador de 8 rem (128px) --}}
+        <div class="h-32"></div>
 
-            {{-- FILA 1 --}}
-            <x-filament::button
-                :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])"
-                color="info"
-                icon="heroicon-o-pencil"
-                tag="a"
-                class="w-full h-12">
+        {{-- BOTONES DE ACCIÓN --}}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-items-center mt-32">
+
+            {{-- Ver entradas --}}
+
+            {{-- Editar stock --}}
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil" size="lg"
+                class="px-6 py-4 w-1/2">
                 Editar stock
             </x-filament::button>
 
-            <x-filament::button
-                :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $record->id])"
-                color="primary"
-                icon="heroicon-o-chart-bar"
-                tag="a"
-                class="w-full h-12">
+            {{-- Reportes --}}
+            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-chart-bar"
+                size="lg" class="px-6 py-4 w-1/2">
                 Reportes
             </x-filament::button>
 
-            {{-- FILA 2 --}}
-            <x-filament::button
-                :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])"
-                color="primary"
-                icon="heroicon-o-pencil-square"
-                tag="a"
-                class="w-full h-12">
+            {{-- Editar evento --}}
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil-square"
+                size="lg" class="px-6 py-4 w-1/2">
                 Editar evento
             </x-filament::button>
 
-            <x-filament::button
-                x-on:click="mostrarModal = true"
-                color="gray"
-                icon="heroicon-o-link"
-                tag="button"
-                class="w-full h-12">
+            {{-- Copiar link --}}
+            <x-filament::button type="button" color="primary" icon="heroicon-o-link" size="lg"
+                class="px-6 py-4 w-1/2" x-on:click="mostrarModal = true">
                 Copiar link
             </x-filament::button>
 
-            {{-- FILA 3 --}}
-            <x-filament::button
-                :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])"
-                icon="heroicon-o-list-bullet"
-                tag="a"
-                class="w-full h-12">
+            {{-- Lista digital --}}
+            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-list-bullet"
+                size="lg" class="px-6 py-4 w-1/2">
                 Lista digital
             </x-filament::button>
 
-            <x-filament::button
-                color="gray"
-                icon="heroicon-o-cube"
-                type="button"
-                class="w-full h-12">
-                Enviar productos
+            {{-- Suspender evento --}}
+            <x-filament::button type="button" color="danger" icon="heroicon-o-x-circle" size="lg"
+                class="px-6 py-4 max-w-xs" wire:click="abrirPrimerModal">
+                Suspender evento
             </x-filament::button>
 
-            {{-- FILA 4 --}}
-            <div class="md:col-span-2">
-                <x-filament::button
-                    color="gray"
-                    icon="heroicon-o-users"
-                    type="button"
-                    class="w-full h-auto py-4 px-4 text-left flex items-start space-x-3">
-                    <div>
-                        <div class="font-medium">Productos y cortesías del equipo</div>
-                        <div class="text-xs text-gray-500 mt-1">
-                            Habilita productos y cortesías para los miembros de tu equipo.
-                        </div>
-                    </div>
-                </x-filament::button>
-            </div>
+            {{-- Enviar productos --}}
+            {{--
+    <x-filament::button
+        type="button"
+        color="secondary"
+        icon="heroicon-o-cube"
+        size="sm"
+        class="px-6 py-4 max-w-xs"
+    >
+        Enviar productos
+    </x-filament::button>
+    --}}
 
-            {{-- FILA 5 --}}
-            <div x-data="{ cargando: false }" class="relative">
-                <x-filament::button
-                    color="danger"
-                    icon="heroicon-o-x-circle"
-                    type="button"
-                    class="w-full h-12"
-                    wire:click="abrirPrimerModal">
-                    Suspender evento
-                </x-filament::button>
-            </div>
-
-            {{-- FILA 6 --}}
-            <x-filament::button
-                color="gray"
-                icon="heroicon-o-gift"
-                type="button"
-                class="w-full h-12">
-                Enviar cortesías
-            </x-filament::button>
+            {{-- Enviar cortesías --}}
+            {{--
+    <x-filament::button
+        type="button"
+        color="secondary"
+        icon="heroicon-o-gift"
+        size="sm"
+        class="px-6 py-4 max-w-xs"
+    >
+        Enviar cortesías
+    </x-filament::button>
+    --}}
         </div>
 
-        {{-- MODAL COPIAR LINK --}}
-        <div
-            x-show="mostrarModal"
-            x-transition
-            x-cloak
-            @click.self="mostrarModal = false"
-            class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md text-center">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800">Link del evento</h2>
-                <input type="text"
-                    value="{{ route('eventos.show', ['evento' => $record->id]) }}"
-                    readonly
-                    id="enlaceEvento"
-                    class="w-full p-2 border rounded bg-gray-100 text-gray-700 mb-4" />
 
-                <x-filament::button
-                    color="primary"
-                    icon="heroicon-o-clipboard"
-                    @click="
-                        navigator.clipboard.writeText(
-                            document.getElementById('enlaceEvento').value
-                        ).then(() => {
-                            mostrarToast = true;
-                            mostrarModal = false;
-                            setTimeout(() => mostrarToast = false, 2000);
-                        });
+        {{-- MODAL: Copiar enlace --}}
+        <div x-show="mostrarModal" x-cloak x-transition @click.self="mostrarModal = false"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-center">
+                <h4 class="text-lg font-semibold mb-4">Link del evento</h4>
+                <input x-ref="inputEl" type="text" readonly
+                    value="{{ route('eventos.show', ['evento' => $record->id]) }}"
+                    class="w-full border border-gray-300 rounded p-2 mb-4 bg-gray-50 text-gray-700" />
+                <x-filament::button type="button" color="primary" icon="heroicon-o-clipboard"
+                    x-on:click="
+                        navigator.clipboard.writeText($refs.inputEl.value)
+                            .then(() => {
+                                mostrarToast = true;
+                                mostrarModal = false;
+                                setTimeout(() => mostrarToast = false, 2000);
+                            });
                     ">
                     Copiar link
                 </x-filament::button>
             </div>
         </div>
 
-        {{-- TOAST DE CONFIRMACIÓN --}}
-        <div
-            x-show="mostrarToast"
-            x-transition.opacity.duration.300ms
-            x-cloak
-            class="fixed bottom-6 right-6 flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg shadow-lg space-x-2 pointer-events-none z-50">
-            <div class="text-green-500">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8.414 8.414a1 1 0 01-1.414 0L3.293 10.707a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clip-rule="evenodd" />
-                </svg>
-            </div>
+        {{-- TOAST: Confirmación de copia --}}
+        <div x-show="mostrarToast" x-cloak x-transition.opacity
+            class="fixed bottom-6 right-6 z-50 flex items-center bg-white border border-gray-200 px-4 py-2 rounded-lg shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500 mr-2" viewBox="0 0 20 20"
+                fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8.414 8.414a1 1 0 01-1.414 0L3.293 10.707a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd" />
+            </svg>
             <span class="text-gray-800 font-medium">Link copiado al portapapeles</span>
         </div>
 

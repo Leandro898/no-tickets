@@ -18,6 +18,7 @@ use App\Models\PurchasedTicket;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Table;
 
 class ListaDigital extends Page implements HasTable
 {
@@ -60,17 +61,18 @@ class ListaDigital extends Page implements HasTable
         ];
     }
 
-    protected function getTableFilters(): array
-    {
-        return [
-            SelectFilter::make('status')
-                ->label('Estado')
-                ->options([
-                    'valid' => 'Validado',
-                    'used' => 'Usado',
-                ]),
-        ];
-    }
+    // FILTRO
+    // protected function getTableFilters(): array
+    // {
+    //     return [
+    //         SelectFilter::make('status')
+    //             ->label('Estado')
+    //             ->options([
+    //                 'valid' => 'Validado',
+    //                 'used' => 'Usado',
+    //             ]),
+    //     ];
+    // }
 
     protected function getTableSearchableColumns(): array
     {
@@ -98,6 +100,13 @@ class ListaDigital extends Page implements HasTable
 
         $this->dispatch('$refresh');
     }
+
+    // Metodo para quitar las migas de pan
+    public function getBreadcrumbs(): array
+    {
+        return []; // el array vacio quita las migas de pan
+    }
+
 
     public function toggleEstado($ticketId)
     {
@@ -135,4 +144,7 @@ class ListaDigital extends Page implements HasTable
             
         ];
     }
+
+    
+    
 }

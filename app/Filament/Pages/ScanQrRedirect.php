@@ -16,4 +16,9 @@ class ScanQrRedirect extends Page
     {
         redirect()->to(route('scanner.index'));
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false; // Esto OCULTA el ítem en el menú
+    }
 }

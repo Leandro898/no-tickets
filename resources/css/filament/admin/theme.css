@@ -6,6 +6,10 @@
     width: 12rem;
 } */
 
+.mio{
+    background-color: red !important;
+}
+
 .fi-ta-row .fi-ta-cell{
     padding-top: 2.5rem;    /* Espaciado superior */
     padding-bottom: 2.5rem; /* Espaciado inferior */
