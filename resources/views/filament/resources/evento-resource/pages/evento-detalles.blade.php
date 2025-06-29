@@ -22,83 +22,63 @@
             </div>
         </div>
 
-        
+
         {{-- Espaciador de 8 rem (128px) --}}
         <div class="h-32"></div>
 
         {{-- BOTONES DE ACCIÓN --}}
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-items-center mt-32">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-items-center">
 
             {{-- Ver entradas --}}
 
             {{-- Editar stock --}}
-            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil" size="lg"
-                class="px-6 py-4 w-1/2">
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil" 
+                class="btn-action input-brand">
                 Editar stock
             </x-filament::button>
 
+            {{-- Ver entradas --}}
             {{-- Reportes --}}
             <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-chart-bar"
-                size="lg" class="px-6 py-4 w-1/2">
+                size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl">
                 Reportes
             </x-filament::button>
 
-            {{-- Editar evento --}}
-            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil-square"
-                size="lg" class="px-6 py-4 w-1/2">
+
+
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" icon="heroicon-o-pencil-square" color="primary"
+                {{-- el color que mapeaste en config/filament.php --}} variant="solid" {{-- solid | outline | link --}} size="lg" {{-- sm | md | lg --}}
+                class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl" {{-- utilidades adicionales (opcional) --}}>
                 Editar evento
             </x-filament::button>
 
+            {{-- Ver entradas --}}
+
             {{-- Copiar link --}}
-            <x-filament::button type="button" color="primary" icon="heroicon-o-link" size="lg"
-                class="px-6 py-4 w-1/2" x-on:click="mostrarModal = true">
+            <x-filament::button type="button" color="primary" icon="heroicon-o-link" size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl"
+                x-on:click="mostrarModal = true">
                 Copiar link
             </x-filament::button>
 
             {{-- Lista digital --}}
             <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-list-bullet"
-                size="lg" class="px-6 py-4 w-1/2">
+                size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl">
                 Lista digital
             </x-filament::button>
 
             {{-- Suspender evento --}}
             <x-filament::button type="button" color="danger" icon="heroicon-o-x-circle" size="lg"
-                class="px-6 py-4 max-w-xs" wire:click="abrirPrimerModal">
+                class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl"
+                wire:click="abrirPrimerModal">
                 Suspender evento
             </x-filament::button>
-
-            {{-- Enviar productos --}}
-            {{--
-    <x-filament::button
-        type="button"
-        color="secondary"
-        icon="heroicon-o-cube"
-        size="sm"
-        class="px-6 py-4 max-w-xs"
-    >
-        Enviar productos
-    </x-filament::button>
-    --}}
-
-            {{-- Enviar cortesías --}}
-            {{--
-    <x-filament::button
-        type="button"
-        color="secondary"
-        icon="heroicon-o-gift"
-        size="sm"
-        class="px-6 py-4 max-w-xs"
-    >
-        Enviar cortesías
-    </x-filament::button>
-    --}}
         </div>
 
 
         {{-- MODAL: Copiar enlace --}}
         <div x-show="mostrarModal" x-cloak x-transition @click.self="mostrarModal = false"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 text-center">
+            <div class="bg-primary rounded-lg shadow-lg w-full max-w-md p-6 text-center">
                 <h4 class="text-lg font-semibold mb-4">Link del evento</h4>
                 <input x-ref="inputEl" type="text" readonly
                     value="{{ route('eventos.show', ['evento' => $record->id]) }}"

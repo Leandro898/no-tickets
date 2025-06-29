@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL; // Importa la fachada URL
+use Filament\Support\Assets\Css;
+use Filament\Support\Facades\FilamentAsset;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,5 +19,9 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceScheme('https');
             }
         }
+
+        FilamentAsset::register([
+            Css::make('custom-filament', resource_path('css/custom-filament.css')),
+        ]);
     }
 }

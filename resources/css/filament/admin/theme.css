@@ -2,22 +2,248 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Estilo para la pestaña activa del menú lateral en Filament */
-.fi-sidebar-item.fi-active,
-.fi-sidebar-item.fi-sidebar-item-active {
-    background-color: #ede9fe !important;
-    /* Violeta muy claro */
+@layer components {
+
+    /* Estilo para la pestaña activa del menú lateral en Filament */
+        .fi-sidebar-item.fi-active,
+        .fi-sidebar-item.fi-sidebar-item-active {
+            background-color: #ede9fe !important;
+            /* Violeta muy claro */
+        }
+    
+        .fi-sidebar-item.fi-active .fi-sidebar-item-button,
+        .fi-sidebar-item.fi-sidebar-item-active .fi-sidebar-item-button {
+            color: #7c3aed !important;
+            /* Violeta intenso */
+            font-weight: bold !important;
+            border-left: 4px solid #7c3aed !important;
+            /* Línea violeta a la izquierda */
+            background-color: #ede9fe !important;
+            /* Igual al li por si acaso */
+            border-radius: 0.75rem;
+            /* Opcional: igual que px-2 py-2 rounded-lg */
+        }
+    
+        .mi-color {
+            color: #f04d0c !important;
+            /* Violeta intenso */
+        }
+    
+        /* branding */
+    
+        /* Base neutra – todos los inputs se ven iguales */
+        .input-brand {
+            @apply w-full px-3 py-2 rounded-lg font-medium
+            /* utilidades Tailwind */
+            border-2 border-gray-300 bg-white text-slate-800 transition-colors transition-shadow duration-200;
+        }
+    
+        .input-brand:focus,
+        .input-brand:focus-visible {
+            border-color: #5b21b6 !important;
+            /* caja de sombras con un solo !important al final */
+            box-shadow:
+                0 0 0 3px rgba(91, 33, 182, 0.7),
+                0 0 12px rgba(91, 33, 182, 0.5) !important;
+            outline: none !important;
+            z-index: 2;
+        }
+    
+        /* Placeholder violeta clarito */
+        .input-brand::placeholder {
+            color: #a78bfa;
+        }
+    /* —— aquí abajo coloca TODO tu theme.css —— */
+
+    
+
+    /* si tenías otras reglas de theme.css, añádelas también aquí */
+
+    .btn-action {
+        @apply h-20 w-1/2 px-6 py-4 bg-purple-700 hover:bg-purple-800 transition shadow-xl;
+      }
+      
+    .x{
+        background-color: red !important;
+    }
+
+    /* AGREGADO POR MI */
+
+    /* 1) Cabecera de página */
+    .fi-page-header {
+        @apply bg-white border-b border-gray-200 mb-8 pb-4;
+    }
+    .fi-page-heading {
+        @apply text-3xl font-bold text-gray-900;
+    }
+
+    /* 2) El “card” que envuelve cada sección */
+    .fi-card {
+        @apply bg-gray-50 border border-gray-200 rounded-xl shadow-sm p-6 mb-6;
+    }
+
+    /* 3) Títulos de sección dentro del card */
+    .fi-forms-fieldset > legend {
+        @apply text-lg font-semibold text-gray-700 mb-4;
+    }
+
+    /* 4) Espaciado entre grupos de campos */
+    .fi-forms-fieldset {
+        @apply mb-8;
+    }
+
+    /* 5) Labels de los campos */
+    .fi-forms-label {
+        @apply text-sm font-medium text-gray-600 mb-2;
+    }
+
+    /* 6) Contenedor del input */
+    .fi-input-wrp-input {
+        @apply bg-white border border-gray-300 rounded-lg shadow-inner transition;
+    }
+
+    /* Enfoca el wrapper cuando alguno de sus inputs esté activo */
+    .fi-input-wrp-input:focus-within {
+        @apply ring-2 ring-purple-600 ring-opacity-75;
+      }
+
+    /* Sección DATOS PRINCIPALES */
+  /* Header visual fuerte para el primer card */
+  .fi-section > .fi-section-header {
+    @apply bg-gradient-to-r from-violet-100 via-white to-violet-100; /* degradado suave */
+    color: #6d28d9 !important;       /* Violeta branding */
+    font-weight: bold;
+    font-size: 1.2rem;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    box-shadow: 0 2px 16px 0 rgba(125, 84, 232, 0.05);
+    border-bottom: 1px solid #ede9fe; /* borde inferior suave */
+  }
+
+  /* Icono del header */
+  .fi-section > .fi-section-header .fi-icon {
+    color: #6d28d9 !important; /* más violeta branding */
+    margin-right: 1rem;
+    font-size: 1.6rem;
+  }
+
+  /* Descripción, menos opaca pero visible */
+  .fi-section > .fi-section-header + .fi-section-description {
+    color: #6d28d9cc; /* violeta claro, semitransparente */
+    padding-left: 2rem;
+    padding-bottom: 0.75rem;
+    font-size: 1rem;
+  }
+
+    /* El “card” blanco */
+    .fi-section {
+        @apply bg-white rounded-xl shadow-md border border-violet-100;
+    }
+
+    /* Círculo violeta para icono header */
+  .fi-section-header-icon {
+    
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;  /* 35px */
+    height: 2.2rem;
+    min-width: 2.2rem;
+    min-height: 2.2rem;
+    margin-right: 1.1rem;
+    
 }
 
-.fi-sidebar-item.fi-active .fi-sidebar-item-button,
-.fi-sidebar-item.fi-sidebar-item-active .fi-sidebar-item-button {
-    color: #7c3aed !important;
-    /* Violeta intenso */
-    font-weight: bold !important;
-    border-left: 4px solid #7c3aed !important;
-    /* Línea violeta a la izquierda */
-    background-color: #ede9fe !important;
-    /* Igual al li por si acaso */
-    border-radius: 0.75rem;
-    /* Opcional: igual que px-2 py-2 rounded-lg */
+    /* COLOR DEL TOGGLE*/
+
+   /* define tu paleta de marca */
+  :root {
+    --brand-600: #7d4edd;
+    --brand-200: #e2d9f9;
+    /* ...otros tonos si los necesitas */
+  }
+
+  /* Estado “off” (bg-gray-200 / fi-color-gray) */
+  .fi-fo-toggle.bg-gray-200.fi-color-gray {
+    /* reemplaza el gris por un tono más acorde a tu marca */
+    @apply bg-[var(--brand-200)] dark:bg-[var(--brand-200)/0.5];
+    /* define el --c-600 que usa el switch para el “halo” y anillos */
+    --c-600: #6b7280; /* o el gris que prefieras */
+  }
+
+  /* Estado “on” (fi-color-custom) */
+  .fi-fo-toggle.fi-color-custom {
+    /* fondo violeta */
+    @apply bg-[var(--brand-600)];
+    /* halo/foco */
+    --c-600: var(--brand-600);
+  }
+
+  /* foco visible: usa tu violeta */
+  .fi-fo-toggle:focus-visible {
+    box-shadow: 0 0 0 2px var(--c-600);
+  }
+    
+
+  /*FILE UPLOAD*/
+    /* Contenedor principal */
+  .fi-fo-file-upload .filepond--root {
+    @apply bg-[var(--brand-200)] border-2 border-dashed border-[var(--brand-600)]
+           rounded-lg p-6 text-center transition-shadow duration-200;
+    /* altura fija para que no “colapse” si no hay imagen */
+    min-height: 80px;
+  }
+
+  /* Hover y foco */
+  .fi-fo-file-upload .filepond--root:hover {
+    @apply shadow-lg;
+  }
+  .fi-fo-file-upload .filepond--root:focus-within {
+    box-shadow: 0 0 0 2px var(--brand-600);
+  }
+
+  /* Texto de “drop” */
+  .fi-fo-file-upload .filepond--label-action {
+    @apply text-[var(--brand-600)] font-semibold;
+  }
+
+  /* Botón interno de FilePond */
+  .fi-fo-file-upload .filepond--drop-label {
+    @apply text-gray-600;
+  }
+
+  /* Vista previa de imagen */
+  .fi-fo-file-upload .filepond--panel {
+    @apply rounded-md overflow-hidden;
+  }
+
+  /* BOTONES */
+
+  /* Botones primarios: “Guardar Cambios” */
+    
+  .fi-btn{
+    @apply inline-flex items-center justify-center
+           px-6 py-3     /* padding horizontal / vertical */
+           h-12           /* altura fija */
+           w-auto         /* ancho según contenido */
+           rounded-md     /* bordes suaves */
+           bg-purple-700 hover:bg-purple-800
+           text-white font-medium
+           shadow transition-shadow duration-150;
+  }
+
+  .fi-btn.fi-color-gray {
+    /* Fondo blanco, borde y texto violetas */
+    @apply bg-white
+           border border-purple-600
+           text-purple-600
+           hover:bg-purple-50
+           focus-visible:ring-2 focus-visible:ring-purple-600;
+  }
 }

@@ -6,9 +6,10 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/custom-filament.css',         // <— ejemplo
+                'resources/css/filament/admin/theme.css',    // <— si usas tema de filament
                 'resources/js/app.js',
-                'resources/css/filament/admin/theme.css', // <--- AGREGA ESTA LÍNEA
-            ],
+              ],
             refresh: true,
         }),
     ],

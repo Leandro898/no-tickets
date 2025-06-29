@@ -42,99 +42,135 @@ class EventoResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            TextInput::make('nombre')
-                ->label('Título del Evento')
-                ->required()
-                ->validationAttribute('Título del evento')
-                ->validationMessages([
-                    'required' => 'Por favor, ingresa el :attribute.',
-                    'unique'   => 'El :attribute ya está registrado.',
-                ]),
-            Textarea::make('ubicacion')
-                ->label('Ubicación')
-                ->rows(4)
-                ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
-                ->columnSpanFull() // Hace que ocupe todo el ancho disponible (opcional)
-                ->required()
-                ->validationMessages([
-                    'required' => 'Por favor, ingresa la :attribute.',
-                    'unique'   => 'El :attribute ya está registrado.',
-                ]),
-            DateTimePicker::make('fecha_inicio')
-                ->label('Fecha y Hora de Inicio')
-                ->required()
-                ->seconds(false)
-                ->validationMessages([
-                    'required' => 'Por favor, ingresa la :attribute.',
-                    'unique'   => 'El :attribute ya está registrado.',
-                ]),
-            DateTimePicker::make('fecha_fin')->required()
-                ->seconds(false)
-                ->label('Fecha y Hora de Fin')
-                ->validationMessages([
-                    'required' => 'Por favor, ingresa la :attribute.',
-                    'unique'   => 'El :attribute ya está registrado.',
-                ]),
-            Section::make('Edad mínima')
+            Section::make('Datos principales')
+                ->description('Completa la información general del evento.')
                 ->schema([
-                    Toggle::make('enable_min_age')
-                        ->label('Edad mínima habilitada')
-                        ->reactive(),
-                    Grid::make(2)
-                        ->schema([
-                            TextInput::make('min_age_male')
-                                ->label('Hombres')
-                                ->numeric()
-                                ->default(18),
-                            TextInput::make('min_age_female')
-                                ->label('Mujeres')
-                                ->numeric()
-                                ->default(18),
-                        ])
-                        ->columns(2)
-                        ->visible(fn(callable $get) => $get('enable_min_age')),
-                ]),
-            Section::make('Requerir datos')
+                    TextInput::make('nombre')
+                        ->label('Título del Evento')
+                        ->required()
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->validationAttribute('Título del evento')
+                        ->validationMessages([
+                            'required' => 'Por favor, ingresa el :attribute.',
+                            'unique'   => 'El :attribute ya está registrado.',
+                        ]),
+
+                    Textarea::make('ubicacion')
+                        ->label('Ubicación')
+                        ->rows(4)
+                        ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
+                        ->columnSpanFull()
+                        ->required()
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->validationMessages([
+                            'required' => 'Por favor, ingresa la :attribute.',
+                            'unique'   => 'El :attribute ya está registrado.',
+                        ]),
+
+                    Grid::make(2)->schema([
+                        DateTimePicker::make('fecha_inicio')
+                            ->label('Fecha y Hora de Inicio')
+                            ->required()
+                            ->seconds(false)
+                            ->extraAttributes(['class' => 'input-brand'])
+                            ->validationMessages([
+                                'required' => 'Por favor, ingresa la :attribute.',
+                            ]),
+
+                        DateTimePicker::make('fecha_fin')
+                            ->required()
+                            ->seconds(false)
+                            ->label('Fecha y Hora de Fin')
+                            ->extraAttributes(['class' => 'input-brand'])
+                            ->validationMessages([
+                                'required' => 'Por favor, ingresa la :attribute.',
+                            ]),
+                    ])->columns(2),
+                ])
+                ->columnSpanFull()
+                ->icon('heroicon-o-information-circle')
+                ->collapsible(),
+
+            Section::make('Restricciones y requisitos')
+                ->description('Configura los requisitos para los asistentes.')
                 ->schema([
+                    Section::make('Edad mínima')->schema([
+                        Toggle::make('enable_min_age')
+                            ->label('¿Restringir por edad mínima?')
+                            ->reactive()
+                            ->inline(false),
+
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('min_age_male')
+                                    ->label('Edad mínima Hombres')
+                                    ->numeric()
+                                    ->default(18)
+                                    ->extraAttributes(['class' => 'input-brand']),
+
+                                TextInput::make('min_age_female')
+                                    ->label('Edad mínima Mujeres')
+                                    ->numeric()
+                                    ->default(18)
+                                    ->extraAttributes(['class' => 'input-brand']),
+                            ])
+                            ->columns(2)
+                            ->visible(fn(callable $get) => $get('enable_min_age')),
+                    ]),
+
                     Toggle::make('require_dni')
                         ->label('Requerir DNI para la compra')
-                        ->helperText('Tus asistentes deberán ingresar su DNI al comprar.'),
-                ]),
-            Textarea::make('descripcion')
-                ->label('Descripción')
-                ->rows(4)
-                ->placeholder('Agrega aquí una descripción detallada del evento. Ejemplo: temática, artistas, detalles importantes, etc.')
-                ->columnSpanFull() // Hace que ocupe todo el ancho disponible (opcional)
-                ->required()
-                ->validationMessages([
-                    'required' => 'Por favor, ingresa la :attribute.',
-                    'unique'   => 'El :attribute ya está registrado.',
-                ]),
-            FileUpload::make('imagen')
-                ->label('Banner (imágen) del evento')
-                ->placeholder(__('Arrastra y suelta el banner o haz clic para buscarlo
-'))
-                // …resto de tu configuración…
-                ->image()                                // sólo imágenes
-                ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                ->maxSize(2048)                          // 2 MB (en KB)
-                ->preserveFilenames()                    // guarda el nombre original
-                ->directory('eventos')                   // carpeta en tu disco
-                ->disk('public')                         // disco configurado en filesystems.php
-                ->visibility('public')                   // URL pública
-                ->enableOpen()                           // permite abrir la imagen en modal
-                ->imagePreviewHeight(200)                // alto de la previsualización
-                ->helperText('')
-                ->columnSpanFull(),                      // ocupa todo el ancho del formulario               
-            Hidden::make('estado') //en el futuro si quiero volver a mostrar este campo en la interfaz de crear un evento le cambio "Hidden" por "Select"
-                ->default(fn() => 'activo')  // o recuperar el valor del modelo en edición
-                ->dehydrated(true), 
-            Hidden::make('organizador_id') // Campo oculto para el organizador
+                        ->helperText('Tus asistentes deberán ingresar su DNI al comprar.')
+                        ->inline(false),
+                ])
+                ->icon('heroicon-o-identification')
+                ->collapsible(),
+
+            Section::make('Presentación')
+                ->description('Una buena descripción y banner aumentan la conversión.')
+                ->schema([
+                    Textarea::make('descripcion')
+                        ->label('Descripción')
+                        ->rows(4)
+                        ->placeholder('Agrega aquí una descripción detallada del evento. Ejemplo: temática, artistas, detalles importantes, etc.')
+                        ->columnSpanFull()
+                        ->required()
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->validationMessages([
+                            'required' => 'Por favor, ingresa la :attribute.',
+                            'unique'   => 'El :attribute ya está registrado.',
+                        ]),
+
+                    FileUpload::make('imagen')
+                        ->label('Banner (imagen) del evento')
+                        ->placeholder('Arrastra y suelta el banner o haz clic para buscarlo')
+                        ->image()
+                        ->acceptedFileTypes(['image/jpeg', 'image/png'])
+                        ->maxSize(2048)
+                        ->preserveFilenames()
+                        ->directory('eventos')
+                        ->disk('public')
+                        ->visibility('public')
+                        ->enableOpen()
+                        ->imagePreviewHeight(200)
+                        ->helperText('Subí un banner vistoso y de buena calidad (JPG o PNG, máx. 2MB).')
+                        ->columnSpanFull(),
+                ])
+                ->icon('heroicon-o-photo')
+                ->collapsible(),
+
+            Hidden::make('estado')
+                ->default(fn() => 'activo')
+                ->dehydrated(true),
+
+            Hidden::make('organizador_id')
                 ->default(fn() => auth()->id())
                 ->required()
                 ->dehydrated(true),
         ]);
     }
+
+
 
     public static function table(Table $table): Table
     {

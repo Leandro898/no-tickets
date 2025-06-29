@@ -11,9 +11,9 @@
         {{-- Botón Volver a Detalles --}}
         <x-filament::button
             :href="\App\Filament\Resources\EventoResource\Pages\EventoDetalles::getUrl(['record' => $this->record->id])"
-            color="gray"
             icon="heroicon-o-arrow-left"
             tag="a"
+            class="px-6 py-4 bg-purple-700 hover:bg-purple-800 transition shadow-xl"
         >
             Volver a detalles
         </x-filament::button>

@@ -1,3 +1,5 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* no colocar nada los estilos se manejan desde theme.css */

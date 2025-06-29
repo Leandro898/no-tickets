@@ -112,4 +112,30 @@ return [
         'role:admin|productor', // Solo estos roles pueden acceder
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Styles
+    |--------------------------------------------------------------------------
+    |
+    | Aquí registras las hojas de estilo que Filament debe incluir en el head
+    | de todas las páginas del admin.
+    |
+    */
+    
+    'styles' => [
+        asset('css/app.css'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scripts
+    |--------------------------------------------------------------------------
+    |
+    | Si también necesitas cargar algún script personalizado.
+    |
+    */
+    'scripts' => [
+        // asset('js/app.js'),
+    ],
+
 ];
