@@ -1,0 +1,20 @@
+@layer components{
+    /* TOGGLE */
+
+    .fi-fo-toggle {
+        @apply inline-flex items-center h-6 w-11 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out;
+        background-color: var(--tw-color-gray-200);
+        /* off por defecto */
+    }
+
+    /* Estado “on” */
+    .fi-fo-toggle.state-on,
+    .fi-fo-toggle.fi-color-custom {
+        @apply bg-purple-600;
+    }
+
+    /* Estado “off” */
+    .fi-fo-toggle.fi-color-gray {
+        @apply bg-gray-200;
+    }
+}

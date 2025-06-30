@@ -6,8 +6,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/css/custom-filament.css',         // <— ejemplo
-                'resources/css/filament/admin/theme.css',    // <— si usas tema de filament
+                'resources/css/filament/admin/filament.css', // Esta ruta para el tema de Filament para personalizarlo
                 'resources/js/app.js',
               ],
             refresh: true,

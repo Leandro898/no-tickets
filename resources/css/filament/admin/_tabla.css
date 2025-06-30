@@ -1,0 +1,85 @@
+@layer components {
+
+    /* Contenedor general: sombra sutil y bordes redondeados */
+    .fi-ta-table-container>div:first-child {
+        @apply bg-white rounded-xl shadow-md overflow-hidden;
+    }
+
+    /* Header: fondo suave violeta y texto destacado */
+    .fi-ta-header-cell {
+        @apply bg-violet-50 text-purple-600 font-semibold text-base;
+        /* Separación interna */
+        @apply px-4 py-3;
+    }
+
+    /* Celdas del body: padding uniforme y texto base */
+    .fi-ta-row>* {
+        @apply px-4 py-3 text-base text-gray-800;
+    }
+
+    /* Filas alternas para mejorar legibilidad */
+    .fi-ta-tbody>tr:nth-child(even) {
+        @apply bg-gray-50;
+    }
+
+    /* Hover sobre fila */
+    .fi-ta-row:hover {
+        @apply bg-gray-100;
+    }
+
+    /* Bordes de la tabla */
+    .fi-ta-table {
+        @apply border-separate border-spacing-0;
+    }
+
+    .fi-ta-table td,
+    .fi-ta-table th {
+        @apply border-b border-gray-200;
+    }
+
+    /* Container full width */
+    .fi-ta-table-container {
+        @apply max-w-none;
+    }
+
+    /* Ocultar paginación e info innecesaria */
+    nav.fi-pagination,
+    .fi-ta-pagination-info {
+        @apply hidden;
+    }
+
+    /* BOTON ACCIONES */
+
+    /* Contenedor de acciones: cénralo y dale spacing */
+    .fi-ta-actions {
+        @apply flex items-center justify-center h-full px-4 bg-violet-700 rounded-lg;
+    }
+
+    /* CONTENEDOR DEL DROPDOWN ----------------------------------- */
+    .fi-dropdown-list {
+        @apply rounded-lg shadow-lg border border-[#d9d6ff] bg-white p-1;
+        /* sombra suave + borde lila claro */
+    }
+
+    /* ITEM ------------------------------------------------------ */
+    .fi-dropdown-list-item {
+        @apply flex items-center gap-3 px-4 py-2 rounded-md text-sm text-slate-700 cursor-pointer transition-colors duration-150;
+    }
+
+    /* ICONO dentro del item */
+    .fi-dropdown-list-item svg {
+        @apply w-4 h-4 text-[#7c3aed] shrink-0;
+    }
+
+    /* HOVER */
+    .fi-dropdown-list-item:hover {
+        @apply bg-[#f7f5ff] text-[#7c3aed];
+    }
+
+    /* ITEM ACTIVO (si usas focused/active) */
+    .fi-dropdown-list-item[aria-selected="true"] {
+        @apply bg-[#ede9fe] text-[#7c3aed] font-semibold;
+    }
+    
+}
+  

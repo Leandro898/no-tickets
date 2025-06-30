@@ -19,9 +19,5 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceScheme('https');
             }
         }
-
-        FilamentAsset::register([
-            Css::make('custom-filament', resource_path('css/custom-filament.css')),
-        ]);
     }
 }

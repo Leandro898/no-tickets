@@ -1,51 +1,55 @@
 {{-- resources/views/filament/resources/evento-resource/pages/gestionar-entradas.blade.php --}}
 
 @php
-    use App\Filament\Resources\EntradaResource;
     use App\Filament\Resources\EventoResource\Pages\EventoDetalles;
+    use App\Filament\Resources\EntradaResource;
 @endphp
 
 <x-filament::page>
-    <div class="space-y-6">
-        {{-- Header --}}
-        <div class="flex items-center justify-between">
+    <div class="space-y-10">
+        {{-- Header: botón volver --}}
+        <x-filament::button
+            :href="EventoDetalles::getUrl(['record' => $evento->id])"
+            size="sm"
+            icon="heroicon-o-arrow-left"
+            tag="a"
+            class="px-6 py-3 bg-[#7c3aed] text-white rounded-lg shadow-sm hover:bg-[#8b5cf6] transition;"
+        >
+            Volver al detalle
+        </x-filament::button>
 
-            <x-filament::button :href="EventoDetalles::getUrl(['record' => $evento->id])" color="warning" icon="heroicon-o-arrow-left" tag="a" size="sm"
-                class="px-6 py-4 bg-purple-700 hover:bg-purple-800 transition shadow-xl">
-                Volver a Detalles
-            </x-filament::button>
-        </div>
-
-        {{-- Subtítulo --}}
-        <p class="text-lg font-medium pb-12">
-            Entradas del evento: <span class="font-semibold">{{ $evento->nombre }}</span>
+        {{-- Sub-título --}}
+        <p class="text-xl font-semibold text-gray-700">
+            Entradas del evento:
+            <span class="text-[#7c3aed]">{{ $evento->nombre }}</span>
         </p>
 
         {{-- Grid de cards --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @forelse ($evento->entradas as $entrada)
-                <x-filament::card
-                    class="flex flex-col justify-between border-2 border-purple-100 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-200 p-5">
-                    <div class="space-y-2">
-                        <h2 class="text-xl font-bold text-purple-800 mb-2">
-                            {{ $entrada->nombre }}
-                        </h2>
+                <x-filament::card class="border border-[#d9d6fc] bg-gradient-to-br from-[#f5f3ff] to-white
+                                        rounded-2xl shadow-sm hover:shadow-md transition">
 
-                        <div class="flex items-center justify-between text-gray-700">
-                            <span class="font-semibold">Precio:</span>
-                            <span class="text-lg font-bold text-green-600">ARS$
-                                {{ number_format($entrada->precio, 2) }}</span>
+                    {{-- info --}}
+                    <div class="space-y-3">
+                        <h2 class="text-lg font-bold text-[#7c3aed]">{{ $entrada->nombre }}</h2>
+
+                        <div class="flex justify-between text-gray-700">
+                            <span class="font-medium">Precio:</span>
+                            <span class="font-bold text-[#16a34a]">
+                                ARS$ {{ number_format($entrada->precio, 2) }}
+                            </span>
                         </div>
 
                         @if ($entrada->max_por_compra)
-                            <div class="flex items-center justify-between text-gray-600">
+                            <div class="flex justify-between text-gray-600">
                                 <span>Máx. por compra:</span>
                                 <span class="font-semibold">{{ $entrada->max_por_compra }}</span>
                             </div>
                         @endif
 
                         @if ($entrada->disponible_hasta)
-                            <div class="flex items-center justify-between text-gray-600">
+                            <div class="flex justify-between text-gray-600">
                                 <span>Válido hasta:</span>
                                 <span class="font-semibold">
                                     {{ $entrada->disponible_hasta->format('d/m/Y H:i') }}
@@ -53,19 +57,26 @@
                             </div>
                         @endif
 
-                        <div class="flex items-center justify-between text-gray-700">
+                        <div class="flex justify-between text-gray-700">
                             <span>Stock actual:</span>
                             <span class="font-semibold">{{ $entrada->stock_actual }}</span>
                         </div>
                     </div>
 
-                    <x-filament::button :href="\App\Filament\Resources\EntradaResource::getUrl('edit', ['record' => $entrada->id])" size="lg" icon="heroicon-o-pencil"
-                        class="mt-6 w-full bg-purple-700 hover:bg-purple-800 transition shadow-lg" tag="a">
-                        Editar Entrada
+                    {{-- botón editar --}}
+                    <x-filament::button
+                        :href="EntradaResource::getUrl('edit', ['record' => $entrada->id])"
+                        size="sm"
+                        icon="heroicon-o-pencil"
+                        tag="a"
+                        class="w-full mt-6 bg-[#7c3aed] text-white rounded-lg
+                               hover:bg-[#8b5cf6] shadow-sm transition"
+                    >
+                        Editar entrada
                     </x-filament::button>
                 </x-filament::card>
             @empty
-                <div class="col-span-full bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-gray-600">
+                <div class="col-span-full bg-[#f9fafb] border border-gray-200 rounded-2xl p-8 text-center text-gray-500">
                     No hay entradas registradas para este evento.
                 </div>
             @endforelse

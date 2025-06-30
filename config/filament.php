@@ -121,9 +121,9 @@ return [
     | de todas las páginas del admin.
     |
     */
-    
+
     'styles' => [
-        asset('css/app.css'),
+
     ],
 
     /*

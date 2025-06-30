@@ -179,7 +179,7 @@ class EventoResource extends Resource
             ->emptyStateDescription('Crea un evento para comenzar.')
             ->columns([
                 TextColumn::make('nombre')
-                    ->searchable()
+                    ->searchable() // Permite buscar por el nombre del evento
                     ->sortable(),
                 TextColumn::make('ubicacion'),
                 TextColumn::make('fecha_inicio')
@@ -207,8 +207,8 @@ class EventoResource extends Resource
                 // // SelectFilter::make('organizador')
                 // //     ->relationship('organizador', 'name')
                 // //     ->label('Filtrar por Organizador'),
-                 ]);
-            
+            ]);
+
 
         // ->recordUrl(fn(Evento $record) => EventoResource::getUrl('detalles', ['record' => $record->id]))
     }

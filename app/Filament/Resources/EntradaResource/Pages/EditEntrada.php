@@ -14,16 +14,21 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Get;
-
+use Filament\Pages\Actions\Action;
 
 class EditEntrada extends EditRecord
 {
     protected static string $resource = EntradaResource::class;
 
+    /* BOTON PARA REGRESAR*/
     protected function getHeaderActions(): array
     {
         return [
-            //Actions\DeleteAction::make(),
+            Action::make('volver')
+                ->label('Volver a gestionar entradas')
+                ->icon('heroicon-o-arrow-left')
+                ->url("/admin/eventos/{$this->record->evento_id}/gestionar-entradas")
+                ->extraAttributes(['class' => 'btn-volver']),
         ];
     }
 

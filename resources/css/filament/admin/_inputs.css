@@ -1,0 +1,45 @@
+@layer components{
+    /* ESTO ES PARA QUE EL INPUT TENGO EL BRILLO AL ESTAR ACTIVO/SELECCIONADO */
+
+    /* El propio input */
+    .fi-input {
+        @apply px-3 py-1.5 text-sm;
+        /* menos padding y texto un poco más pequeño */
+    }
+
+    .fi-input-wrp-input {
+        @apply w-full px-6 py-4 rounded-md border-2 border-violet-200 bg-white text-lg text-gray-800 shadow-md transition-all duration-200;
+    }
+
+    .fi-input-wrp-input:focus,
+    .fi-input-wrp-input:focus-visible {
+        @apply border-violet-500 ring-2 ring-violet-200 shadow-lg;
+        outline: none !important;
+    }
+
+    .fi-input-wrp-input::placeholder {
+        color: #c7b4fa;
+        opacity: 1;
+    }
+
+    /* Cuando el input dentro tiene foco, resalta el wrapper en violeta */
+    .fi-input-wrp-input:focus-within {
+        @apply border-purple-600 ring-2 ring-purple-600 ring-opacity-50;
+    }
+
+    .fi-input:focus {
+        @apply outline-none border-transparent;
+    }
+
+    /* 1) Sobrescribe el texto de cualquier label de prefijo */
+
+
+    .fi-input-wrp-prefix {
+        @apply bg-purple-500 text-white;
+    }
+
+    /* 2) Por si hay casos sueltos sin el wrapper prefix - ESTO ES PARA EL INPUT DEL PRECIO EL FONDO PURPURA LETRA BLANCA*/
+    .fi-input-wrp-label.whitespace-nowrap.text-sm.text-gray-500 {
+        @apply text-white !important;
+    }
+}

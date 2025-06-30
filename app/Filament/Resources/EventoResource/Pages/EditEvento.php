@@ -16,10 +16,10 @@ class EditEvento extends EditRecord
     {
         return [
             Action::make('volver')
-                ->label('Volver al detalle')
+                ->label('Volver a detalles')
                 ->url("/admin/eventos/{$this->record->id}/detalles")
-                ->color('gray')
-                ->icon('heroicon-o-arrow-left'),
+                ->icon('heroicon-o-arrow-left')
+                ->extraAttributes(['class' => 'btn-volver']),
 
             //DeleteAction::make(),
         ];

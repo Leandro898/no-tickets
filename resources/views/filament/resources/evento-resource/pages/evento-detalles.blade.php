@@ -9,70 +9,54 @@
     <div x-data="{ mostrarModal: false, mostrarToast: false }" class="space-y-12">
 
         {{-- RECAUDACIÓN GLOBAL --}}
-        <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+        <div class="recaudacion-card">
             <div class="flex items-center justify-between">
                 <div>
-                    <h3 class="text-2xl font-bold text-violet-700">Recaudación global</h3>
-                    <p class="text-sm text-gray-500"># Unidades vendidas</p>
+                    <h3 class="recaudacion-title">Recaudación global</h3>
+                    <p class="recaudacion-subtitle"># Unidades vendidas</p>
                 </div>
                 <div class="text-right">
-                    <span class="text-2xl font-bold text-violet-700">$0</span>
-                    <p class="text-sm text-gray-500">0 de 100</p>
+                    <span class="recaudacion-monto">$0</span>
+                    <p class="recaudacion-tickets">0 de 100</p>
                 </div>
             </div>
         </div>
 
 
+
         {{-- Espaciador de 8 rem (128px) --}}
-        <div class="h-32"></div>
+        <div class="h-12"></div>
 
         {{-- BOTONES DE ACCIÓN --}}
+        {{-- BOTONES DE ACCIÓN --}}
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 justify-items-center">
-
-            {{-- Ver entradas --}}
-
-            {{-- Editar stock --}}
-            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])" color="primary" icon="heroicon-o-pencil" 
-                class="btn-action input-brand">
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->id])" icon="heroicon-o-pencil" class="btn-detalles">
                 Editar stock
             </x-filament::button>
 
-            {{-- Ver entradas --}}
-            {{-- Reportes --}}
-            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-chart-bar"
-                size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl">
+            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record' => $record->id])" icon="heroicon-o-chart-bar" class="btn-detalles">
                 Reportes
             </x-filament::button>
 
-
-
-            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" icon="heroicon-o-pencil-square" color="primary"
-                {{-- el color que mapeaste en config/filament.php --}} variant="solid" {{-- solid | outline | link --}} size="lg" {{-- sm | md | lg --}}
-                class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl" {{-- utilidades adicionales (opcional) --}}>
+            <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" icon="heroicon-o-pencil-square" class="btn-detalles">
                 Editar evento
             </x-filament::button>
 
-            {{-- Ver entradas --}}
-
-            {{-- Copiar link --}}
-            <x-filament::button type="button" color="primary" icon="heroicon-o-link" size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl"
+            <x-filament::button type="button" icon="heroicon-o-link" class="btn-detalles"
                 x-on:click="mostrarModal = true">
                 Copiar link
             </x-filament::button>
 
-            {{-- Lista digital --}}
-            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])" color="primary" icon="heroicon-o-list-bullet"
-                size="lg" class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl">
+            <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->id])" icon="heroicon-o-list-bullet" class="btn-detalles">
                 Lista digital
             </x-filament::button>
 
-            {{-- Suspender evento --}}
-            <x-filament::button type="button" color="danger" icon="heroicon-o-x-circle" size="lg"
-                class="h-20 px-6 py-4 w-1/2 bg-purple-700 hover:bg-purple-800 transition shadow-xl"
+            <x-filament::button type="button" icon="heroicon-o-x-circle" color="danger" class="btn-detalles"
                 wire:click="abrirPrimerModal">
                 Suspender evento
             </x-filament::button>
         </div>
+
 
 
         {{-- MODAL: Copiar enlace --}}

@@ -15,6 +15,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Get;
+use Filament\Actions\Action;
 
 
 class CreateEntrada extends CreateRecord
@@ -175,7 +176,8 @@ class CreateEntrada extends CreateRecord
         return [
             $this
                 ->getCreateFormAction()
-                ->label('Crear Entrada'),
+                ->label('Crear Entrada')
+                ->color('success'),
 
             $this
                 ->getCancelFormAction()
@@ -195,5 +197,17 @@ class CreateEntrada extends CreateRecord
             ->success()
             ->title('¡Entrada Generada!')
             ->body('La entrada se creó correctamente y ya está disponible.');
+    }
+
+    /* BOTON PARA REGRESAR*/
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('volver')
+                ->label('Volver a gestionar entradas')
+                ->icon('heroicon-o-arrow-left')
+                ->url(fn() => '/admin/eventos/' . request()->query('evento_id') . '/gestionar-entradas')
+                ->extraAttributes(['class' => 'btn-volver']),
+        ];
     }
 }

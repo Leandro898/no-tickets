@@ -1,0 +1,17 @@
+@layer components {
+
+    /* Wrapper completo (botón + input) */
+    .fi-ta-search-field {
+        @apply h-8 min-h-0 !important;
+    }
+
+    /* Botón morado de la lupa
+    .fi-ta-search-action {
+        @apply h-auto px-3 bg-[#7c3aed] text-white flex items-center justify-center;
+    }
+
+    /* Input */
+    /* .fi-ta-search-input {
+        @apply h-auto w-full text-sm bg-white px-3 placeholder-slate-400 focus:ring-[#7c3aed];
+    } */ 
+}

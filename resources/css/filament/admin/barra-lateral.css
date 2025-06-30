@@ -1,0 +1,36 @@
+@layer components {
+
+    /* 1. El link ocupa todo el ancho y hereda el estilo */
+    .fi-sidebar-item-button {
+        @apply flex items-center gap-3 w-full px-4 py-3 rounded-xl text-slate-700 transition-colors duration-200;
+    }
+
+    /* 2. Estado hover (violeta muy suave) */
+    .fi-sidebar-item-button:hover {
+        @apply bg-[#f7f5ff] text-[#7c3aed];
+    }
+
+    /* 3. Activo – mantiene tu borde, pero: gradiente + sombra interna + color texto/icono */
+    .fi-sidebar-item.fi-active .fi-sidebar-item-button,
+    .fi-sidebar-item.fi-sidebar-item-active .fi-sidebar-item-button {
+        background: linear-gradient(90deg, #ede9fe 0%, #ffffff 100%);
+        @apply text-[#7c3aed] shadow-inner;
+    }
+
+    /* 4. Icono — gris por defecto, violeta cuando el item está activo */
+    .fi-sidebar-item-icon {
+        @apply text-lg text-slate-400;
+    }
+
+    .fi-sidebar-item.fi-active .fi-sidebar-item-icon,
+    .fi-sidebar-item.fi-sidebar-item-active .fi-sidebar-item-icon {
+        @apply text-[#7c3aed];
+    }
+
+    /* extra opcional: separa los items 4 px */
+    .fi-sidebar-item {
+        @apply my-1;
+    }
+
+    
+}

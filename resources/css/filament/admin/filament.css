@@ -1,0 +1,16 @@
+/* 1.  TODOS los @import primero  */
+@import "./barra-lateral.css";
+@import "./botones.css";
+@import "./panels.css";
+@import "./_inputs.css";
+@import "./_checkbox.css";
+@import "./_toggle.css";
+@import "./_cards.css";
+@import "./_file-upload.css";
+@import "./_btn_primarios.css";
+@import "./_tabla.css";
+@import "./_barra_de_busqueda.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

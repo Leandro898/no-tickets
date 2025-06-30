@@ -1,0 +1,33 @@
+@layer components{
+    /*FILE UPLOAD*/
+    /* Contenedor principal */
+    .fi-fo-file-upload .filepond--root {
+        @apply bg-[var(--brand-200)] border-2 border-dashed border-[var(--brand-600)] rounded-lg p-6 text-center transition-shadow duration-200;
+        /* altura fija para que no “colapse” si no hay imagen */
+        min-height: 80px;
+    }
+
+    /* Hover y foco */
+    .fi-fo-file-upload .filepond--root:hover {
+        @apply shadow-lg;
+    }
+
+    .fi-fo-file-upload .filepond--root:focus-within {
+        box-shadow: 0 0 0 2px var(--brand-600);
+    }
+
+    /* Texto de “drop” */
+    .fi-fo-file-upload .filepond--label-action {
+        @apply text-[var(--brand-600)] font-semibold;
+    }
+
+    /* Botón interno de FilePond */
+    .fi-fo-file-upload .filepond--drop-label {
+        @apply text-gray-600;
+    }
+
+    /* Vista previa de imagen */
+    .fi-fo-file-upload .filepond--panel {
+        @apply rounded-md overflow-hidden;
+    }
+}

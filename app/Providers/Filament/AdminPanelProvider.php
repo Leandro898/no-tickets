@@ -95,7 +95,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 \Spatie\Permission\Middleware\RoleMiddleware::class . ':admin|productor', // Esta línea es clave
             ])
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/css/filament/admin/filament.css')
             ->brandName('Innova Ticket');
     }
 

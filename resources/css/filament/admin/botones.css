@@ -1,0 +1,41 @@
+/* BOTONES DE DETALLES*/
+
+@layer components {
+    .btn-detalles {
+        @apply flex flex-col items-center justify-center gap-2 w-full h-28 bg-gradient-to-br from-violet-50 to-white border-2 border-violet-100 rounded-xl shadow-md transition duration-200;
+        font-weight: 600;
+        color: #6d28d9 !important;
+        font-size: 1rem;
+        letter-spacing: -0.5px;
+        box-shadow: 0 2px 12px 0 rgba(124, 58, 237, 0.07);
+        min-width: 150px;
+        min-height: 72px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .btn-detalles svg {
+        color: #7c3aed !important;
+        font-size: 2rem !important;
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        margin-bottom: 0.25rem;
+        opacity: 0.9;
+        transition: color 0.2s;
+    }
+
+    /* Estado de "danger" */
+    .btn-detalles[color="danger"],
+    .btn-detalles.text-red-600 {
+        background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
+        border-color: #fecaca;
+        color: #dc2626 !important;
+    }
+
+    .btn-detalles[color="danger"] svg,
+    .btn-detalles.text-red-600 svg {
+        color: #dc2626 !important;
+    }
+
+    
+}

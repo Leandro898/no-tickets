@@ -1,0 +1,55 @@
+@layer components{
+    /* AGREGADO POR MI */
+
+    /* Header visual fuerte para el primer card */
+    .fi-section>.fi-section-header {
+        @apply bg-gradient-to-r from-violet-100 via-white to-violet-100;
+        /* degradado suave */
+        color: #6d28d9 !important;
+        /* Violeta branding */
+        font-weight: bold;
+        font-size: 1.2rem;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        box-shadow: 0 2px 16px 0 rgba(125, 84, 232, 0.05);
+        border-bottom: 1px solid #ede9fe;
+        /* borde inferior suave */
+    }
+
+    /* Icono del header */
+    .fi-section>.fi-section-header {
+        color: #6d28d9 !important;
+        /* más violeta branding */
+        margin-right: 1rem;
+        font-size: 1.6rem;
+    }
+
+    /* Descripción, menos opaca pero visible */
+    .fi-section>.fi-section-header+.fi-section-description {
+        color: #6d28d9cc;
+        /* violeta claro, semitransparente */
+        padding-left: 2rem;
+        padding-bottom: 0.75rem;
+        font-size: 1rem;
+    }
+
+    .fi-section-header-icon {
+
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.2rem;
+        /* 35px */
+        height: 2.2rem;
+        min-width: 2.2rem;
+        min-height: 2.2rem;
+        margin-right: 1.1rem;
+
+    }
+}
