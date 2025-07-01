@@ -12,6 +12,17 @@ class EditEvento extends EditRecord
 {
     protected static string $resource = EventoResource::class;
 
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
+    public function getTitle(): string
+    {
+        return 'Editar Evento';
+    }
+
+    /* PARA COLOCAR BOTONES DE ACCION EN LA CABECERA */
     protected function getHeaderActions(): array
     {
         return [
@@ -25,28 +36,25 @@ class EditEvento extends EditRecord
         ];
     }
 
-    public function getBreadcrumbs(): array
-    {
-        return [];
-    }
-
-    public function getTitle(): string
-    {
-        return 'Editar Evento';
-    }
-
+    /* BOTONES DE ACCIONES DEL FORMULAIO */
     protected function getFormActions(): array
     {
         return [
             $this
                 ->getSaveFormAction()
                 ->label('Guardar Cambios')
-                ->color('success'),
-
+                ->extraAttributes([
+                    'class' => 'fi-ac-btn-action fi-color-success',
+                ]),
 
             $this
                 ->getCancelFormAction()
-                ->label('Cancelar'),
+                ->label('Cancelar')
+                ->extraAttributes([
+                    'class' => '',
+                ]),
         ];
     }
+
+    
 }
