@@ -1,5 +1,4 @@
 @layer components {
-
     /* ───────────────────────────────
        BOTÓN PRIMARIO · GUARDAR CAMBIOS
     ────────────────────────────────*/
@@ -8,10 +7,14 @@
         @apply bg-[#7c3aed] text-white font-semibold rounded-lg px-7 py-3 text-base shadow-sm transition-colors duration-150;
     }
 
+    /* EL HOVER DEL BOTON DE ACCION SUCCESS*/
+    .fi-ac-btn-action.fi-color-success:hover {
+        @apply bg-[#8b5cf6] text-white;
+    }
+
     .fi-ac-btn-action.fi-color-success:disabled {
         @apply opacity-60 cursor-not-allowed;
     }
-
 
     /* ───────────────────────────────
        BOTÓN SECUNDARIO · CANCELAR

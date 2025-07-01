@@ -10,7 +10,11 @@
 @import "./_btn_primarios.css";
 @import "./_tabla.css";
 @import "./_barra_de_busqueda.css";
+@import "./_login.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+}

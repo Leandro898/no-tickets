@@ -1,45 +1,60 @@
-@layer components{
-    /* ESTO ES PARA QUE EL INPUT TENGO EL BRILLO AL ESTAR ACTIVO/SELECCIONADO */
+@layer components {
+    /* EL INPUT PRINCIPAL DE FILAMENT */
 
     /* El propio input */
     .fi-input {
-        @apply px-3 py-1.5 text-sm;
-        /* menos padding y texto un poco más pequeño */
+        @apply block w-full px-3 py-1.5 text-base text-gray-900
+               placeholder:text-gray-400 transition-colors duration-150;
+        border: none;
     }
 
-    .fi-input-wrp-input {
-        @apply w-full px-6 py-4 rounded-md border-2 border-violet-200 bg-white text-lg text-gray-800 shadow-md transition-all duration-200;
-    }
-
-    .fi-input-wrp-input:focus,
-    .fi-input-wrp-input:focus-visible {
-        @apply border-violet-500 ring-2 ring-violet-200 shadow-lg;
-        outline: none !important;
-    }
-
-    .fi-input-wrp-input::placeholder {
-        color: #c7b4fa;
-        opacity: 1;
-    }
-
-    /* Cuando el input dentro tiene foco, resalta el wrapper en violeta */
+    /* ESTE ES EL FOCO VIOLETA - Cuando el input dentro tiene foco, resalta el wrapper en violeta - ESTE ES EL FOCO VIOLETA */
     .fi-input-wrp-input:focus-within {
-        @apply border-purple-600 ring-2 ring-purple-600 ring-opacity-50;
+        @apply border-purple-600 ring-2 ring-purple-600 ring-opacity-50
+        rounded-xl;
     }
 
+    
+    
     .fi-input:focus {
-        @apply outline-none border-transparent;
+        @apply outline-none;
     }
 
-    /* 1) Sobrescribe el texto de cualquier label de prefijo */
+    /* Wrapper principal (nuevo en Filament v3) */
+    .fi-input-wp {
+        @apply bg-white border border-gray-300 rounded-lg shadow-inner transition;
+    }
+    .fi-input-wp:focus-within {
+        @apply ring-2 ring-purple-600 ring-opacity-50;
+    }
 
+    /* Fallback wrapper interno */
+    .fi-input-wrp-input {
+        @apply bg-white border border-gray-300 rounded-lg shadow-inner transition;
+    }
+    .fi-input-wrp-input:focus-within {
+        @apply ring-2 ring-purple-600 ring-opacity-50;
+    }
 
+    /* Prefijo (p.ej. “ARS$”) */
     .fi-input-wrp-prefix {
-        @apply bg-purple-500 text-white;
+        @apply bg-purple-600 text-white px-3 flex items-center rounded-l-lg;
+    }
+    .fi-input-wrp-prefix:focus-within {
+        @apply ring-2 ring-purple-600 ring-opacity-50;
+    }
+    .fi-input-wrp-prefix .fi-input-wrp-label {
+        @apply text-white;
     }
 
-    /* 2) Por si hay casos sueltos sin el wrapper prefix - ESTO ES PARA EL INPUT DEL PRECIO EL FONDO PURPURA LETRA BLANCA*/
-    .fi-input-wrp-label.whitespace-nowrap.text-sm.text-gray-500 {
-        @apply text-white !important;
+    .fi-input-wrp {
+        /* 
+        Con esto pude cambiar el alto del input de busqueda en el List Eventos
+        height: 35px; */
     }
+
+    
+
+    
+    
 }

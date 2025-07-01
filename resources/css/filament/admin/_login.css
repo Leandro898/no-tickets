@@ -1,0 +1,50 @@
+@layer components {
+    /* Estilos para el FONDO de la pantalla de login */
+    .fi-simple-main-ctn {
+        @apply bg-gradient-to-br from-purple-100 via-purple-50 to-white;
+    }
+
+    /* Estilos para el contenedor principal del login - "La tarjeta blanca que contiene los demas items vendria a ser*/
+    .fi-simple-main {
+        /* Fondo blanco limpio */
+        @apply bg-white !important;
+        /* Borde violeta muy suave */
+        @apply border border-purple-100 !important;
+        /* Esquinas redondeadas XXL */
+        @apply rounded-xl !important;
+        /* Sombra más pronunciada */
+        @apply shadow-lg !important;
+        /* Quitamos el ring gris que viene por defecto */
+        @apply ring-0 !important;
+    }
+
+    /* Logo del panel de texto "Innova Ticket" (texto o SVG) */
+    body .fi-logo {
+        @apply text-[35px];
+    }
+
+    /* Encabezado “Sign in” */
+    .fi-simple-header-heading {
+        font-size: 15px!important;
+    }
+
+    /* MOSTRAR CONTRASEÑA*/
+    /* Botón “ver contraseña” */
+    .fi-input-wrp-suffix {
+        @apply bg-purple-400 text-white;
+    }
+    .fi-input-wrp-suffix:hover {
+        @apply bg-purple-600;
+    }
+
+    /* ICONO DEL OJO*/
+
+    .fi-icon-btn-icon {
+        color: white;
+    }
+
+    /* Añade espacio extra al final de TODAS las páginas de Filament */
+    .fi-panel-admin .fi-page .fi-page-content {
+    @apply pb-16 !important;  /* 4rem = 64px de padding-bottom */
+  }
+}

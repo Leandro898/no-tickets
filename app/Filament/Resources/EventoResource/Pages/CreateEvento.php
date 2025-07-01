@@ -2,14 +2,13 @@
 
 namespace App\Filament\Resources\EventoResource\Pages;
 
-use App\Filament\Resources\EventoResource;
-use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\EntradaResource;
-use Filament\Actions\Action;
+use App\Filament\Resources\EventoResource;
+// fijarme si funciona todo esto importacion quizas no sirve use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Actions\CancelAction;  // <--  también de Forms
-
-
+use Filament\Forms\Actions\CancelAction;
+use Filament\Pages\Actions\Action;
+use Filament\Resources\Pages\CreateRecord;
 
 class CreateEvento extends CreateRecord
 {
@@ -33,6 +32,20 @@ class CreateEvento extends CreateRecord
     public static function canCreateAnother(): bool
     {
         return false;
+    }
+
+    /**
+     * Los "header actions" son los botones que aparecen junto al título.
+     */
+    protected function getActions(): array
+    {
+        return [
+            // Botón de volver al listado de eventos
+            Action::make('back')
+                ->label('Volver a Eventos')
+                ->icon('heroicon-o-arrow-left')
+                ->url($this->getResource()::getUrl('index')),
+        ];
     }
     
 }
