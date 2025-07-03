@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class ReportesEvento extends Component
 {
     public $qrsGenerados = 0;
-    public $qrsValidados = 0;
+    public $qrsEscaneados = 0;
     public $eventoId;
     public $recaudacionMensual = [];
 
@@ -22,10 +22,10 @@ class ReportesEvento extends Component
             ->count();
 
 
-        $this->qrsValidados = DB::table('purchased_tickets')
+        $this->qrsEscaneados = DB::table('purchased_tickets')
             ->join('entradas', 'purchased_tickets.entrada_id', '=', 'entradas.id')
             ->where('entradas.evento_id', $eventoId)
-            ->where('purchased_tickets.status', 'valid') // o el estado correcto
+            ->where('purchased_tickets.status', 'used') // o el estado correcto
             ->count();
 
 

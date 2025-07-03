@@ -35,60 +35,72 @@ class EntradaResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Hidden::make('evento_id')
+                    ->default(fn() => request()->get('evento_id'))
+                    ->required(),
+
                 Forms\Components\TextInput::make('nombre')
                     ->required()
                     ->maxLength(255)
-                    ->label('Nombre de la Entrada') // Añadimos labels explícitos
+                    ->label('Nombre de la Entrada')
                     ->placeholder('Ej: Entrada General, VIP, Early Bird'),
 
                 Forms\Components\Textarea::make('descripcion')
                     ->rows(3)
-                    ->maxLength(500) // Usas 500, en el modelo anterior usaba 65535, ajusta según tu DB
-                    ->columnSpanFull() // Ocupa todo el ancho si lo necesitas
+                    ->maxLength(500)
+                    ->columnSpanFull()
                     ->label('Descripción'),
 
-                Forms\Components\TextInput::make('stock_inicial')
-                    ->numeric()
-                    ->required()
-                    ->minValue(0) // Puede ser 0 si el stock es ilimitado o se agrega después
-                    ->label('Stock Inicial (Cantidad total disponible)'),
+                Forms\Components\Grid::make()
+                    ->schema([
+                        Forms\Components\TextInput::make('precio')
+                            ->numeric()
+                            ->required()
+                            ->step(0.01)
+                            ->prefix('ARS$')
+                            ->label('Precio'),
 
-                Forms\Components\TextInput::make('stock_actual')
-                    ->numeric()
-                    // Si 'stock_actual' se inicializa en el 'creating' del modelo, hacerlo readOnly aquí
-                    ->readOnly()
-                    ->label('Stock Actual (Cantidad restante para vender)'),
+                        Forms\Components\TextInput::make('stock_inicial')
+                            ->numeric()
+                            ->required()
+                            ->minValue(0)
+                            ->label('Stock Inicial (Cantidad total de entradas disponible)'),
+                    ])
+                    ->columns(2),
 
                 Forms\Components\TextInput::make('max_por_compra')
                     ->numeric()
-                    ->nullable() // Cambiado a nullable si no es un campo obligatorio
+                    ->nullable()
                     ->minValue(1)
-                    ->label('Máximo por Compra')
-                    ->placeholder('Dejar vacío para ilimitado por compra'),
+                    ->label('Máximo de entradas por Compra')
+                    ->placeholder('Dejar vacío para ilimitado por compra')
+                    ->columnSpanFull(),
 
-                Forms\Components\TextInput::make('precio')
-                    ->numeric()
-                    ->required()
-                    ->step(0.01) // Para permitir decimales en el precio
-                    ->prefix('ARS$') // Añadimos un prefijo de moneda
-                    ->label('Precio'),
+                Forms\Components\Toggle::make('valido_todo_el_evento')
+                    ->label('Este producto es válido para cualquier día del evento')
+                    ->reactive()
+                    ->columnSpanFull()
+                    ->helperText('Si está activo, no se usan fechas específicas de validez. Por lo tanto es válido para cualquier día del evento o todo el dia del evento si es un solo día'),
 
-                Forms\Components\Checkbox::make('valido_todo_el_evento')
-                    ->label('Este producto es válido para cualquier día del evento'),
+                Forms\Components\Fieldset::make('Fechas de validez')
+                    ->schema([
+                        Forms\Components\Grid::make()
+                            ->schema([
+                                Forms\Components\DateTimePicker::make('disponible_desde')
+                                    ->label('Disponible Desde')
+                                    ->nullable()
+                                    ->seconds(false),
 
-                // --- Tus campos de FECHA DE DISPONIBILIDAD ---
-                Forms\Components\DateTimePicker::make('disponible_desde')
-                    ->seconds(false)
-                    ->label('Disponible Desde')
-                    ->nullable(), // Permite que sea nulo si no hay fecha de inicio
-
-                Forms\Components\DateTimePicker::make('disponible_hasta')
-                    ->label('Disponible Hasta')
-                    ->nullable(), // Permite que sea nulo si no hay fecha de fin
-
-                Forms\Components\Hidden::make('evento_id')
-                    ->default(fn() => request()->get('evento_id'))
-                    ->required(),
+                                Forms\Components\DateTimePicker::make('disponible_hasta')
+                                    ->label('Disponible Hasta')
+                                    ->nullable()
+                                    ->seconds(false),
+                            ])
+                            ->columns(2),
+                    ])
+                    ->visible(fn(callable $get) => !$get('valido_todo_el_evento'))
+                    ->columnSpanFull()
+                    ->extraAttributes(['class' => 'mt-6']),
             ]);
     }
 
@@ -98,12 +110,15 @@ class EntradaResource extends Resource
             ->columns([
                 TextColumn::make('nombre')->label('Nombre'),
                 TextColumn::make('precio')->label('Precio')->money('ARS'),
+
                 // --- Columnas de STOCK en la tabla ---
+
                 TextColumn::make('stock_inicial')->label('Stock Inicial'),
-                TextColumn::make('stock_actual')->label('Stock Actual'),
+                //TextColumn::make('stock_actual')->label('Stock Actual'),
                 TextColumn::make('max_por_compra')->label('Máx. x Compra'),
 
                 // --- Columnas de FECHA DE DISPONIBILIDAD ---
+
                 TextColumn::make('disponible_desde')->dateTime()->label('Desde'),
                 TextColumn::make('disponible_hasta')->dateTime()->label('Hasta'),
                 // --------------------------------------------
@@ -177,6 +192,7 @@ class EntradaResource extends Resource
             });
     }
 
+    /** Esto inicializa el stock_actual con el valor que coloca el productor en stock_inicial */
     public static function mutateFormDataBeforeCreate(array $data): array
     {
         $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
@@ -185,8 +201,11 @@ class EntradaResource extends Resource
             abort(403, 'No estás autorizado para crear entradas en este evento.');
         }
 
+        $data['stock_actual'] = $data['stock_inicial'] ?? 0;
+
         return $data;
     }
+
 
 
     public static function mutateFormDataBeforeSave(array $data): array

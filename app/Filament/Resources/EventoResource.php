@@ -30,6 +30,7 @@ use Filament\Forms\Components\Toggle;
 use App\Filament\Resources\EntradaResource;
 
 
+
 class EventoResource extends Resource
 {
     protected static ?string $model = Evento::class;
@@ -94,32 +95,34 @@ class EventoResource extends Resource
             Section::make('Restricciones y requisitos')
                 ->description('Configura los requisitos para los asistentes.')
                 ->schema([
-                    Section::make('Edad mínima')->schema([
-                        Toggle::make('enable_min_age')
-                            ->label('¿Restringir por edad mínima?')
-                            ->reactive()
-                            ->inline(false),
+                    // 1) Toggle para habilitar edad mínima
+                    Toggle::make('restringir_edad')
+                        ->label('¿Restringir por edad mínima?')
+                        ->reactive(),  // importante para que los campos dependientes reaccionen
 
-                        Grid::make(2)
-                            ->schema([
-                                TextInput::make('min_age_male')
-                                    ->label('Edad mínima Hombres')
-                                    ->numeric()
-                                    ->default(18)
-                                    ->extraAttributes(['class' => 'input-brand']),
+                    // 2) Campos numéricos, sólo visibles si el toggle está activo
+                    Grid::make(2)
+                        ->schema([
+                            TextInput::make('edad_min_hombres')
+                                ->label('Edad mínima Hombres')
+                                ->numeric()
+                                ->minValue(0)
+                                ->default(18)
+                                ->visible(fn(callable $get) => $get('restringir_edad')),
 
-                                TextInput::make('min_age_female')
-                                    ->label('Edad mínima Mujeres')
-                                    ->numeric()
-                                    ->default(18)
-                                    ->extraAttributes(['class' => 'input-brand']),
-                            ])
-                            ->columns(2)
-                            ->visible(fn(callable $get) => $get('enable_min_age')),
-                    ]),
+                            TextInput::make('edad_min_mujeres')
+                                ->label('Edad mínima Mujeres')
+                                ->numeric()
+                                ->minValue(0)
+                                ->default(18)
+                                ->visible(fn(callable $get) => $get('restringir_edad')),
+                        ])
+                        ->columns(2)
+                        ->columnSpanFull(),
 
-                    Toggle::make('require_dni')
-                        ->label('Requerir DNI para la compra')
+                    // 3) Toggle para requerir DNI
+                    Toggle::make('requerir_dni')
+                        ->label('¿Requerir DNI para la compra?')
                         ->helperText('Tus asistentes deberán ingresar su DNI al comprar.')
                         ->inline(false),
                 ])
@@ -250,4 +253,5 @@ class EventoResource extends Resource
         return parent::getEloquentQuery()
             ->where('organizador_id', auth()->id());
     }
+
 }

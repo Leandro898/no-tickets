@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\URL; // Importa la fachada URL
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
+use Filament\Notifications\Notification;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,5 +20,12 @@ class AppServiceProvider extends ServiceProvider
                 URL::forceScheme('https');
             }
         }
+
+        // Registro de la vista personalizada para notificaciones
+        // SIN ESTA CONFIGURACION NO FUNCIONAN LAS NOTIFICACIONES PERSONALIZADAS HIJO DE P... Me costo lograrlo
+        Notification::configureUsing(function (Notification $notification): void {
+            $notification->view('filament.notifications.notification');
+        });
     }
+
 }

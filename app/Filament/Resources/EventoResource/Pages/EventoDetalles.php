@@ -8,9 +8,13 @@ use App\Models\Order; // Importa el modelo Order
 use App\Jobs\RefundMercadoPagoPayment; // Importa tu Job de reembolso
 use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification; // Para enviar notificaciones
+use Filament\Pages\Actions\Action;
 
 class EventoDetalles extends Page
 {
+    // PROPIEDAD PARA CONTROLAR EL MODAL DEL LINK
+    public bool $mostrarModalLink = false;
+
     protected static string $resource = EventoResource::class;
 
     public Evento $record;
@@ -135,4 +139,24 @@ class EventoDetalles extends Page
         // 8. Redirigir al índice de eventos
         $this->redirect(self::getResource()::getUrl('index'));
     }
+
+    // modal
+    protected function getActions(): array
+    {
+        return [
+            Action::make('copiarLink')
+                ->label('Copiar link')
+                ->icon('heroicon-o-link')
+                ->modalHeading('Link del evento')
+                ->modalContent(view('filament.resources.evento-resource.pages.partials.copiar-link', ['record' => $this->record]))
+                ->modalWidth('md')
+                ->modalCloseButton()
+                ->modalSubmitActionLabel('Copiar al portapapeles')
+                ->action(function () {
+                    // La acción de copiar al portapapeles debe hacerse con JS en la vista modal.
+                    // Aquí puedes poner lógica si fuera necesaria.
+                }),
+        ];
+    }
+    
 }

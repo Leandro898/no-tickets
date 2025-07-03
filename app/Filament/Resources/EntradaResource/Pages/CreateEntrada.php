@@ -22,92 +22,10 @@ class CreateEntrada extends CreateRecord
 {
     protected static string $resource = EntradaResource::class;
 
-    public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                // TU CAMPO HIDDEN DE EVENTO_ID (se mantiene aquí, no se quita)
-                Hidden::make('evento_id')
-                    ->default(fn (): ?int => request()->query('evento_id'))
-                    ->required(), // Es requerido porque estás filtrando por él.
-
-                TextInput::make('nombre')
-                    ->required()
-                    ->maxLength(255)
-                    ->label('Nombre de la Entrada')
-                    ->placeholder('Ej: Entrada General, VIP, Early Bird'),
-
-                Textarea::make('descripcion')
-                    ->rows(3)
-                    ->maxLength(500)
-                    ->columnSpanFull()
-                    ->label('Descripción'),
-
-                TextInput::make('precio')
-                    ->numeric()
-                    ->required()
-                    ->step(0.01)
-                    ->prefix('ARS$')
-                    ->label('Precio'),
-
-                // TUS CAMPOS DE STOCK
-                // TextInput::make('stock_inicial')
-                //     ->numeric()
-                //     ->minValue(0)
-                //     ->label('Stock Inicial (Cantidad total disponible)'),
-                    
-                TextInput::make('stock_actual')
-                    ->numeric()
-                    ->required()
-                    ->label('Stock Inicial'),
-
-                TextInput::make('max_por_compra')
-                    ->numeric()
-                    ->nullable()
-                    ->minValue(1)
-                    ->label('Máximo por Compra')
-                    ->placeholder('Dejar vacío para ilimitado por compra'),
-
-                Checkbox::make('valido_todo_el_evento')
-                    ->label('Este producto es válido para cualquier día del evento')
-                    ->default(true)
-                    ->reactive(),
-
-                DateTimePicker::make('disponible_desde')
-                    ->label('Válido desde')
-                    ->nullable()
-                    ->seconds(false)
-                    ->hidden(fn($get) => $get('valido_todo_el_evento')),
-
-                DateTimePicker::make('disponible_hasta')
-                    ->label('Válido hasta')
-                    ->nullable()
-                    ->seconds(false)
-                    ->hidden(fn($get) => $get('valido_todo_el_evento')),
-
-            Toggle::make('sold_out')
-                ->label('Sold out')
-                ->default(false)
-                ->reactive()
-                ->hidden(fn(Get $get) => ! $get('visible'))
-                ->helperText(
-                    fn(Get $get) => $get('sold_out')
-                        ? 'Este producto ya no está disponible para la venta'
-                        : 'Tus clientes podrán comprar este producto'
-                ),
-
-            Toggle::make('visible')
-                ->label('Visible')
-                ->default(true)
-                ->reactive()
-                ->helperText(
-                    fn(Get $get) => $get('visible')
-                        ? 'Tus clientes podrán ver este producto'
-                        : 'Este producto no es visible para tus clientes'
-                )
-                ->columnSpanFull(),
-            ]);
-    }
+    // public function form(Form $form): Form
+    // {
+    //      ESTE METODO YA VIENE HEREDADO DE EntradaResource.php
+    // }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
@@ -141,20 +59,7 @@ class CreateEntrada extends CreateRecord
         return EventoResource::getUrl('gestionar-entradas', ['record' => $eventoId]);
     }
 
-    // protected function getRedirectUrl(): string
-    // {
-    //     // Redirige a la página de gestión de entradas del evento
-    //     return "/admin/eventos/{$this->record->evento_id}/gestionar-entradas";
-    // }
-
-    // protected function afterCreate(): void
-    // {
-    //     Notification::make()
-    //         ->title('Entrada creada exitosamente')
-    //         ->success()
-    //         ->send();
-    // }
-
+    // QUITAR MIGAS DE PAN
     public function getBreadcrumbs(): array
     {
         return [];
@@ -185,19 +90,17 @@ class CreateEntrada extends CreateRecord
         ];
     }
 
-    // Notificaciones al crearse una entrada
-    // protected function getCreatedNotificationTitle(): ?string
-    // {
-    //     return '¡Entrada Generada!';
-    // }
-
+    // NOTIFICACION CUANDO SE CREA UNA NUEVA ENTRADA
     protected function getCreatedNotification(): ?Notification
     {
         return Notification::make()
             ->success()
             ->title('¡Entrada Generada!')
-            ->body('La entrada se creó correctamente y ya está disponible.');
+            ->body('La entrada se creó correctamente y ya está disponible.')
+            ->icon('heroicon-o-check-circle')  // Cambia el ícono
+            ->duration(5000); // Duración en ms, 5000 = 5 segundos
     }
+
 
     /* BOTON PARA REGRESAR*/
     protected function getHeaderActions(): array
@@ -210,4 +113,5 @@ class CreateEntrada extends CreateRecord
                 ->extraAttributes(['class' => 'btn-volver']),
         ];
     }
+
 }

@@ -1,86 +1,92 @@
 <x-filament::page>
-    {{-- Prueba de estilos Filament (usar clases propias de Filament) --}}
-    <div class="mb-8 p-6 rounded-xl shadow-lg border-4 border-dashed border-purple-600 bg-purple-50 text-center">
-        <h2 class="text-3xl font-bold text-purple-800 mb-2">PRUEBA DE ESTILOS FILAMENT</h2>
-        <span class="bg-primary-50 mio">hola</span>
-        <p class="text-lg text-gray-700">Este bloque debería tener:</p>
-        <ul class="list-disc list-inside text-left text-gray-800 mt-3 space-y-1">
-            <li>Fondo <span class="font-semibold">violeta claro</span> (bg-purple-50)</li>
-            <li>Borde <span class="font-semibold">violeta intenso</span> (border-purple-600)</li>
-            <li>Sombra y bordes redondeados</li>
-            <li>Título grande y violeta (text-purple-800)</li>
-        </ul>
-    </div>
-
 
     {{-- Mensaje de error --}}
     @if (session('error'))
-        <div x-data="{ show: true }" x-show="show"
-            class="mb-6 p-4 bg-danger-100 border-t-4 border-danger-600 text-danger-900 rounded shadow-lg flex items-center gap-3 max-w-xl mx-auto">
-            <x-heroicon-o-x-circle class="w-6 h-6 text-danger-700 flex-shrink-0" />
-            <div>
-                <span class="font-bold">Error al vincular Mercado Pago:</span>
-                <span class="font-semibold">{{ session('error') }}</span>
+        <div 
+            x-data="{ show: true }" 
+            x-show="show"
+            x-transition
+            class="mb-6 p-4 bg-red-100 border-l-4 border-red-600 text-red-900 rounded shadow flex items-center gap-4 max-w-xl mx-auto"
+        >
+            <x-heroicon-o-x-circle class="w-6 h-6 text-red-700 flex-shrink-0" />
+            <div class="flex-1">
+                <p class="font-bold">Error al vincular Mercado Pago:</p>
+                <p class="font-semibold">{{ session('error') }}</p>
             </div>
-            <button @click="show = false"
-                class="ml-auto text-danger-600 hover:text-danger-800 font-bold px-2">&times;</button>
+            <button 
+                @click="show = false" 
+                class="ml-4 text-red-600 hover:text-red-800 font-bold text-2xl leading-none px-2"
+                aria-label="Cerrar mensaje de error"
+            >
+                &times;
+            </button>
         </div>
     @endif
 
-    @php
-        $user = $this->getUser();
-    @endphp
+    @php $user = $this->getUser(); @endphp
 
-    <div class="space-y-8 max-w-xl mx-auto mt-8">
-        <div class="text-2xl font-bold text-primary-800 flex items-center gap-2 mb-2">
-            <!-- SVG "logo Mercado Pago" -->
-            <svg class="w-8 h-8" viewBox="0 0 40 40" fill="none">
-                <ellipse cx="20" cy="20" rx="18" ry="13" fill="#009ee3" />
-                <path d="M13 20c2-2.5 6-3 7-3s5 .5 7 3" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                    fill="none" />
-                <path d="M13 20c2 2.5 6 3 7 3s5-.5 7-3" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                    fill="none" />
-            </svg>
-            Cobros / Mercado Pago
-        </div>
-        <p class="text-gray-600 mb-4">
-            Conectá tu cuenta de Mercado Pago para recibir los pagos directamente en tu billetera.
-        </p>
+    <div class="max-w-xl mx-auto mt-10 space-y-12">
+
+        <header class="mb-6">
+            <h1 class="text-3xl font-extrabold text-[#7c3aed] select-none">Cobros / Mercado Pago</h1>
+            <p class="mt-2 text-gray-700 leading-relaxed">
+                Conectá tu cuenta de Mercado Pago para recibir los pagos directamente en tu billetera.
+            </p>
+        </header>
 
         @if ($user->hasMercadoPagoAccount())
-            <div class="p-4 bg-success-50 border-l-4 border-success-400 text-success-800 rounded-lg shadow">
-                <div class="flex items-center gap-2 mb-1">
-                    <x-heroicon-o-check-circle class="w-6 h-6 text-success-500" />
-                    <span class="font-semibold">¡Cuenta de Mercado Pago conectada!</span>
+            <section class="bg-[#f3e8ff] border-l-8 border-[#7c3aed] rounded-lg shadow p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <x-heroicon-o-check-circle class="w-8 h-8 text-[#7c3aed]" />
+                    <h2 class="text-xl font-semibold text-[#5b21b6]">¡Cuenta de Mercado Pago conectada!</h2>
                 </div>
-                <div class="ml-2">
-                    <span class="font-bold">ID MP:</span> <span class="font-mono">{{ $user->mp_user_id }}</span><br>
-                    <span class="font-bold">Válido hasta:</span> {{ $user->mp_expires_in?->format('Y-m-d H:i') }}
-                </div>
-            </div>
+                <dl class="ml-2 space-y-2 text-[#5b21b6] font-mono text-sm">
+                    <div>
+                        <dt class="inline font-bold">ID MP:</dt>
+                        <dd class="inline">{{ $user->mp_user_id }}</dd>
+                    </div>
+                    <div>
+                        <dt class="inline font-bold">Válido hasta:</dt>
+                        <dd class="inline">{{ $user->mp_expires_in?->format('Y-m-d H:i') }}</dd>
+                    </div>
+                </dl>
+            </section>
 
-            <div x-data="{ open: false }" class="mt-6">
-                <button @click="open = true"
-                    class="inline-flex items-center px-6 py-3 bg-danger-50 text-danger-700 font-semibold rounded-lg shadow hover:bg-danger-100 transition">
-                    <x-heroicon-o-x-circle class="w-5 h-5 mr-2" />
+            <div x-data="{ open: false }" class="mt-10 text-center">
+                <button
+                    @click="open = true"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-[#7c3aed] text-white font-semibold rounded-lg shadow hover:bg-[#5b21b6] transition focus:outline-none focus:ring-2 focus:ring-[#5b21b6] focus:ring-opacity-50"
+                >
+                    <x-heroicon-o-x-circle class="w-5 h-5" />
                     Desvincular cuenta
                 </button>
-                <div x-show="open" x-cloak
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50 transition">
-                    <div class="bg-white w-full max-w-md rounded-lg p-6 shadow-lg">
-                        <h2 class="text-lg font-bold text-gray-800 mb-2">¿Desvincular Mercado Pago?</h2>
-                        <p class="text-sm text-gray-700">
+
+                <div
+                    x-show="open"
+                    x-cloak
+                    x-transition
+                    class="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-90"
+                    role="dialog"
+                    aria-modal="true"
+                >
+                    <div class="bg-white rounded-lg p-6 max-w-md w-full shadow-lg border border-[#7c3aed]">
+                        <h3 class="text-lg font-bold text-[#5b21b6] mb-4">¿Desvincular Mercado Pago?</h3>
+                        <p class="text-[#5b21b6] mb-6">
                             ¿Estás seguro? Si no tenés otro método de pago configurado, se pausarán tus ventas.
                         </p>
-                        <div class="mt-6 flex justify-end gap-4">
-                            <button @click="open = false"
-                                class="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded hover:bg-gray-100 transition">
+                        <div class="flex justify-end gap-4">
+                            <button
+                                @click="open = false"
+                                class="px-4 py-2 text-[#5b21b6] border border-[#7c3aed] rounded hover:bg-[#ede9fe] transition"
+                            >
                                 Cancelar
                             </button>
                             <form action="{{ route('mercadopago.unlink') }}" method="POST">
                                 @csrf
-                                <button type="submit"
-                                    class="px-4 py-2 text-sm font-semibold text-white bg-danger-600 hover:bg-danger-700 rounded transition">
+                                <button
+                                    type="submit"
+                                    class="px-4 py-2 font-semibold text-white bg-[#7c3aed] rounded hover:bg-[#5b21b6] transition"
+                                >
                                     Desvincular
                                 </button>
                             </form>
@@ -89,22 +95,19 @@
                 </div>
             </div>
         @else
-            <div class="flex flex-col items-center">
-                <a href="{{ route('mercadopago.connect') }}"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg shadow hover:bg-primary-700 transition focus:outline-none focus:ring-2 focus:ring-primary-600 focus:ring-opacity-50">
-                    <svg class="w-7 h-7 bg-white rounded-full p-1" viewBox="0 0 40 40" fill="none">
-                        <ellipse cx="20" cy="20" rx="18" ry="13" fill="#009ee3" />
-                        <path d="M13 20c2-2.5 6-3 7-3s5 .5 7 3" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                            fill="none" />
-                        <path d="M13 20c2 2.5 6 3 7 3s5-.5 7-3" stroke="#fff" stroke-width="2" stroke-linecap="round"
-                            fill="none" />
-                    </svg>
-                    <span class="text-base font-semibold">Conectar con Mercado Pago</span>
+            <div class="flex flex-col items-center space-y-4">
+                <a
+                    href="{{ route('mercadopago.connect') }}"
+                    class="inline-flex items-center gap-3 px-6 py-3 bg-[#7c3aed] text-white font-semibold rounded-lg shadow hover:bg-[#5b21b6] transition focus:outline-none focus:ring-2 focus:ring-[#5b21b6] focus:ring-opacity-50"
+                >
+                    <span class="text-base">Conectar con Mercado Pago</span>
                 </a>
-                <p class="text-sm text-gray-500 mt-2 text-center max-w-xs">
+                <p class="text-gray-600 max-w-xs text-center">
                     Si no conectás tu cuenta, no podrás recibir pagos por tus ventas.
                 </p>
             </div>
         @endif
+
     </div>
+
 </x-filament::page>

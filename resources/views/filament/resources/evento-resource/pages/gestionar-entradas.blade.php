@@ -15,7 +15,7 @@
             tag="a"
             class="px-6 py-3 bg-[#7c3aed] text-white rounded-lg shadow-sm hover:bg-[#8b5cf6] transition;"
         >
-            Volver al detalle
+            Ir a detalles
         </x-filament::button>
 
         {{-- Sub-título --}}
@@ -48,14 +48,13 @@
                             </div>
                         @endif
 
-                        @if ($entrada->disponible_hasta)
-                            <div class="flex justify-between text-gray-600">
-                                <span>Válido hasta:</span>
-                                <span class="font-semibold">
-                                    {{ $entrada->disponible_hasta->format('d/m/Y H:i') }}
-                                </span>
-                            </div>
-                        @endif
+                        <div class="flex justify-between text-gray-600 h-6">
+                            <span>Válido hasta:</span>
+                            <span class="font-semibold">
+                                {{ $entrada->disponible_hasta ? $entrada->disponible_hasta->format('d/m/Y H:i') : '' }}
+                            </span>
+                        </div>
+                        
 
                         <div class="flex justify-between text-gray-700">
                             <span>Stock actual:</span>

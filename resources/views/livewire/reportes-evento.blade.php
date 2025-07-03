@@ -43,7 +43,7 @@
             </div>
             <div>
                 <div class="text-lg font-bold text-purple-700">QRs validados</div>
-                <div class="text-2xl font-extrabold text-gray-900">{{ $qrsValidados }}</div>
+                <div class="text-2xl font-extrabold text-gray-900">{{ $qrsEscaneados }}</div>
             </div>
         </div>
     </div>

@@ -46,23 +46,24 @@ class Entrada extends Model
         return $this->hasMany(PurchasedTicket::class, 'entrada_id'); // Aseguramos la clave foránea
     }
 
-    protected static function boot()
-    {
-        parent::boot();
+    // protected static function boot()
+    // {
+    //     parent::boot();
 
-        static::creating(function ($entrada) {
-            // Si no viene stock_actual, lo igualamos a stock_inicial
-            if (is_null($entrada->stock_actual)) {
-                $entrada->stock_actual = $entrada->stock_inicial;
-            }
-        });
-    }
+    //     static::creating(function ($entrada) {
+    //         // Si no viene stock_actual, lo igualamos a stock_inicial
+    //         if (is_null($entrada->stock_actual)) {
+    //             $entrada->stock_actual = $entrada->stock_inicial;
+    //         }
+    //     });
+    // }
 
+    // METODO PARA QUE SE ALMACENE LA MISMA CANTIDAD DE ENTRADAS EN STOCK_INICIAL Y STOCK_ACTUAL
     protected static function booted()
     {
         static::creating(function ($entrada) {
-            if (is_null($entrada->stock_inicial)) {
-                $entrada->stock_inicial = $entrada->stock_actual;
+            if (is_null($entrada->stock_actual) && !is_null($entrada->stock_inicial)) {
+                $entrada->stock_actual = $entrada->stock_inicial;
             }
         });
     }

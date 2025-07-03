@@ -4,22 +4,36 @@ namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EventoResource;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Pages\Actions\CreateAction;
+use Filament\Actions\Action;
+use Illuminate\Contracts\Support\Htmlable;
+
 
 class ListEventos extends ListRecords
 {
     protected static string $resource = EventoResource::class;
 
-    /**
-     * Aquí definimos las acciones que irán en la barra superior
-     * (junto al título de “Eventos”).
-     */
-    protected function getActions(): array
+    protected function getHeaderActions(): array
     {
         return [
-            // Crea el botón “Nuevo Evento” que enlaza a /admin/eventos/create
-            CreateAction::make()
-                ->label('Nuevo Evento'),
+            Action::make('Crear Evento')
+                // Crea el botón “Nuevo Evento” que enlaza a /admin/eventos/create
+                ->url('/admin/eventos/create')
+                ->color('danger')
+            // Este boton que sigue es para hacer aparece el otro boton de cancelar
+            /* Action::make('delete')
+                ->requiresConfirmation()
+                ->action(fn() => $this->post->delete()), */
         ];
+    }
+
+    // PARA QUITAR MIGAS DE PAN
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
+    protected function getTableRecordUrlUsing(): ?\Closure
+    {
+        return fn($record) => EventoResource::getUrl('detalles', ['record' => $record]);
     }
 }

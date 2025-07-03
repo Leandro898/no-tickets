@@ -15,6 +15,8 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Get;
 use Filament\Pages\Actions\Action;
+use App\Filament\Widgets\SpacerWidget;
+use Filament\Notifications\Notification;
 
 class EditEntrada extends EditRecord
 {
@@ -32,67 +34,11 @@ class EditEntrada extends EditRecord
         ];
     }
 
-    public function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                Hidden::make('evento_id'),
+    // ESTE METODO CREA UN FORMULARIO QUE SOBREESCRIBE A LA CLASE EntradaResource.php QUE ES LA CLASE PADRE QUE DEFINE EL FORMULARIO QUE SE VA A RENDERIZAR
 
-                TextInput::make('nombre')
-                    ->required()
-                    ->maxLength(255)
-                    ->label('Nombre de la Entrada')
-                    ->placeholder('Ej: Entrada General, VIP, Early Bird'),
-
-                Textarea::make('descripcion')
-                    ->rows(2)
-                    ->maxLength(200)
-                    ->columnSpanFull()
-                    ->label('Descripción'),
-
-                TextInput::make('precio')
-                    ->numeric()
-                    ->required()
-                    ->step(0.01)
-                    ->prefix('ARS$')
-                    ->label('Precio'),
-
-                TextInput::make('stock_inicial')
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->label('Stock Inicial (Cantidad total disponible)'),
-
-                TextInput::make('stock_actual')
-                    ->numeric()
-                    ->label('Stock Actual (Cantidad restante para vender)'),
-
-                TextInput::make('max_por_compra')
-                    ->numeric()
-                    ->nullable()
-                    ->minValue(1)
-                    ->label('Máximo por Compra')
-                    ->placeholder('Dejar vacío para ilimitado por compra'),
-
-                // TUS CAMPOS DE FECHA DE DISPONIBILIDAD
-                DateTimePicker::make('disponible_desde')
-                    ->label('Disponible Desde')
-                    ->nullable()
-                    ->seconds(false),
-
-                DateTimePicker::make('disponible_hasta')
-                    ->label('Disponible Hasta')
-                    ->nullable()
-                    ->seconds(false),
-
-                Checkbox::make('valido_todo_el_evento')
-                    ->label('Este producto es válido para cualquier día del evento'),
-
-                Toggle::make('visible') // Este campo 'visible' lo tenías aquí y no en EntradaResource. Ahora estará en ambos.
-                    ->label('Visible')
-                    ->default(true),
-            ]);
-    }
+    // public function form(Form $form): Form 
+    // {
+    // }
 
     protected function getRedirectUrl(): string
     {
@@ -124,4 +70,30 @@ class EditEntrada extends EditRecord
                 ->label('Cancelar'),
         ];
     }
+
+    /* WIDGET DE ESPACIADO AL PIE DE LA PAGINA FILAMENT*/
+
+    protected function getFooterWidgets(): array
+    {
+        return [
+            SpacerWidget::class,
+        ];
+    }
+
+    // ESTO CANCELA LA NOTIFICACION QUE APARECE POR DEFECTO DE FILAMENT
+    protected function getSavedNotification(): ?Notification
+    {
+        // Retorna null para no mostrar la notificación por defecto
+        return null;
+    }
+
+    // METODO PARA CONFIGURAR Y CREAR UNA NOTIFICACION PERSONALIZADA
+    protected function afterSave(): void
+    {
+        Notification::make()
+            ->title('Entrada actualizada')
+            ->body('La entrada fue actualizada correctamente.')
+            ->send();
+    }
+
 }

@@ -21,6 +21,10 @@ class Evento extends Model
         'imagen',
         'estado',
         'organizador_id',
+        'restringir_edad',
+        'edad_min_hombres',
+        'edad_min_mujeres',
+        'requerir_dni',
     ];
 
     public function entradas()

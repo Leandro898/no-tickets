@@ -21,7 +21,6 @@ class PurchasedTicket extends Model
         'scanned_at',
         'buyer_name',
         'ticket_type',
-        'ticket_code',
     ];
 
 
@@ -60,10 +59,9 @@ class PurchasedTicket extends Model
         );
     }
 
+    // CON ESTA FUNCION ESTABA ASIGNANDO UN ID UNICO PARA LOS TICKETS, PERO ES ALGO QUE PUEDO HACER CON LA COLUMNA QUE YA TENGO unique_code Y FORMATEARLA PARA MOSTRARLA DIFERENTE EN EL FRONT DE LA ENTRADA
     protected static function booted(): void
     {
-        static::creating(function ($ticket) {
-            $ticket->ticket_code = 'T-' . strtoupper(Str::random(6)); // ej: "3A9F7QK21B"
-        });
+        
     }
 }

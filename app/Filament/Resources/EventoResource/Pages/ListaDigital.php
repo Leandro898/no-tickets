@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Mail;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action   as TableAction; // ← para el menú de cada fila
 use Filament\Actions\Action          as PageAction;  // ← para el header
+use Filament\Forms\Components\Toggle;
+use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Columns\ToggleColumn;
 
 class ListaDigital extends Page implements HasTable
 {
@@ -55,19 +58,49 @@ class ListaDigital extends Page implements HasTable
     protected function getTableColumns(): array
     {
         return [
-            TextColumn::make('id')->label('ID de Entrada'),
-            TextColumn::make('buyer_name')->label('Nombre'),
-            TextColumn::make('ticket_type')->label('Tipo'),
+            //TextColumn::make('id')->label('ID de Entrada'),
+            TextColumn::make('buyer_name')->label('Nombre')->searchable(),
+            //TextColumn::make('ticket_type')->label('Tipo'),
             TextColumn::make('order.buyer_email')->label('Email'),
-            TextColumn::make('order.total_amount')->label('Monto Total')
-                ->formatStateUsing(fn($state) => '$' . number_format($state, 2, ',', '.')),
             TextColumn::make('cantidad')
                 ->label('Cant.')
                 ->getStateUsing(fn($record) => count(json_decode($record->order->items_data, true))),
-            TextColumn::make('status')
-                ->badge()
-                ->color(fn($state) => $state === 'valid' ? 'success' : 'secondary')
-                ->label('Estado'),
+            TextColumn::make('order.total_amount')->label('Monto Total')
+                ->formatStateUsing(fn($state) => '$' . number_format($state, 2, ',', '.')),
+            TextColumn::make('order.payment_status')
+                ->label('Estado Pedido')
+                ->formatStateUsing(fn($state) => ucfirst($state)) // Opcional para capitalizar
+                ->color(fn($state) => match ($state) {
+                    'paid' => 'success',
+                    'pending' => 'warning',
+                    'failed' => 'danger',
+                    default => 'secondary',
+                }),
+            // TextColumn::make('Detalles')
+            //     ->action(
+            //         Action::make('verDetalles')
+            //             ->modalHeading('Detalles del cliente')
+            //             ->modalContent(fn($record) => view('filament.resources.evento-resource.pages.partials.detalle-modal', ['record' => $record]))
+            //             ->modalWidth('lg')
+            //             ->requiresConfirmation() // Esto muestra el modal
+            //             ->action(function ($record) {
+            //                 // Aquí puedes manejar alguna lógica adicional si quieres
+            //             }),
+            //     )
+            // EL MANEJO DE ESTADO DE TICKETS ES PARA FUTURAS VERSIONES PORQUE ESO SOLAMENTE APLICA CUANDO SE VENDEN ENTRADAS INDIVIDUALES COMO EN EVENTIN
+                // SelectColumn::make('status')
+            //     ->label('Estado')
+            //     ->options([
+            //         'valid' => 'Valido',
+            //         'used' => 'Utilizado',
+            //         //'invalid' => 'Invalido', - Opcion por si es necesario en el futuro
+            //         // agrega los que necesites
+            //     ])
+            //     ->sortable()
+            //     ->selectablePlaceholder(false)
+            //     ->searchable()
+            //     ->default('valid'),
+                
         ];
     }
 
@@ -157,7 +190,7 @@ class ListaDigital extends Page implements HasTable
     {
         return [
             PageAction::make('volver')
-                ->label('Volver a detalles')
+                ->label('Ir a detalles')
                 ->icon('heroicon-o-arrow-left')
                 ->url(
                     EventoResource::getUrl('detalles', ['record' => $this->record])

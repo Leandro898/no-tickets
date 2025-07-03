@@ -4,20 +4,32 @@ namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EventoResource;
 use App\Models\Evento; // Importa tu modelo específico
+use App\Models\PurchasedTicket;
 use Filament\Resources\Pages\Page;
 
 class ReportesEvento extends Page
 {
     protected static string $resource = EventoResource::class;
     protected static string $view = 'filament.resources.evento-resource.pages.reportes-evento';
-    
-    protected ?string $model = Evento::class; // Define el modelo concreto
-    
-    public Evento $record; // Usa el tipo específico
-    
-    public function mount(Evento $record): void // Tipo específico en el parámetro
+
+    public Evento $record;
+
+    public int $qrsGenerados = 0;
+    public int $qrsEscaneados = 0;
+
+    public function mount(Evento $record): void
     {
         $this->record = $record;
+
+        // Total QR generados (todos los tickets del evento)
+        $this->qrsGenerados = \App\Models\PurchasedTicket::whereHas('entrada', function ($query) {
+            $query->where('evento_id', $this->record->id);
+        })->count();
+
+        // QR escaneados = tickets con status 'used'
+        $this->qrsEscaneados = \App\Models\PurchasedTicket::whereHas('entrada', function ($query) {
+            $query->where('evento_id', $this->record->id);
+        })->where('status', 'used')->count();
     }
     
     public function getRecord(): Evento
