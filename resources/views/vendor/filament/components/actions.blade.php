@@ -41,7 +41,7 @@
                 'fi-ac gap-3',
                 'flex flex-wrap items-center' => ! $fullWidth,
                 match ($alignment) {
-                    Alignment::Start, Alignment::Left => 'justify-start',
+                    Alignment::Start, Alignment::Left => 'justify-end',
                     Alignment::Center => 'justify-center',
                     Alignment::End, Alignment::Right => 'flex-row-reverse',
                     Alignment::Between, Alignment::Justify => 'justify-between',

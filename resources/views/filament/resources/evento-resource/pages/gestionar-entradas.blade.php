@@ -8,15 +8,18 @@
 <x-filament::page>
     <div class="space-y-10">
         {{-- Header: botón volver --}}
-        <x-filament::button
-            :href="EventoDetalles::getUrl(['record' => $evento->id])"
-            size="sm"
-            icon="heroicon-o-arrow-left"
-            tag="a"
-            class="px-6 py-3 bg-[#7c3aed] text-white rounded-lg shadow-sm hover:bg-[#8b5cf6] transition;"
-        >
-            Ir a detalles
-        </x-filament::button>
+        <div class="flex justify-end">
+            <x-filament::button
+                :href="EventoDetalles::getUrl(['record' => $evento->id])"
+                size="sm"
+                icon="heroicon-o-arrow-left"
+                tag="a"
+                class="px-6 py-3 bg-[#7c3aed] text-white rounded-lg shadow-sm hover:bg-[#8b5cf6] transition"
+            >
+                Ir a detalles
+            </x-filament::button>
+        </div>
+        
 
         {{-- Sub-título --}}
         <p class="text-xl font-semibold text-gray-700">

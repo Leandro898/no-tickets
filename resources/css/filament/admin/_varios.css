@@ -4,7 +4,17 @@
         height: 200px;
     }
 
-    
+    /* ESTO MOVIO EL BOTON A LA DERECHA */
+    .fi-ac {
+        justify-content: flex-end !important;
+        width: 100%; /* asegura que ocupe todo el ancho */
+      }
+      /* ESTO VA JUNTO A LO DE ARRIBA PARA MOVER EL BOTON A LA DERECHA - MUEVE LOS BOTONES DE ACCIONES*/
+      .fi-ac .fi-btn {
+        margin-left: 0 !important;
+        display: inline-flex !important;
+      }
+      
       
     
 }
