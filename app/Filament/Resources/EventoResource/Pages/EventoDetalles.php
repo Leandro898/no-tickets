@@ -9,9 +9,17 @@ use App\Jobs\RefundMercadoPagoPayment; // Importa tu Job de reembolso
 use Filament\Resources\Pages\Page;
 use Filament\Notifications\Notification; // Para enviar notificaciones
 use Filament\Pages\Actions\Action;
+use App\Models\PurchasedTicket;
+
 
 class EventoDetalles extends Page
 {
+    //PROPIEDADES PUBLICAS PARA LA RECAUDACION Y TICKETS VENDIDOS
+
+    public float $recaudacionTotal = 0;
+    public int $ticketsVendidos = 0;
+    public int $ticketsDisponibles = 100;
+
     // PROPIEDAD PARA CONTROLAR EL MODAL DEL LINK
     public bool $mostrarModalLink = false;
 
@@ -26,10 +34,27 @@ class EventoDetalles extends Page
 
     protected static string $view = 'filament.resources.evento-resource.pages.evento-detalles';
 
+    // METODO PARA MOSTRAR DATOS DE VENTAS
     public function mount(Evento $record)
     {
         $this->record = $record;
+
+        // Recaudación total
+        $this->recaudacionTotal = $record->orders()
+            ->where('payment_status', 'paid')
+            ->sum('total_amount');
+
+        // Tickets vendidos
+        $this->ticketsVendidos = PurchasedTicket::whereHas('order', function ($query) use ($record) {
+            $query->where('event_id', $record->id)
+                ->where('payment_status', 'paid');
+        })->count();
+
+        // Tickets disponibles
+        $this->ticketsDisponibles = $record->total_tickets ?? 100;
     }
+
+
 
     // Metodo para quitar las migas de pan
     public function getBreadcrumbs(): array

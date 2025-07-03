@@ -12,6 +12,7 @@
 @import "./_barra_de_busqueda.css";
 @import "./_login.css";
 @import "./_varios.css";
+@import "./_recaudacion_global.css";
 
 @tailwind base;
 @tailwind components;

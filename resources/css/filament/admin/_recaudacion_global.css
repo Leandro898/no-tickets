@@ -1,0 +1,37 @@
+@layer components{
+    .recaudacion-card {
+        background-color: #ede9fe; /* violeta muy claro */
+        border-radius: 12px;
+        padding: 1.5rem 2rem;
+        box-shadow: 0 4px 8px rgba(124, 58, 237, 0.1);
+    }
+    
+    .recaudacion-title {
+        font-weight: 700;
+        font-size: 1.5rem; /* más grande */
+        color: #7c3aed; /* violeta */
+    }
+    
+    .recaudacion-subtitle {
+        font-size: 0.875rem;
+        color: #a78bfa; /* violeta más suave */
+        margin-top: 0.25rem;
+    }
+    
+    .recaudacion-monto {
+        font-weight: 700;
+        font-size: 2rem; /* aún más grande para destacarlo */
+        color: #7c3aed;
+    }
+    
+    .recaudacion-tickets {
+        font-weight: 500;
+        font-size: 1rem;
+        color: #7c3aed;
+        margin-top: 0.25rem;
+    }
+    
+    
+    
+    
+}
