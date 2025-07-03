@@ -20,13 +20,14 @@
        BOTÓN SECUNDARIO · CANCELAR
     ────────────────────────────────*/
     .fi-ac-btn-action:not(.fi-color-success) {
-        /* mismo alto/ancho visual que Guardar */
         @apply bg-transparent text-[#7c3aed] border border-[#d9d6fc] font-semibold rounded-lg px-7 py-3 text-base transition-colors duration-150;
     }
-
+    
+    /* Cambio color a violeta más oscuro */
     .fi-ac-btn-action:not(.fi-color-success):hover {
-        @apply bg-[#ede9fe];
+        @apply bg-[#7c3aed] text-white border-transparent;
     }
+    
 
     /* BOTON VOLVER A DETALLES Y VOLVER EN OTRAS SECCIONES*/
     .btn-volver {

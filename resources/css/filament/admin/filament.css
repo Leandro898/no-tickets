@@ -1,4 +1,4 @@
-/* 1.  TODOS los @import primero  */
+/* Todos los @import primero */
 @import "./barra-lateral.css";
 @import "./botones.css";
 @import "./panels.css";
@@ -18,5 +18,22 @@
 @tailwind utilities;
 
 @layer utilities {
-    
+    @layer utilities {
+        @media (max-width: 639px) {
+          .btn-right {
+            display: none !important;
+          }
+          .btn-mobile-right {
+            display: inline-flex !important; /* o block según convenga */
+            margin-left: auto; /* para que se alinee a la derecha si está en flex */
+          }
+        }
+      
+        @media (min-width: 640px) {
+          .btn-mobile-right {
+            display: none !important;
+          }
+        }
+      }
+      
 }

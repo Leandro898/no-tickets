@@ -8,6 +8,7 @@ use Filament\Actions\Action;
 use Illuminate\Contracts\Support\Htmlable;
 
 
+
 class ListEventos extends ListRecords
 {
     protected static string $resource = EventoResource::class;
@@ -16,9 +17,11 @@ class ListEventos extends ListRecords
     {
         return [
             Action::make('Crear Evento')
-                // Crea el botón “Nuevo Evento” que enlaza a /admin/eventos/create
                 ->url('/admin/eventos/create')
-                ->color('danger')
+                ->color('primary')
+                ->extraAttributes([
+                    'class' => 'btn-right',
+                ]),
             // Este boton que sigue es para hacer aparece el otro boton de cancelar
             /* Action::make('delete')
                 ->requiresConfirmation()
