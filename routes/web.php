@@ -47,14 +47,14 @@ Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'
 Route::get('/tickets', [CompraEntradaSplitController::class, 'index'])->name('tickets.index');
 Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
 //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
-Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
+// Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
-//Route::get('/scanner-test', TestScanner::class);
+Route::get('/scanner-test', TestScanner::class);
 
 // OTRO TEST FUERA DE FILAMENT
-Route::middleware(['auth', 'role:scanner'])->group(function () {
+/* Route::middleware(['auth', 'role:scanner'])->group(function () {
     Route::get('/scanner-test', [ScannerController::class, 'index']);
-});
+}); */
 
 // ULTIMO SCANNER
 Route::middleware(['auth'])->get('/scanner', function () {
@@ -62,9 +62,9 @@ Route::middleware(['auth'])->get('/scanner', function () {
 })->name('scanner.index');
 
 // VALIDAR QRs
-Route::middleware(['auth', 'role:scanner'])->group(function () {
-    Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
-});
+// Route::middleware(['auth', 'role:scanner'])->group(function () {
+//     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
+// });
 
 // RUTAS PARA REGISTRO CON EMAIL
 Route::get('/registro', function () {
@@ -140,6 +140,16 @@ Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
     ->name('ticket.descargar')
     ->middleware('auth');
+
+// Rutas protegidas bajo /admin y sólo para productores
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->group(function () {
+        // El POST que llama tu JS
+        Route::post('scanner-interface/scan', [ScannerController::class, 'scan'])
+            ->name('admin.scanner.scan');
+    });
+
 
 
 

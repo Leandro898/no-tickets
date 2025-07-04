@@ -32,31 +32,31 @@ class TicketValidationController extends Controller
      * @param string $code El código único del ticket a validar.
      * @return array Un array asociativo con 'status' ('success'/'error') y 'message').
      */
-    public function processTicketValidation(string $code): array
-    {
-        $ticket = PurchasedTicket::where('unique_code', $code)->first();
+    // public function processTicketValidation(string $code): array
+    // {
+    //     $ticket = PurchasedTicket::where('unique_code', $code)->first();
 
-        if (!$ticket) {
-            return ['status' => 'error', 'message' => 'Ticket no encontrado.'];
-        }
+    //     if (!$ticket) {
+    //         return ['status' => 'error', 'message' => 'Ticket no encontrado.'];
+    //     }
 
-        if ($ticket->status === 'used') {
-            return ['status' => 'error', 'message' => 'Este ticket ya ha sido utilizado.'];
-        }
+    //     if ($ticket->status === 'used') {
+    //         return ['status' => 'error', 'message' => 'Este ticket ya ha sido utilizado.'];
+    //     }
 
-        if ($ticket->status === 'invalid') {
-            return ['status' => 'error', 'message' => 'Este ticket no es válido.'];
-        }
+    //     if ($ticket->status === 'invalid') {
+    //         return ['status' => 'error', 'message' => 'Este ticket no es válido.'];
+    //     }
 
-        // Marcar el ticket como usado
-        $ticket->status = 'used';
-        $ticket->scan_date = now(); // Registra la fecha y hora del escaneo
-        $ticket->save();
+    //     // Marcar el ticket como usado
+    //     $ticket->status = 'used';
+    //     $ticket->scan_date = now(); // Registra la fecha y hora del escaneo
+    //     $ticket->save();
 
-        Log::info('Ticket escaneado y marcado como utilizado', ['ticket_code' => $code]);
+    //     Log::info('Ticket escaneado y marcado como utilizado', ['ticket_code' => $code]);
 
-        return ['status' => 'success', 'message' => 'Ticket validado exitosamente.'];
-    }
+    //     return ['status' => 'success', 'message' => 'Ticket validado exitosamente.'];
+    // }
 
     /**
      * Maneja la solicitud de escaneo de un ticket desde una API o ruta web.
@@ -66,32 +66,26 @@ class TicketValidationController extends Controller
      * @param string $code El código único del ticket.
      * @return \Illuminate\Http\JsonResponse
      */
-    public function scanTicket(Request $request, $code)
-    {
-        $ticket = PurchasedTicket::where('unique_code', $code)->first();
+    // public function scanTicket(Request $request)
+    // {
+    //     $code = $request->input('code');
 
-        if (!$ticket) {
-            return response()->json(['status' => 'error', 'message' => 'Ticket no encontrado.'], 404);
-        }
+    //     $ticket = PurchasedTicket::where('unique_code', $code)->first();
+    //     if (! $ticket) {
+    //         return response()->json(['status' => 'error', 'message' => 'Ticket no encontrado.'], 404);
+    //     }
 
-        // 🔐 PROTECCIÓN: solo marcar como usado si el usuario está logueado como validador
-        if (auth()->check() && auth()->user()->hasRole('scanner')) {
-            if ($ticket->status === 'valid') {
-                $ticket->status = 'used';
-                $ticket->scan_date = now();
-                $ticket->save();
+    //     if ($ticket->status !== 'valid') {
+    //         return response()->json(['status' => 'error', 'message' => 'Ticket no es válido para escanear.'], 422);
+    //     }
 
-                Log::info('Ticket escaneado y marcado como utilizado por validador', ['ticket_code' => $code]);
+    //     $ticket->status = 'used';
+    //     $ticket->scan_date = now();
+    //     $ticket->save();
 
-                return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.']);
-            }
+    //     return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.']);
+    // }
 
-            return response()->json(['status' => 'error', 'message' => 'Ticket no es válido para escanear.']);
-        }
-
-        // Si lo visita un comprador o público general, NO lo marca como usado
-        return response()->json(['status' => 'ok', 'message' => 'Visualización sin validacin.']);
-    }
 
 
     /**
@@ -99,8 +93,17 @@ class TicketValidationController extends Controller
      * Esta ruta ya no sería necesaria si la página del escáner es gestionada por Filament + Livewire.
      * Solo la mantengo por si la usas en otro contexto.
      */
-    public function showScannerInterface()
-    {
-        return view('tickets.scanner_interface'); // Asumiendo que esta es la ruta de tu vista Blade original
-    }
+    // public function showScannerInterface()
+    // {
+    //     return view('tickets.scanner_interface'); // Asumiendo que esta es la ruta de tu vista Blade original
+    // }
+
+    // METODO PARA SCANNER EN PRODUCCION
+    // public function validate(Request $request)
+    // {
+    //     $code = $request->query('code');
+    //     $valid = \App\Models\PurchasedTicket::where('unique_code', $code)->exists();
+
+    //     return response()->json(['valid' => $valid]);
+    // }
 }
