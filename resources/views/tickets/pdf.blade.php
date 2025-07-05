@@ -55,7 +55,8 @@
 </head>
 <body>
     <div class="ticket-container">
-        <div class="ticket-code">#T-{{ strtoupper($ticket->ticket_code) }}</div>
+        {{-- Mostrar aquí el código completo que el scanner busca en unique_code --}}
+        <div class="ticket-code">#{{ $ticket->unique_code }}</div>
 
         <h2>Innova Ticket</h2>
 
@@ -68,6 +69,7 @@
         </div>
 
         <div class="qr">
+            {{-- El QR ya fue generado con unique_code y almacenado en qr_path --}}
             <img src="{{ public_path('storage/' . $ticket->qr_path) }}" width="200">
         </div>
 

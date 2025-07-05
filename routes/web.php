@@ -19,6 +19,7 @@ use App\Http\Controllers\TicketReenvioController;
 use App\Livewire\MostrarTicket;
 use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Admin\TicketScannerController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -47,7 +48,7 @@ Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'
 Route::get('/tickets', [CompraEntradaSplitController::class, 'index'])->name('tickets.index');
 Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
 //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
-Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
+// Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
 Route::get('/scanner-test', TestScanner::class);
 
@@ -62,9 +63,9 @@ Route::middleware(['auth'])->get('/scanner', function () {
 })->name('scanner.index');
 
 // VALIDAR QRs
-Route::middleware(['auth', 'role:scanner'])->group(function () {
-    Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
-});
+// Route::middleware(['auth', 'role:scanner'])->group(function () {
+//     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
+// });
 
 // RUTAS PARA REGISTRO CON EMAIL
 Route::get('/registro', function () {
@@ -140,6 +141,20 @@ Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
     ->name('ticket.descargar')
     ->middleware('auth');
+
+// SCANNER FINAL NUEVO
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        // Esto mapea GET /admin/ticket-scanner → TicketScanner Page
+        // (Filament lo hace por slug automáticamente)
+
+        // AJAX endpoint:
+        Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
+            ->name('ticket-scanner.scan');
+    });
+
 
 
 

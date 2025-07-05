@@ -27,13 +27,13 @@
             <div class="swiper-wrapper">
                 <!-- Slide 1 -->
                 <div class="swiper-slide relative h-[366px]">
-                    <img src="{{ $slide1->imagen }}" alt="{{ $slide1->nombre }}" class="w-full h-full object-cover">
+                    <img src="" alt="" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center p-6">
-                        <h2 class="text-white text-3xl font-bold mb-2">{{ $slide1->nombre }}</h2>
+                        <h2 class="text-white text-3xl font-bold mb-2"></h2>
                         <p class="text-gray-200 mb-4">
-                            {{ \Carbon\Carbon::parse($slide1->fecha_inicio)->format('d M, Y') }}
+                            
                         </p>
-                        <a href="{{ route('eventos.show', $slide1) }}"
+                        <a href=""
                             class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded">
                             Comprar
                         </a>

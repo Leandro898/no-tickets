@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MercadoPagoController; // Asegúrate de importar tu controlador
+use App\Http\Controllers\TicketValidationController;
 
 /*
 |--------------------------------------------------------------------------

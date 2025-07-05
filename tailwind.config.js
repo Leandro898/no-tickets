@@ -22,6 +22,8 @@ export default {
             },
             colors: {
                 primary: '#7c3aed',
+                500: '#a084ee', // violeta claro
+                600: '#7c3aed', // violeta principal
             },
         },
     },

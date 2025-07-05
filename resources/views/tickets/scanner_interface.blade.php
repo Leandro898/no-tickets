@@ -14,6 +14,8 @@
         </button>
     </div>
     
+    {{-- AGREGADO PARA IMPORTAR NUEVA LIBRERIA DE SCANNER --}}
+    <div id="scanResult" class="text-center mb-4 font-semibold"></div>
 
     <div class="flex justify-center">
         <video id="camera" autoplay playsinline class="rounded-lg shadow-lg ring-4 ring-purple-500 w-full max-w-md"></video>

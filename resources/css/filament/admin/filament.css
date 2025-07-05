@@ -13,6 +13,7 @@
 @import "./_login.css";
 @import "./_varios.css";
 @import "./_recaudacion_global.css";
+@import "./_scanner.css";
 
 @tailwind base;
 @tailwind components;
@@ -21,5 +22,6 @@
 @layer utilities {
 
     
-      
+
+    
 }

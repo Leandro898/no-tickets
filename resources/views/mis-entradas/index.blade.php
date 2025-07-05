@@ -50,7 +50,7 @@
                         {{ $evento?->fecha_inicio ? \Carbon\Carbon::parse($evento->fecha_inicio)->format('d/m/Y H:i') : '-' }}
                     </td>
                     <td class="px-4 py-3 align-middle">${{ number_format($ticket->order->total_amount, 0, ',', '.') }}</td>
-                    <td class="px-4 py-3 align-middle">{{ $ticket->ticket_code }}</td>
+                    <td class="px-4 py-3 align-middle">{{ $ticket->unique_code }}</td>
                     <td class="px-4 py-3 align-middle">
                         <div class="flex flex-col gap-1 items-center">
 
