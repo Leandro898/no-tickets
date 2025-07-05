@@ -37,6 +37,12 @@
       font-weight: bold;
     }
 
+    .ticket-event {
+      font-size: 14px;
+      color: #4b5563;
+      font-weight: bold;
+    }
+
     .ticket-body {
       margin-top: 10px;
     }
@@ -63,31 +69,44 @@
       text-align: center;
       color: #888;
     }
+
+    .btn-purple {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 8px 16px;
+      background: #7f3fd2;
+      color: #fff;
+      border-radius: 4px;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div class="ticket">
     <div class="ticket-header">
       <div class="ticket-title">Innova Ticket</div>
-      <div class="ticket-event">#T-AY3P41</div>
+      {{-- Aquí mostramos el UUID completo --}}
+      <div class="ticket-event">#{{ $ticket->unique_code }}</div>
     </div>
+
     <div class="ticket-body">
       <div class="ticket-info">
-        <strong>Evento:</strong> Nombre del Evento<br />
-        <strong>Tipo:</strong> Entrada General<br />
-        <strong>Fecha:</strong> 30/03/2025 - 22:22hs<br />
-        <strong>Lugar:</strong> Comodoro, Argentina<br />
-        <strong>Comprador:</strong> Agustín Riquelme
+        <strong>Evento:</strong> {{ $ticket->order->event->nombre }}<br />
+        <strong>Tipo:</strong> {{ $ticket->ticket_type }}<br />
+        <strong>Fecha:</strong>
+          {{ \Carbon\Carbon::parse($ticket->order->event->fecha)->format('d/m/Y H:i') }}<br />
+        <strong>Lugar:</strong> {{ $ticket->order->event->ubicacion }}<br />
+        <strong>Comprador:</strong> {{ $ticket->order->buyer_full_name }}
       </div>
 
       <div class="qr-container">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=T-AY3P41" alt="QR Code" />
+        {{-- Usamos el PNG que generaste en el webhook --}}
+        <img src="{{ asset('storage/' . $ticket->qr_path) }}" alt="QR Code" />
       </div>
 
-      <a href="{{ route('ticket.descargar', $ticket->id) }}" class="btn btn-purple">
+      <a href="{{ route('ticket.descargar', $ticket->id) }}" class="btn-purple">
         Descargar entrada (PDF)
-    </a>
-    
+      </a>
 
       <div class="ticket-footer">
         Presenta esta entrada en la puerta del evento.<br />

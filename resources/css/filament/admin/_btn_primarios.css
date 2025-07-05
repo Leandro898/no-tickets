@@ -27,7 +27,6 @@
     .fi-ac-btn-action:not(.fi-color-success):hover {
         @apply bg-[#7c3aed] text-white border-transparent;
     }
-    
 
     /* BOTON VOLVER A DETALLES Y VOLVER EN OTRAS SECCIONES*/
     .btn-volver {

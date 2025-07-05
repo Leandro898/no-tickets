@@ -19,6 +19,7 @@ use App\Http\Controllers\TicketReenvioController;
 use App\Livewire\MostrarTicket;
 use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Admin\TicketScannerController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -141,13 +142,17 @@ Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'
     ->name('ticket.descargar')
     ->middleware('auth');
 
-// Rutas protegidas bajo /admin y sólo para productores
+// SCANNER FINAL NUEVO
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')
+    ->name('admin.')
     ->group(function () {
-        // El POST que llama tu JS
-        Route::post('scanner-interface/scan', [ScannerController::class, 'scan'])
-            ->name('admin.scanner.scan');
+        // Esto mapea GET /admin/ticket-scanner → TicketScanner Page
+        // (Filament lo hace por slug automáticamente)
+
+        // AJAX endpoint:
+        Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
+            ->name('ticket-scanner.scan');
     });
 
 

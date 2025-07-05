@@ -24,7 +24,3 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 // --- ¡MUEVE TU RUTA DE WEBHOOK AQUÍ! ---
 // NOTA: Quita el prefijo '/api' de la URL aquí, ya que el archivo api.php ya lo añade automáticamente.
 Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
-
-// Ruta para escanner definitivo en PRODUCCION
-// Route::get('/tickets/validate', [TicketValidationController::class, 'validate'])
-//     ->middleware(['auth', 'role:scanner']);
