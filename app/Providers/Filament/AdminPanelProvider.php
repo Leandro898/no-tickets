@@ -29,6 +29,7 @@ use App\Filament\Pages\ScanQrPage;
 use Illuminate\Support\ServiceProvider;
 use Filament\Facades\Filament;
 use App\Filament\Pages\PruebaPanel;
+use App\Filament\Pages\TicketScanner;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -44,11 +45,14 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Violet,
             ])
+            // Deja que Filament encuentre tus Resources
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            // Y tus Pages (aquí entrará TicketScanner automáticamente)
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            // Si necesitas páginas “extra” que no estén en el folder, agrégalas aquí:
             ->pages([
                 OauthConnectPage::class,
-                PruebaPanel::class,
+                TicketScanner::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -56,22 +60,7 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\Widgets\AccountWidget::class,
                 \Filament\Widgets\FilamentInfoWidget::class,
             ])
-            ->navigation(function (NavigationBuilder $builder) {
-                return $builder->items([
-                    // Items del recurso Evento
-                    ...EventoResource::getNavigationItems(),
-
-                    // Cobros (OAuth Connect)
-                    NavigationItem::make('Cobros')
-                        ->icon('heroicon-o-banknotes')
-                        ->url(OauthConnectPage::getUrl()),
-
-                // Escáner JS/HTML: tu herramienta en /admin/ticket-scanner
-                NavigationItem::make('Ticket Scanner')
-                    ->icon('heroicon-o-qr-code')
-                    ->url('/admin/ticket-scanner'),
-            ]);
-        })
+            // <<— **Eliminamos por completo** el override de ->navigation() —>>
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -90,6 +79,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/filament.css')
             ->brandName('Innova Ticket');
     }
+
 
 
     public function boot(): void
