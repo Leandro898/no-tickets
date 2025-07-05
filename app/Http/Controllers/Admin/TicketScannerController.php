@@ -44,4 +44,10 @@ class TicketScannerController extends Controller
             'message' => '✅ Ticket validado exitosamente.'
         ]);
     }
+
+    //METODO PARA DAR ESTILOS A LA NAVEGACION MENU IZQUIERDO
+    public function index()
+    {
+        return view('filament.pages.ticket-scanner');
+    }
 }

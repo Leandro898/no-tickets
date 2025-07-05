@@ -20,6 +20,7 @@ use App\Livewire\MostrarTicket;
 use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TicketScannerController;
+use App\Filament\Pages\TicketScanner;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -128,7 +129,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Redirige /dashboard a /mis-entradas
     Route::redirect('/dashboard', '/mis-entradas')
-         ->name('dashboard');
+        ->name('dashboard');
 });
 
 // REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
