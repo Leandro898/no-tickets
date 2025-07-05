@@ -29,6 +29,7 @@ use App\Filament\Pages\ScanQrPage;
 use Illuminate\Support\ServiceProvider;
 use Filament\Facades\Filament;
 use App\Filament\Pages\PruebaPanel;
+use App\Filament\Pages\TicketScanner;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -51,8 +52,7 @@ class AdminPanelProvider extends PanelProvider
             // Si necesitas páginas “extra” que no estén en el folder, agrégalas aquí:
             ->pages([
                 OauthConnectPage::class,
-                PruebaPanel::class,
-                \App\Filament\Pages\TicketScanner::class,
+                TicketScanner::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
