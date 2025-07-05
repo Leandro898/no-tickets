@@ -4,18 +4,18 @@ return [
 
     'title' => 'Create :label',
 
-    'breadcrumb' => 'Create',
+    'breadcrumb' => 'Crear',
 
     'form' => [
 
         'actions' => [
 
             'cancel' => [
-                'label' => 'Cancel',
+                'label' => 'Cancelar',
             ],
 
             'create' => [
-                'label' => 'Create',
+                'label' => 'Crear',
             ],
 
             'create_another' => [
@@ -29,7 +29,7 @@ return [
     'notifications' => [
 
         'created' => [
-            'title' => 'Created',
+            'title' => 'Creado',
         ],
 
     ],

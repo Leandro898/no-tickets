@@ -47,4 +47,18 @@
     .fi-panel-admin .fi-page .fi-page-content {
     @apply pb-16 !important;  /* 4rem = 64px de padding-bottom */
   }
+
+  /* BOTON DE LOGIN */
+  .fi-btn,
+    .fi-btn.fi-btn-color-primary {
+        background-color: #7c3aed !important;
+        color: #fff !important;
+        border: none !important;
+    }
+    .fi-btn:hover,
+    .fi-btn.fi-btn-color-primary:hover {
+        background-color: #a084ee !important;
+    }
+    /* TERMINA BOTON DE LOGIN*/
+  
 }
