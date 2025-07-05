@@ -35,51 +35,43 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->darkMode(false) // deshabilita el modo oscuro
+            ->darkMode(false)
             ->login()
             ->colors([
-            'primary' => Color::Violet,
+                'primary' => Color::Violet,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                ScannerInterface::class, // Registro explícito de la página del escáner
                 OauthConnectPage::class,
-                PruebaPanel::class, // Registro explícito de la página de prueba
+                PruebaPanel::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 \App\Filament\Widgets\FloatingMenu::class,
-                \Filament\Widgets\AccountWidget::class, // Usando el namespace completo para evitar ambigüedades
-                \Filament\Widgets\FilamentInfoWidget::class, // Usando el namespace completo
+                \Filament\Widgets\AccountWidget::class,
+                \Filament\Widgets\FilamentInfoWidget::class,
             ])
-            // ->navigation(function (NavigationBuilder $builder): NavigationBuilder {
-            //     return $builder->items([
-            //         ...EventoResource::getNavigationItems(), // Carga ítems del recurso Evento
-            //         // **** ALTERNATIVA "HARDCODEADA" SI LAS ANTERIORES FALLAN ****
-            //         NavigationItem::make('Scanner de Tickets') // Título fijo
-            //             ->url('/scanner-test')
-            //             ->icon('heroicon-o-qr-code') // Icono fijo
-            //             ->sort(2),
+            ->navigation(function (NavigationBuilder $builder) {
+                return $builder->items([
+                    // Items del recurso Evento
+                    ...EventoResource::getNavigationItems(),
 
-            //         NavigationItem::make('Cobros')
-            //             ->url(OauthConnectPage::getUrl())
-            //             ->icon('heroicon-o-banknotes')
-            //             ->group('Cuenta')
-            //             ->sort(3),
+                    // Cobros (OAuth Connect)
+                    NavigationItem::make('Cobros')
+                        ->icon('heroicon-o-banknotes')
+                        ->url(OauthConnectPage::getUrl()),
 
-            //         NavigationItem::make('Prueba de Estilos')
-            //             ->url(PruebaPanel::getUrl())
-            //             ->icon('heroicon-o-beaker') // Icono de ejemplo, puedes cambiarlo
-            //             ->group('Utilidades') // Agrupado bajo "Utilidades"
-            //             ->sort(4)
-            //     ]);
-            // })
+                // Escáner JS/HTML: tu herramienta en /admin/ticket-scanner
+                NavigationItem::make('Ticket Scanner')
+                    ->icon('heroicon-o-qr-code')
+                    ->url('/admin/ticket-scanner'),
+            ]);
+        })
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -93,11 +85,12 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                \Spatie\Permission\Middleware\RoleMiddleware::class . ':admin|productor', // Esta línea es clave
+                \Spatie\Permission\Middleware\RoleMiddleware::class . ':admin|productor',
             ])
             ->viteTheme('resources/css/filament/admin/filament.css')
             ->brandName('Innova Ticket');
     }
+
 
     public function boot(): void
     {
