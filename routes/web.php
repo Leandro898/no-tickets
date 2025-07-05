@@ -49,12 +49,12 @@ Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showV
 //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
-//Route::get('/scanner-test', TestScanner::class);
+Route::get('/scanner-test', TestScanner::class);
 
 // OTRO TEST FUERA DE FILAMENT
-Route::middleware(['auth', 'role:scanner'])->group(function () {
+/* Route::middleware(['auth', 'role:scanner'])->group(function () {
     Route::get('/scanner-test', [ScannerController::class, 'index']);
-});
+}); */
 
 // ULTIMO SCANNER
 Route::middleware(['auth'])->get('/scanner', function () {
