@@ -133,27 +133,55 @@
 
     <!-- Grid de Eventos -->
     <section class="container mx-auto px-4 py-8">
+      
+        {{-- Grid de tarjetas --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          @foreach (range(1, 8) as $i)
+          @forelse($eventos as $evento)
             <a 
-              href="#"
-              class="block bg-white rounded-lg overflow-hidden 
-                     transform transition-transform duration-300 ease-in-out
+              href="{{ route('eventos.show', $evento) }}"
+              class="block bg-white rounded-2xl overflow-hidden
+                     shadow-md transition-transform duration-300 ease-in-out
                      hover:-translate-y-2 hover:shadow-xl"
             >
-              <img
-                src="https://source.unsplash.com/400x300/?event,concert,band,{{ $i }}"
-                alt="Evento {{ $i }}"
-                class="w-full h-48 object-cover"
-              />
+              {{-- Imagen con ratio fijo --}}
+              <div class="w-full h-64 overflow-hidden rounded-t-2xl">
+                <img
+                  src="{{ asset('storage/'.$evento->imagen) }}"
+                  alt="{{ $evento->nombre }}"
+                  class="w-full h-full object-cover object-center"
+                />
+              </div>              
+      
+              {{-- Nombre --}}
               <div class="p-4">
-                <h3 class="font-semibold text-gray-800 mb-1">Evento {{ $i }}</h3>
-                <p class="text-gray-600 text-sm">
-                  Fecha: {{ now()->addDays($i * 3)->format('d M, Y') }}
-                </p>
+                <h3 class="text-lg font-semibold text-gray-900 leading-snug">
+                  {{ $evento->nombre }}
+                </h3>
+              </div>
+      
+              {{-- Footer: día/mes y hora --}}
+              <div class="flex items-center justify-between px-4 pb-4 border-t border-gray-100">
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('d') }}
+                  </span>
+                  <span class="text-xs text-gray-600 uppercase">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('M') }}
+                  </span>
+                </div>
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('H') }}
+                  </span>
+                  <span class="text-xs text-gray-600">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('i') }} hrs
+                  </span>
+                </div>
               </div>
             </a>
-          @endforeach
+          @empty
+            <p class="col-span-full text-center text-gray-500">No hay próximos eventos.</p>
+          @endforelse
         </div>
       </section>
       
