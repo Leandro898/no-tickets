@@ -62,5 +62,18 @@
     box-shadow: 0 8px 32px rgba(220,38,38,0.12);
   }
 
-    
+  /* Botón “Comprar” en el slider */
+  .hero-slide-btn {
+    @apply inline-block bg-violet-600 text-white font-semibold
+           py-2 px-6 rounded-lg shadow-lg
+           transition-all duration-200 ease-in-out;
+  }
+  .hero-slide-btn:hover {
+    @apply bg-violet-700 shadow-xl;
+    transform: translateY(-2px);
+  }
+  .hero-slide-btn:focus {
+    @apply ring-4 ring-violet-300 outline-none;
+  }
+
 }
