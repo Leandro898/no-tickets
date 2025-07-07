@@ -21,7 +21,59 @@
 
 @layer utilities {
 
-    
+    /* ── Botones de acción “btn-detalles” ── */
+  .btn-detalles {
+    @apply bg-gradient-to-br from-purple-50 to-white
+           rounded-lg border border-transparent shadow
+           px-6 py-4
+           text-purple-800 font-semibold text-base
+           flex items-center justify-center gap-4
+           transition-all duration-200 ease-in-out;
+  }
 
-    
+  /* Ícono más grande y violeta suave */
+  .btn-detalles svg {
+    @apply w-8 h-8 text-purple-700;
+  }
+
+  /* Elevación, ligero desplazamiento y icono más oscuro al hover */
+  .btn-detalles:hover {
+    transform: translateY(-4px) scale(1.02);
+    @apply shadow-xl;
+  }
+  .btn-detalles:hover svg {
+    @apply text-purple-800;
+  }
+
+  /* Variante “danger” */
+  .btn-detalles.danger,
+  .btn-detalles[color="danger"] {
+    @apply bg-gradient-to-br from-red-50 to-white
+           text-red-700;
+    border-color: #fecaca;
+  }
+  .btn-detalles.danger svg,
+  .btn-detalles[color="danger"] svg {
+    @apply w-8 h-8 text-red-600;
+  }
+  .btn-detalles.danger:hover,
+  .btn-detalles[color="danger"]:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 32px rgba(220,38,38,0.12);
+  }
+
+  /* Botón “Comprar” en el slider */
+  .hero-slide-btn {
+    @apply inline-block bg-violet-600 text-white font-semibold
+           py-2 px-6 rounded-lg shadow-lg
+           transition-all duration-200 ease-in-out;
+  }
+  .hero-slide-btn:hover {
+    @apply bg-violet-700 shadow-xl;
+    transform: translateY(-2px);
+  }
+  .hero-slide-btn:focus {
+    @apply ring-4 ring-violet-300 outline-none;
+  }
+
 }

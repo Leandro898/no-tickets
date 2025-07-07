@@ -52,7 +52,7 @@
   .fi-btn,
     .fi-btn.fi-btn-color-primary {
         background-color: #7c3aed !important;
-        color: #fff !important;
+        /* color: #fff !important; */
         border: none !important;
     }
     .fi-btn:hover,

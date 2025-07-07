@@ -22,54 +22,68 @@
 
 @section('content')
     <!-- Hero Slider Full Width con Swiper -->
+    {{-- Hero Slider Full Width con Swiper (hardcodeado) --}}
     <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden -mt-16 mb-4">
-        <div class="swiper heroSwiper hide-scrollbar">
+        <div class="swiper heroSwiper hide-scrollbar h-[500px]">
             <div class="swiper-wrapper">
+
                 <!-- Slide 1 -->
-                <div class="swiper-slide relative h-[366px]">
-                    <img src="" alt="" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center p-6">
-                        <h2 class="text-white text-3xl font-bold mb-2"></h2>
-                        <p class="text-gray-200 mb-4">
-                            
-                        </p>
-                        <a href=""
-                            class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded">
-                            Comprar
-                        </a>
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/ejemplo-4.png') }}" alt="Concierto Chewelche"
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
+
                 <!-- Slide 2 -->
-                <div class="swiper-slide relative h-[366px]">
-                    <img src="https://source.unsplash.com/1200x400/?music" alt="Concierto Destacado 2"
-                        class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center p-6">
-                        <h2 class="text-white text-3xl font-bold mb-2">Concierto Destacado 2</h2>
-                        <p class="text-gray-200 mb-4">15 Feb, 2026</p>
-                        <a href="#"
-                            class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded">Comprar</a>
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/ejemplo-3.png') }}" alt="Concierto Chewelche"
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
-                <!-- Slide 3 -->
-                <div class="swiper-slide relative h-[366px]">
-                    <img src="https://source.unsplash.com/1200x400/?festival" alt="Concierto Destacado 3"
-                        class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 flex flex-col justify-center p-6">
-                        <h2 class="text-white text-3xl font-bold mb-2">Concierto Destacado 3</h2>
-                        <p class="text-gray-200 mb-4">10 Mar, 2026</p>
-                        <a href="#"
-                            class="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 px-4 rounded">Comprar</a>
+
+                <!-- Slide 3-->
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/ejemplo-2.jpg') }}" alt="Concierto Chewelche"
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
             </div>
-            <!-- Botones de navegación -->
+
             <div class="swiper-button-prev text-white"></div>
             <div class="swiper-button-next text-white"></div>
         </div>
     </section>
 
+    {{-- Título de separación --}}
+    <section class="container mx-auto px-4 mt-12 mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Próximos eventos</h2>
+    </section>
     <!-- Próximos Eventos Carousel Full Width -->
-    <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden mb-6">
+    {{-- <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden mb-6">
         <div class="swiper cardsSwiper hide-scrollbar">
             <div class="swiper-wrapper">
 
@@ -91,10 +105,10 @@
             <div class="swiper-button-prev text-gray-600"></div>
             <div class="swiper-button-next text-gray-600"></div>
         </div>
-    </section>
+    </section> --}}
 
     <!-- Search Section -->
-    <section class="bg-gray-900 text-white py-6 mt-6">
+    {{-- <section class="bg-gray-900 text-white py-6 mt-6">
         <div class="container mx-auto px-4">
             <form class="flex flex-wrap items-center gap-4">
                 <input type="text" placeholder="Buscar en Innova Ticket"
@@ -115,23 +129,62 @@
                     class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold px-6 py-2 rounded">Buscar</button>
             </form>
         </div>
-    </section>
+    </section> --}}
 
     <!-- Grid de Eventos -->
     <section class="container mx-auto px-4 py-8">
+      
+        {{-- Grid de tarjetas --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @foreach (range(1, 8) as $i)
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <img src="https://source.unsplash.com/400x300/?event,concert,band,{{ $i }}"
-                        alt="Evento {{ $i }}" class="w-full h-48 object-cover">
-                    <div class="p-4">
-                        <h3 class="font-semibold text-gray-800 mb-1">Evento {{ $i }}</h3>
-                        <p class="text-gray-600 text-sm">Fecha: {{ now()->addDays($i * 3)->format('d M, Y') }}</p>
-                    </div>
+          @forelse($eventos as $evento)
+            <a 
+              href="{{ route('eventos.show', $evento) }}"
+              class="block bg-white rounded-2xl overflow-hidden
+                     shadow-md transition-transform duration-300 ease-in-out
+                     hover:-translate-y-2 hover:shadow-xl"
+            >
+              {{-- Imagen con ratio fijo --}}
+              <div class="w-full h-64 overflow-hidden rounded-t-2xl">
+                <img
+                  src="{{ asset('storage/'.$evento->imagen) }}"
+                  alt="{{ $evento->nombre }}"
+                  class="w-full h-full object-cover object-center"
+                />
+              </div>              
+      
+              {{-- Nombre --}}
+              <div class="p-4">
+                <h3 class="text-lg font-semibold text-gray-900 leading-snug">
+                  {{ $evento->nombre }}
+                </h3>
+              </div>
+      
+              {{-- Footer: día/mes y hora --}}
+              <div class="flex items-center justify-between px-4 pb-4 border-t border-gray-100">
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('d') }}
+                  </span>
+                  <span class="text-xs text-gray-600 uppercase">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('M') }}
+                  </span>
                 </div>
-            @endforeach
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('H') }}
+                  </span>
+                  <span class="text-xs text-gray-600">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('i') }} hrs
+                  </span>
+                </div>
+              </div>
+            </a>
+          @empty
+            <p class="col-span-full text-center text-gray-500">No hay próximos eventos.</p>
+          @endforelse
         </div>
-    </section>
+      </section>
+      
 @endsection
 
 @push('scripts')

@@ -31,5 +31,8 @@
     @livewireScripts
     @stack('scripts')
 
+    {{-- FOOTER --}}
+    @include('partials.footer')
+
 </body>
 </html>
