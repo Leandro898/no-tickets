@@ -1,13 +1,11 @@
 import { Html5Qrcode } from "html5-qrcode";
 
 document.addEventListener('DOMContentLoaded', () => {
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
     const readerDiv = document.getElementById('reader');
     const scanUrl = window.scannerEndpoint;
     let html5QrCode = null;
 
-    // Overlay visual tipo modal sobre el reader
+    // Overlay
     function ensureOverlay() {
         let overlay = document.getElementById('scanOverlay');
         if (!overlay) {
@@ -21,17 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return overlay;
     }
 
-    startBtn.addEventListener('click', async e => {
-        e.preventDefault();
-        console.log("Click en iniciar cámara");
-
-        // Limpiar el reader y ocultar overlay
+    async function iniciarCamara() {
         readerDiv.innerHTML = '';
         ensureOverlay().style.display = 'none';
 
         html5QrCode = new Html5Qrcode("reader");
-        startBtn.disabled = true;
-        stopBtn.disabled = false;
         resetBorder();
 
         try {
@@ -42,34 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
             );
         } catch (err) {
             alert("No se pudo iniciar el escáner. Verificá permisos.");
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
         }
-    });
-
-    stopBtn.addEventListener('click', async e => {
-        e.preventDefault();
-        if (!html5QrCode) return;
-        await stopAndDestroy();
-    });
-
-    async function stopAndDestroy() {
-        if (html5QrCode) {
-            try { await html5QrCode.stop(); } catch (e) { }
-            try { await html5QrCode.clear(); } catch (e) { }
-            html5QrCode = null;
-        }
-        stopBtn.disabled = true;
-        startBtn.disabled = false;
-        resetBorder();
-        readerDiv.innerHTML = '';
-        hideOverlay(); // <-- Esto oculta cualquier mensaje en pantalla
     }
+
+    setTimeout(() => {
+        iniciarCamara();
+    }, 100);
 
     async function onScanSuccess(decodedText) {
         showOverlay('loading', 'Validando…');
         try {
-            await stopAndDestroy();
+            if (html5QrCode) {
+                try { await html5QrCode.stop(); } catch (e) { }
+                try { await html5QrCode.clear(); } catch (e) { }
+                html5QrCode = null;
+            }
 
             const token = document.head.querySelector('meta[name="csrf-token"]')?.content;
             const res = await fetch(scanUrl, {
@@ -102,12 +81,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showOverlay('error', "Error al validar el ticket");
             readerDiv.classList.remove('border-gray-300', 'border-green-500');
             readerDiv.classList.add('border-red-500');
-        } finally {
-            startBtn.disabled = false;
         }
     }
 
-    // Muestra overlay tipo modal con branding e ícono
     function showOverlay(type = '', message = '') {
         let overlay = ensureOverlay();
         let icon = '';
@@ -135,12 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
         overlay.style.display = 'flex';
     }
 
-    function hideOverlay() {
-        let overlay = ensureOverlay();
-        overlay.style.display = 'none';
-    }
     function resetBorder() {
-        readerDiv.classList.remove('border-green-500', 'border-red-500');
-        readerDiv.classList.add('border-gray-300');
+        readerDiv.classList.remove('border-green-500', 'border-red-500', 'border-gray-300');
+        readerDiv.classList.add('border-violet-500');
     }
 });
