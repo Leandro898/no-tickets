@@ -29,7 +29,7 @@
 
                 <!-- Slide 1 -->
                 <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-4.png') }}" alt="Concierto Chewelche"
+                    <img src="{{ asset('storage/eventos/ej1.png') }}" alt="Concierto Chewelche"
                         class="w-full h-full object-contain" />
 
                     <!-- Enlace que cubre TODO el slide -->
@@ -37,14 +37,14 @@
 
                     <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
                     <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
                         {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
 
                 <!-- Slide 2 -->
                 <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-3.png') }}" alt="Concierto Chewelche"
+                    <img src="{{ asset('storage/eventos/ej2.jpg') }}" alt=""
                         class="w-full h-full object-contain" />
 
                     <!-- Enlace que cubre TODO el slide -->
@@ -52,14 +52,14 @@
 
                     <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
                     <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
                         {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
 
                 <!-- Slide 3-->
                 <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-2.jpg') }}" alt="Concierto Chewelche"
+                    <img src="{{ asset('storage/eventos/x1.jpg') }}" alt="Concierto Chewelche"
                         class="w-full h-full object-contain" />
 
                     <!-- Enlace que cubre TODO el slide -->
@@ -67,7 +67,7 @@
 
                     <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
                     <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
                         {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
@@ -139,7 +139,7 @@
           @forelse($eventos as $evento)
             <a 
               href="{{ route('eventos.show', $evento) }}"
-              class="block bg-white rounded-2xl overflow-hidden
+              class="block rounded-2xl overflow-hidden
                      shadow-md transition-transform duration-300 ease-in-out
                      hover:-translate-y-2 hover:shadow-xl"
             >
