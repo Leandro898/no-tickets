@@ -10,7 +10,7 @@
              style="min-width:320px; max-width:95vw;">
             <div class="relative aspect-square w-72 sm:w-80 md:w-96 rounded-xl overflow-hidden border-4 border-violet-500 flex items-center justify-center bg-gray-100">
                 <div id="reader" class="w-full h-full"></div>
-                <div
+                {{-- <div
                     id="scanOverlay"
                     class="absolute inset-0 flex flex-col items-center justify-center bg-violet-600 bg-opacity-80 text-white text-lg font-medium p-4 hidden z-20"
                 >
@@ -21,7 +21,7 @@
                               d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"/>
                     </svg>
                     <span>Escaneando…</span>
-                </div>
+                </div> --}}
             </div>
         </div>
 

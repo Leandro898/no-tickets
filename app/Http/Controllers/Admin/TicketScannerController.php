@@ -16,6 +16,7 @@ class TicketScannerController extends Controller
         if (!$ticket) {
             return response()->json([
                 'status' => 'error',
+                'title' => 'Ticket no encontrado',
                 'message' => 'Ticket no encontrado.'
             ], 404);
         }
@@ -23,6 +24,7 @@ class TicketScannerController extends Controller
         if ($ticket->status === 'used') {
             return response()->json([
                 'status' => 'error',
+                'title' => $ticket->evento->nombre ?? 'Ticket ya usado',
                 'message' => '⚠️ Este ticket ya fue utilizado.'
             ], 422);
         }
@@ -30,6 +32,7 @@ class TicketScannerController extends Controller
         if ($ticket->status !== 'valid') {
             return response()->json([
                 'status' => 'error',
+                'title' => $ticket->evento->nombre ?? 'Ticket inválido',
                 'message' => 'Ticket no es válido.'
             ], 422);
         }
@@ -41,9 +44,14 @@ class TicketScannerController extends Controller
 
         return response()->json([
             'status' => 'success',
+            'title' => $ticket->evento->nombre ?? 'Validado',
             'message' => '✅ Ticket validado exitosamente.'
         ]);
     }
+
+
+
+
 
     //METODO PARA DAR ESTILOS A LA NAVEGACION MENU IZQUIERDO
     public function index()
