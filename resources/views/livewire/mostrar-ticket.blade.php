@@ -86,7 +86,7 @@
     <div class="ticket-header">
       <div class="ticket-title">Innova Ticket</div>
       {{-- Aquí mostramos el UUID completo --}}
-      <div class="ticket-event">#{{ $ticket->unique_code }}</div>
+      <div class="ticket-event">#{{ $ticket->short_code }}</div>
     </div>
 
     <div class="ticket-body">

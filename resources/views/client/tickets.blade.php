@@ -17,7 +17,7 @@
         <p>🎟️ Tipo: {{ $ticket->ticket_type }}</p>
 
         {{-- Código QR --}}
-        <p>🧾 Código: {{ $ticket->unique_code }}</p>
+        <p>🧾 Código: {{ $ticket->short_code }}</p>
 
         {{-- Estado --}}
         <p>

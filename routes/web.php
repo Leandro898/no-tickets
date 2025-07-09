@@ -135,7 +135,7 @@ Route::middleware(['auth'])->group(function () {
 // REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
 Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
 
-//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO -bien perrito malvado con la docu
+//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO - bien perrito malvado con la docu
 Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 
 //RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
@@ -155,6 +155,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
             ->name('ticket-scanner.scan');
     });
+
+//RUTAS PARA LA CONFIRMACION DE LOS QR EN LA BASE DE DATOS
+// web.php o api.php
+Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
+Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
 
 
 

@@ -21,12 +21,26 @@ class PurchasedTicket extends Model
         'scanned_at',
         'buyer_name',
         'ticket_type',
+        'short_code',
     ];
 
 
     protected $casts = [
         'scanned_at' => 'datetime',
     ];
+
+    //METODO PARA AGREGAR SHORTCODE A LOS TICKETS
+    protected static function booted(): void
+    {
+        static::creating(function ($ticket) {
+            // Genera un código ALFA-NUMÉRICO de 5 caracteres único
+            do {
+                $code = Str::upper(Str::random(5));
+            } while (self::where('short_code', $code)->exists());
+
+            $ticket->short_code = $code;
+        });
+    }
 
     /**
      * Una Entrada Comprada pertenece a una Orden de Compra.
@@ -59,9 +73,4 @@ class PurchasedTicket extends Model
         );
     }
 
-    // CON ESTA FUNCION ESTABA ASIGNANDO UN ID UNICO PARA LOS TICKETS, PERO ES ALGO QUE PUEDO HACER CON LA COLUMNA QUE YA TENGO unique_code Y FORMATEARLA PARA MOSTRARLA DIFERENTE EN EL FRONT DE LA ENTRADA
-    protected static function booted(): void
-    {
-        
-    }
 }

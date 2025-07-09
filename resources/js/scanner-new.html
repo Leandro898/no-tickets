@@ -1,0 +1,242 @@
+import { Html5Qrcode } from "html5-qrcode";
+
+document.addEventListener('DOMContentLoaded', () => {
+    const readerDiv = document.getElementById('reader');
+    const buscarUrl = window.buscarTicketEndpoint;
+    const validarUrl = window.validarTicketEndpoint;
+    let html5QrCode = null;
+    let ultimoTicket = null;
+
+    //
+    // 1) Overlay / modal dinámico
+    //
+    function ensureOverlay() {
+        let overlay = document.getElementById('scanOverlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'scanOverlay';
+            overlay.className = 'fixed inset-0 flex items-center justify-center';
+            overlay.style.display = 'none';
+            overlay.style.zIndex = '9999';
+            overlay.style.background = 'rgba(24,21,39,0.94)';
+            document.body.appendChild(overlay);
+        }
+        return overlay;
+    }
+
+    //
+    // 2) Inicia la cámara para escanear
+    //
+    async function iniciarCamara() {
+        readerDiv.innerHTML = '';
+        ensureOverlay().style.display = 'none';
+        html5QrCode = new Html5Qrcode("reader");
+        resetBorder();
+
+        try {
+            await html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                decodedText => onScanSuccess(decodedText)
+            );
+        } catch {
+            alert("No se pudo iniciar el escáner. Verificá permisos.");
+        }
+    }
+
+    // arrancar al cargar
+    setTimeout(iniciarCamara, 100);
+
+    //
+    // 3) Cuando tenemos un código (QR o manual)
+    //
+    async function onScanSuccess(decodedText) {
+        showOverlay('loading', 'Buscando…');
+        if (html5QrCode) {
+            await html5QrCode.stop().catch(()=>{});
+        // detenemos cámara
+        if (html5QrCode) {
+            try {
+                await html5QrCode.stop();
+            } catch (e) {
+                // si falla el stop, lo ignoramos
+            }
+            try {
+                await html5QrCode.clear();
+            } catch (e) {
+                // si falla el clear, lo ignoramos
+            }
+            html5QrCode = null;
+        }
+
+        try {
+            const token = document.head.querySelector('meta[name="csrf-token"]')?.content;
+            const res = await fetch(buscarUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ code: decodedText.trim() })
+            });
+            const json = await res.json().catch(() => ({ message: 'Respuesta inválida', status: 'error' }));
+            ultimoTicket = json.data || null;
+
+            if (json.status === 'used') {
+                showTicketOverlay('error', json.message, ultimoTicket, false);
+                readerDiv.classList.replace('border-violet-500', 'border-red-500');
+            } else if (json.status === 'valid') {
+                showTicketOverlay('success', json.message, ultimoTicket, true);
+                readerDiv.classList.replace('border-violet-500', 'border-green-500');
+            } else {
+                showTicketOverlay('error', json.message, ultimoTicket, false);
+            }
+
+        } catch {
+            showOverlay('error', 'Error al buscar el ticket');
+        }
+    }
+
+    //
+    // 4) Modal de datos + botones
+    //
+    function showTicketOverlay(type, message, data = {}, mostrarBotonValidar = false) {
+        const overlay = ensureOverlay();
+        const color = type === 'success' ? '#16a34a' : '#dc2626';
+        const icon = type === 'success'
+            ? '<span style="font-size:2.3rem;">✅</span>'
+            : '<span style="font-size:2.3rem;">⚠️</span>';
+        const titulo = type === 'success' ? 'ENTRADA VÁLIDA' : 'ENTRADA INVALIDA';
+
+        overlay.innerHTML = `
+      <div style="
+        background:#191225;color:#fff;
+        border-radius:1.2rem; min-width:320px; max-width:90vw;
+        padding:2rem; position:relative;
+        border-top:8px solid ${color};
+        box-shadow:0 8px 40px rgba(80,29,165,0.25);
+        text-align:left;
+      ">
+        <button id="btnCerrarOverlay" style="
+          position:absolute; top:12px; right:18px;
+          background:none; border:none; color:#fff;
+          font-size:2rem; cursor:pointer;
+        ">&times;</button>
+        <div style="display:flex; align-items:center; gap:1rem; margin-bottom:1rem;">
+          ${icon}
+          <div style="font-size:1.3rem; font-weight:700;">${titulo}</div>
+        </div>
+        <div style="color:${color}; font-weight:600; margin-bottom:1rem;">
+          ${message}
+        </div>
+        <div style="margin-bottom:1rem; font-size:1rem;">
+          <b>Tipo:</b> ${data.tipo || '-'}<br>
+          <b>Precio:</b> $${data.precio || '-'}<br>
+          <b>Evento:</b> ${data.evento || '-'}<br>
+          <b>Nombre:</b> ${data.nombre || '-'}<br>
+          <b>Email:</b> ${data.email || '-'}<br>
+          <b>DNI:</b> ${data.dni || '-'}
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          ${mostrarBotonValidar
+                ? `<button id="btnValidarTicket" style="
+                 padding:.6rem 1rem;
+                 background:#7c3aed; color:#fff;
+                 border:none; border-radius:.6rem;
+                 font-weight:600; cursor:pointer;
+               ">Validar</button>`
+                : ''}
+          <button id="btnScanOtro" style="
+            padding:.6rem 1rem;
+            background:#e5e7eb; color:#4f46e5;
+            border:none; border-radius:.6rem;
+            font-weight:600; cursor:pointer;
+          ">Escanear otro QR</button>
+        </div>
+      </div>
+    `;
+        overlay.style.display = 'flex';
+
+        // listeners
+        overlay.querySelector('#btnCerrarOverlay')
+            .onclick = () => { overlay.style.display = 'none'; iniciarCamara(); };
+        overlay.querySelector('#btnScanOtro')
+            .onclick = () => { overlay.style.display = 'none'; iniciarCamara(); };
+        if (mostrarBotonValidar && ultimoTicket) {
+            overlay.querySelector('#btnValidarTicket')
+                .onclick = () => validarTicket(ultimoTicket.unique_code);
+        }
+    }
+
+    //
+    // 5) Llama al endpoint de validación
+    //
+    async function validarTicket(code) {
+        showOverlay('loading', 'Validando…');
+        const token = document.head.querySelector('meta[name="csrf-token"]')?.content;
+        const res = await fetch(validarUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ code })
+        });
+        const json = await res.json().catch(() => ({ message: 'Respuesta inválida', status: 'error' }));
+        showTicketOverlay(
+            json.status === 'success' ? 'success' : 'error',
+            json.message,
+            json.data || {},
+            false
+        );
+    }
+
+    //
+    // 6) Overlay genérico (loading / error)
+    //
+    function showOverlay(type, message) {
+        const overlay = ensureOverlay();
+        const icon = type === 'loading' ? '🔄'
+            : type === 'success' ? '✅' : '❌';
+        overlay.innerHTML = `
+      <div style="
+        background:rgba(0,0,0,0.95); color:#fff;
+        border-radius:1.2rem; max-width:320px; width:90vw;
+        padding:1.5rem; position:relative; text-align:center;
+      ">
+        <button id="btnCerrarError" style="
+          position:absolute; top:12px; right:12px;
+          background:none; border:none; color:#fff;
+          font-size:1.5rem; cursor:pointer;
+        ">&times;</button>
+        <div style="font-size:2rem; margin-bottom:1rem;">${icon}</div>
+        <div style="font-size:1rem;">${message}</div>
+      </div>
+    `;
+        overlay.style.display = 'flex';
+        overlay.querySelector('#btnCerrarError')
+            .onclick = () => { overlay.style.display = 'none'; iniciarCamara(); };
+    }
+
+    //
+    // 7) Restaura el borde
+    //
+    function resetBorder() {
+        readerDiv.classList.remove('border-red-500', 'border-green-500');
+        readerDiv.classList.add('border-violet-500');
+    }
+
+    //
+    // 8) Botón “Ingresar datos manualmente”
+    //
+    const manualBtn = document.getElementById('btnManualInput');
+    if (manualBtn) {
+        manualBtn.addEventListener('click', async e => {
+            e.preventDefault();
+            const code = prompt('Ingrese el código corto de la entrada:');
+            if (code) await onScanSuccess(code.trim());
+        });
+    }
+});

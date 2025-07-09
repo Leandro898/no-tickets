@@ -1,3 +1,4 @@
+{{-- resources/views/tickets/pdf.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -55,8 +56,8 @@
 </head>
 <body>
     <div class="ticket-container">
-        {{-- Mostrar aquí el código completo que el scanner busca en unique_code --}}
-        <div class="ticket-code">#{{ $ticket->unique_code }}</div>
+        {{-- 1) MOSTRAR EL SHORT_CODE --}}
+        <div class="ticket-code">#{{ $ticket->short_code }}</div>
 
         <h2>Innova Ticket</h2>
 
@@ -69,8 +70,11 @@
         </div>
 
         <div class="qr">
-            {{-- El QR ya fue generado con unique_code y almacenado en qr_path --}}
-            <img src="{{ public_path('storage/' . $ticket->qr_path) }}" width="200">
+            {{-- 2) GENERAR QR “AL VUELO” CON EL SHORT_CODE --}}
+            @php use SimpleSoftwareIO\QrCode\Facades\QrCode; @endphp
+            {!! QrCode::format('png')
+                   ->size(200)
+                   ->generate($ticket->short_code) !!}
         </div>
 
         <div class="footer">
