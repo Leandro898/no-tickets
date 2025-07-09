@@ -52,7 +52,7 @@ class EditEvento extends EditRecord
                 ->getCancelFormAction()
                 ->label('Cancelar')
                 ->extraAttributes([
-                    'class' => '',
+                    'class' => 'fi-color-primary',
                 ]),
         ];
     }

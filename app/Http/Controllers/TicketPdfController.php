@@ -10,18 +10,21 @@ class TicketPdfController extends Controller
 {
     public function download(PurchasedTicket $ticket)
     {
-        // Cargar relaciones si no están cargadas
-        $ticket->loadMissing('order.event');
+        // 1) Asegurarnos de tener montadas las relaciones necesarias
+        $ticket->loadMissing(['order.event']);
 
-        // Seguridad: solo el dueño del ticket puede descargarlo
+        // 2) Autorización: sólo el comprador original puede descargar su ticket
         if (!$ticket->order || $ticket->order->buyer_email !== Auth::user()->email) {
             abort(403, 'No tenés permiso para ver este ticket.');
         }
 
-        // Generar PDF con la vista 'tickets.pdf'
-        $pdf = Pdf::loadView('tickets.pdf', ['ticket' => $ticket]);
+        // 3) Generar el PDF desde la vista 'tickets.pdf'
+        //    (que debe contener tu <div class="ticket-code">#{{ $ticket->short_code }}</div>
+        //     y el QR generado con {!! QrCode::generate($ticket->short_code) !!})
+        $pdf = Pdf::loadView('tickets.pdf', ['ticket' => $ticket])
+            ->setPaper('a4', 'portrait'); // <- opcional
 
-        return $pdf->download('entrada-' . $ticket->id . '.pdf');
+        // 4) Descargar usando el short_code en el nombre de archivo
+        return $pdf->download('entrada-' . $ticket->short_code . '.pdf');
     }
-
 }

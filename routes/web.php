@@ -20,6 +20,7 @@ use App\Livewire\MostrarTicket;
 use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TicketScannerController;
+use App\Filament\Pages\TicketScanner;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -128,13 +129,13 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Redirige /dashboard a /mis-entradas
     Route::redirect('/dashboard', '/mis-entradas')
-         ->name('dashboard');
+        ->name('dashboard');
 });
 
 // REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
 Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
 
-//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO -bien perrito malvado con la docu
+//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO - bien perrito malvado con la docu
 Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
 
 //RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
@@ -154,6 +155,11 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
             ->name('ticket-scanner.scan');
     });
+
+//RUTAS PARA LA CONFIRMACION DE LOS QR EN LA BASE DE DATOS
+// web.php o api.php
+Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
+Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
 
 
 

@@ -1,41 +1,57 @@
 /* BOTONES DE DETALLES*/
 
 @layer components {
+    /* === Botones de acción “btn-detalles” === */
     .btn-detalles {
-        @apply flex flex-col items-center justify-center gap-2 w-full h-28 bg-gradient-to-br from-violet-50 to-white border-2 border-violet-100 rounded-xl shadow-md transition duration-200;
-        font-weight: 600;
-        color: #6d28d9 !important;
-        font-size: 1rem;
-        letter-spacing: -0.5px;
-        box-shadow: 0 2px 12px 0 rgba(124, 58, 237, 0.07);
-        min-width: 150px;
-        min-height: 72px;
-        text-align: center;
-        cursor: pointer;
+        @apply relative overflow-hidden flex flex-col items-center justify-center gap-2
+           w-full h-28
+           rounded-2xl
+           text-violet-700 font-semibold text-lg tracking-tight
+           shadow-md
+           transition-transform transition-shadow transition-colors duration-300 ease-in-out
+           focus:outline-none focus:ring-4 focus:ring-violet-200;
+        background: linear-gradient(
+            135deg,
+            #ede9fe 0%,
+            #f3e8ff 50%,
+            #ede9fe 100%
+        );
+        background-size: 200% 200%;
+        background-position: 0% 50%;
+    }
+
+    .btn-detalles:hover {
+        @apply shadow-xl scale-105;
+        background-position: 100% 50%;
     }
 
     .btn-detalles svg {
-        color: #7c3aed !important;
-        font-size: 2rem !important;
-        width: 2.2rem !important;
-        height: 2.2rem !important;
-        margin-bottom: 0.25rem;
-        opacity: 0.9;
-        transition: color 0.2s;
+        @apply w-8 h-8 text-violet-600 transition-colors duration-300;
     }
 
-    /* Estado de "danger" */
-    .btn-detalles[color="danger"],
-    .btn-detalles.text-red-600 {
-        background: linear-gradient(135deg, #fef2f2 0%, #fff 100%);
-        border-color: #fecaca;
-        color: #dc2626 !important;
+    .btn-detalles:hover svg {
+        @apply text-violet-700;
     }
 
-    .btn-detalles[color="danger"] svg,
-    .btn-detalles.text-red-600 svg {
-        color: #dc2626 !important;
+    /* Variante “danger” */
+    .btn-detalles.danger,
+    .btn-detalles[color="danger"] {
+        @apply text-red-600;
+        background: linear-gradient(135deg, #fee2e2 0%, #fde8e8 100%);
     }
 
-    
+    .btn-detalles.danger:hover,
+    .btn-detalles[color="danger"]:hover {
+        @apply shadow-xl scale-105;
+    }
+
+    .btn-detalles.danger svg,
+    .btn-detalles[color="danger"] svg {
+        @apply text-red-500;
+    }
+
+    .btn-detalles.danger:hover svg,
+    .btn-detalles[color="danger"]:hover svg {
+        @apply text-red-600;
+    }
 }

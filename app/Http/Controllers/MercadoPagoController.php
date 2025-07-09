@@ -156,10 +156,14 @@ class MercadoPagoController extends Controller
                                     Storage::disk('public')->makeDirectory('qrcodes');
                                 }
                                 QrCode::format('png')->size(300)->margin(4)->generate($qrContent, storage_path('app/public/' . $qrPath));
+                                
+                                //PARTE EN LA QUE GENERA EL QR
+                                $short = strtoupper(Str::random(5));
                                 PurchasedTicket::create([
                                     'order_id' => $order->id,
                                     'entrada_id' => $entrada->id,
                                     'unique_code' => $uniqueCode,
+                                    'short_code'   => $short,
                                     'qr_path' => $qrPath,
                                     'status' => 'valid',
                                     'buyer_name' => $order->buyer_full_name,

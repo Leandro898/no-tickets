@@ -9,5 +9,7 @@
 <body class="bg-gray-100 text-gray-900">
     {{ $slot }}
     @livewireScripts
+
+    
 </body>
 </html>

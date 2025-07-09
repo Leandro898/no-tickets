@@ -3,15 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evento;
+use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $slide1 = Evento::find(7);
-        $slide2 = Evento::find(12);
-        $slide3 = Evento::find(20);
+        // Ejemplo: trae los próximos eventos ordenados por fecha
+        $eventos = Evento::where('fecha_inicio', '>=', now())
+            ->orderBy('fecha_inicio', 'asc')
+            ->get();
 
-        return view('inicio', compact('slide1','slide2','slide3'));
+        // Si quieres paginación:
+        // $eventos = Evento::where('fecha','>=',now())
+        //                  ->orderBy('fecha','asc')
+        //                  ->paginate(12);
+
+        return view('inicio', compact('eventos'));
     }
 }

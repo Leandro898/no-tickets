@@ -67,7 +67,8 @@ class EditEntrada extends EditRecord
 
             $this
                 ->getCancelFormAction()
-                ->label('Cancelar'),
+                ->label('Cancelar')
+                ->extraAttributes(['class' => 'fi-color-primary']),
         ];
     }
 

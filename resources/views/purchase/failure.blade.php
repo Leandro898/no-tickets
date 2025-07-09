@@ -11,9 +11,10 @@
         <h1 class="text-3xl font-bold text-red-600 mb-4">¡Pago Fallido! 😞</h1>
         <p class="text-gray-700 mb-4">Hubo un problema al procesar tu pago. Por favor, inténtalo de nuevo.</p>
         <p class="text-gray-700 mb-2">Número de Orden: <span class="font-bold">{{ $order->id }}</span></p>
-        <a href="{{ route('comprar.entrada', ['evento' => $order->event_id]) }}" class="mt-8 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+        <a href="{{ route('eventos.comprar.split', ['evento' => $order->event_id]) }}" class="mt-8 inline-block bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
             Intentar de Nuevo
         </a>
+        
         <a href="{{ route('eventos.show', $order->event_id) }}" class="mt-4 inline-block text-blue-500 hover:underline">
             Volver al Evento
         </a>

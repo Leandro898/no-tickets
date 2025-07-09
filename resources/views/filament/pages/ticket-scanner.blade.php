@@ -1,52 +1,45 @@
-<x-filament::page>
-  <x-slot name="header">
-    <h1 class="text-3xl font-bold text-gray-900">Ticket Scanner</h1>
-  </x-slot>
+{{-- resources/views/filament/pages/ticket-scanner.blade.php --}}
+<x-filament-panels::page class="bg-violet-50 min-h-screen flex flex-col">
+    <div class="flex-1 flex flex-col items-center justify-center">
 
-  <script>
-    window.scannerEndpoint = "{{ route('admin.ticket-scanner.scan') }}";
-  </script>
+        <h2 class="text-violet-800 text-2xl font-bold mb-6 mt-4 text-center tracking-tight">
+            Enfocá el código QR
+        </h2>
 
-  <div class="flex flex-col items-center py-10 space-y-6">
-    <h2 class="text-2xl font-semibold text-purple-700">Escaneá tu entrada</h2>
+        <div class="bg-white rounded-2xl shadow-xl flex flex-col items-center p-4"
+            style="min-width:320px; max-width:95vw;">
+            <div
+                class="relative aspect-square w-72 sm:w-80 md:w-96 rounded-xl overflow-hidden border-4 border-violet-500 flex items-center justify-center">
+                <div id="reader" class="w-full h-full"></div>
+            </div>
+        </div>
 
-    {{-- Contenedor del vídeo con altura fija --}}
-    <div
-      id="reader"
-      class="relative w-full max-w-md h-64 bg-black rounded-lg overflow-hidden
-             border-4 border-gray-300 transition-colors"
-      style="position:relative;"
-    >
-      {{-- Overlay de mensajes --}}
-      <div
-        id="scanOverlay"
-        class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80
-               text-white text-2xl font-bold p-8 hidden"
-        style="z-index:999;"
-      ></div>
+        <div class="mt-8 text-center space-y-3">
+            <button id="btnManualInput" type="button"
+                class="font-semibold text-violet-700 hover:underline text-base bg-transparent border-none">
+                Ingresar datos manualmente
+            </button>
+            <div class="text-gray-500 text-sm">
+                ¿Querés una mejor experiencia de escaneo?<br>
+                Escaneá más rápido y sin internet en nuestra app.
+            </div>
+            <div class="flex gap-4 justify-center mt-2">
+                <a href="#"
+                    class="bg-violet-600 text-white rounded-xl px-5 py-2 text-sm font-bold shadow hover:bg-violet-700 transition">Play
+                    Store</a>
+                <a href="#"
+                    class="bg-gray-200 text-violet-700 rounded-xl px-5 py-2 text-sm font-bold shadow hover:bg-gray-300 transition">App
+                    Store</a>
+            </div>
+        </div>
     </div>
 
-    {{-- Botones justo debajo del reader --}}
-    <div class="flex space-x-4">
-      <x-filament::button
-        id="startBtn"
-        type="button"
-        color="success"
-        class="btn-detalles"
-      >
-        Iniciar cámara
-      </x-filament::button>
-      <x-filament::button
-        id="stopBtn"
-        type="button"
-        color="danger"
-        class="btn-detalles"
-        disabled
-      >
-        Detener cámara
-      </x-filament::button>
-    </div>
-  </div>
+    <script>
+        window.scannerEndpoint      = "{{ route('admin.ticket-scanner.scan') }}";
+        window.buscarTicketEndpoint  = "{{ route('admin.ticket-scanner.buscar') }}";
+        window.validarTicketEndpoint = "{{ route('admin.ticket-scanner.validar') }}";
+    </script>
 
-  @vite('resources/js/scanner-new.js')
-</x-filament::page>
+    @vite('resources/js/scanner/index.js')
+
+</x-filament-panels::page>
