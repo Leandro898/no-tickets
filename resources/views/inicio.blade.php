@@ -1,228 +1,134 @@
-@extends('layouts.app')
+{{-- resources/views/filament/resources/evento-resource/pages/detalles.blade.php --}}
+<x-filament::page>
+    {{-- Contenedor Alpine con estado --}}
+    <div x-data="{ mostrarModal: false, mostrarToast: false }">
 
-@push('styles')
-    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
-    <style>
-        /* Ocultar scrollbars en los sliders y evitar scroll horizontal global */
-        html,
-        body {
-            overflow-x: hidden !important;
-        }
+        {{-- CONTENIDO PRINCIPAL --}}
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+            <x-slot name="header">
+                <h2 class="font-semibold text-2xl text-gray-900 leading-tight">
+                    {{ $record->nombre }}
+                </h2>
+            </x-slot>
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
-@endpush
-
-@section('content')
-    <!-- Hero Slider Full Width con Swiper -->
-    {{-- Hero Slider Full Width con Swiper (hardcodeado) --}}
-    <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden -mt-16 mb-4">
-        <div class="swiper heroSwiper hide-scrollbar h-[500px]">
-            <div class="swiper-wrapper">
-
-                <!-- Slide 1 -->
-                <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-4.png') }}" alt="Concierto Chewelche"
-                        class="w-full h-full object-contain" />
-
-                    <!-- Enlace que cubre TODO el slide -->
-                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
-
-                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
-                    <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
-                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
+            {{-- RECAUDACIÓN GLOBAL --}}
+            <div tabindex="0" class="recaudacion-card">
+                <div class="hidden sm:flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-purple-700">Recaudación global</h3>
+                        <p class="text-purple-400 text-sm mt-1"># Unidades vendidas</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-extrabold text-3xl text-purple-700">${{ number_format($recaudacionTotal,2) }}</span>
+                        <p class="text-purple-500 text-sm mt-1">{{ $ticketsVendidos }} de {{ $ticketsDisponibles }}</p>
                     </div>
                 </div>
-
-                <!-- Slide 2 -->
-                <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-3.png') }}" alt="Concierto Chewelche"
-                        class="w-full h-full object-contain" />
-
-                    <!-- Enlace que cubre TODO el slide -->
-                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
-
-                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
-                    <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
-                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
-                    </div>
-                </div>
-
-                <!-- Slide 3-->
-                <div class="swiper-slide bg-black relative">
-                    <img src="{{ asset('storage/eventos/ejemplo-2.jpg') }}" alt="Concierto Chewelche"
-                        class="w-full h-full object-contain" />
-
-                    <!-- Enlace que cubre TODO el slide -->
-                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
-
-                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
-                    <div
-                        class="absolute inset-0 z-20 bg-black bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
-                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
-                    </div>
+                <div class="sm:hidden text-center">
+                    <span class="font-extrabold text-4xl text-purple-700">${{ number_format($recaudacionTotal,2) }}</span>
+                    <p class="font-semibold mt-3 text-lg text-purple-700">Recaudación global</p>
+                    <p class="text-purple-500 text-sm mt-1">{{ $ticketsVendidos }} de {{ $ticketsDisponibles }}</p>
                 </div>
             </div>
 
-            <div class="swiper-button-prev text-white"></div>
-            <div class="swiper-button-next text-white"></div>
-        </div>
-    </section>
+            {{-- BOTONES DE ACCIÓN --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <x-filament::button
+                    tag="a"
+                    :href="route('filament.admin.resources.eventos.edit',['record'=>$record->id])"
+                    icon="heroicon-o-pencil-square"
+                    class="btn-detalles"
+                >Editar evento</x-filament::button>
 
-    {{-- Título de separación --}}
-    <section class="container mx-auto px-4 mt-12 mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Próximos eventos</h2>
-    </section>
-    <!-- Próximos Eventos Carousel Full Width -->
-    {{-- <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden mb-6">
-        <div class="swiper cardsSwiper hide-scrollbar">
-            <div class="swiper-wrapper">
+                <x-filament::button
+                    tag="a"
+                    :href="route('filament.admin.resources.eventos.gestionar-entradas',['record'=>$record->id])"
+                    icon="heroicon-o-pencil"
+                    class="btn-detalles"
+                >Editar Entradas</x-filament::button>
 
-                <!-- Empieza el bucle de las Tarjetas de eventos -->
+                <x-filament::button
+                    tag="a"
+                    :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl(['record'=>$record->id])"
+                    icon="heroicon-o-chart-bar"
+                    class="btn-detalles"
+                >Reportes</x-filament::button>
 
-                @foreach (range(1, 12) as $i)
-                    <div class="swiper-slide flex-shrink-0 w-40 bg-white rounded-lg shadow overflow-hidden">
-                        <img src="https://source.unsplash.com/240x160/?event,concert,band,{{ $i }}"
-                            alt="Evento {{ $i }}" class="w-full h-32 object-cover">
-                        <div class="p-2">
-                            <h4 class="font-semibold text-gray-800 text-sm">Evento {{ $i }}</h4>
-                            <p class="text-gray-600 text-xs">{{ now()->addDays($i * 5)->format('d M, Y') }}</p>
-                        </div>
-                    </div>
-                @endforeach
+                <x-filament::button
+                    type="button"
+                    icon="heroicon-o-link"
+                    class="btn-detalles"
+                    x-on:click="mostrarModal = true"
+                >Copiar link</x-filament::button>
 
+                <x-filament::button
+                    tag="a"
+                    :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record'=>$record->id])"
+                    icon="heroicon-o-list-bullet"
+                    class="btn-detalles"
+                >Lista digital</x-filament::button>
+
+                <x-filament::button
+                    type="button"
+                    icon="heroicon-o-x-circle"
+                    class="btn-detalles danger"
+                    wire:click="abrirPrimerModal"
+                >Suspender evento</x-filament::button>
             </div>
-            <!-- Botones de navegación -->
-            <div class="swiper-button-prev text-gray-600"></div>
-            <div class="swiper-button-next text-gray-600"></div>
         </div>
-    </section> --}}
 
-    <!-- Search Section -->
-    {{-- <section class="bg-gray-900 text-white py-6 mt-6">
-        <div class="container mx-auto px-4">
-            <form class="flex flex-wrap items-center gap-4">
-                <input type="text" placeholder="Buscar en Innova Ticket"
-                    class="flex-grow min-w-[200px] bg-gray-800 placeholder-gray-400 text-white rounded px-4 py-2 focus:outline-none" />
-                <select class="bg-gray-800 text-white rounded px-4 py-2 focus:outline-none">
-                    <option>Provincia</option>
-                    <option>Buenos Aires</option>
-                    <option>Córdoba</option>
-                    <option>Santa Fe</option>
-                </select>
-                <select class="bg-gray-800 text-white rounded px-4 py-2 focus:outline-none">
-                    <option>Localidad</option>
-                    <option>Ciudad</option>
-                    <option>Villa</option>
-                </select>
-                <input type="date" class="bg-gray-800 text-white rounded px-4 py-2 focus:outline-none" />
-                <button type="submit"
-                    class="bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-semibold px-6 py-2 rounded">Buscar</button>
-            </form>
-        </div>
-    </section> --}}
-
-    <!-- Grid de Eventos -->
-    <section class="container mx-auto px-4 py-8">
-      
-        {{-- Grid de tarjetas --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          @forelse($eventos as $evento)
-            <a 
-              href="{{ route('eventos.show', $evento) }}"
-              class="block bg-white rounded-2xl overflow-hidden
-                     shadow-md transition-transform duration-300 ease-in-out
-                     hover:-translate-y-2 hover:shadow-xl"
-            >
-              {{-- Imagen con ratio fijo --}}
-              <div class="w-full h-64 overflow-hidden rounded-t-2xl">
-                <img
-                  src="{{ asset('storage/'.$evento->imagen) }}"
-                  alt="{{ $evento->nombre }}"
-                  class="w-full h-full object-cover object-center"
+        {{-- MODAL: Copiar enlace (fuera del space-y-8) --}}
+        <div
+            x-show="mostrarModal"
+            x-cloak
+            @click.self="mostrarModal = false"
+            x-transition:enter="transition ease-out duration-500"
+            x-transition:enter-start="opacity-0 scale-90"
+            x-transition:enter-end="opacity-100 scale-100"
+            x-transition:leave="transition ease-in duration-500"
+            x-transition:leave-start="opacity-100 scale-100"
+            x-transition:leave-end="opacity-0 scale-90"
+            class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center overflow-hidden w-screen h-screen"
+        >
+            <div class="bg-white rounded-lg shadow-md w-full max-w-md p-6 text-center m-4">
+                <h4 class="text-lg font-semibold mb-4 text-purple-800">Link del evento</h4>
+                <input
+                    x-ref="inputEl"
+                    type="text"
+                    readonly
+                    value="{{ route('eventos.show', ['evento' => $record->id]) }}"
+                    class="w-full border border-gray-300 rounded p-2 mb-4 bg-gray-50 text-gray-700 select-all cursor-pointer"
+                    @click="$refs.inputEl.select()"
                 />
-              </div>              
-      
-              {{-- Nombre --}}
-              <div class="p-4">
-                <h3 class="text-lg font-semibold text-gray-900 leading-snug">
-                  {{ $evento->nombre }}
-                </h3>
-              </div>
-      
-              {{-- Footer: día/mes y hora --}}
-              <div class="flex items-center justify-between px-4 pb-4 border-t border-gray-100">
-                <div class="flex items-baseline space-x-1">
-                  <span class="text-2xl font-bold text-gray-900">
-                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('d') }}
-                  </span>
-                  <span class="text-xs text-gray-600 uppercase">
-                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('M') }}
-                  </span>
-                </div>
-                <div class="flex items-baseline space-x-1">
-                  <span class="text-2xl font-bold text-gray-900">
-                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('H') }}
-                  </span>
-                  <span class="text-xs text-gray-600">
-                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('i') }} hrs
-                  </span>
-                </div>
-              </div>
-            </a>
-          @empty
-            <p class="col-span-full text-center text-gray-500">No hay próximos eventos.</p>
-          @endforelse
+                <x-filament::button
+                    type="button"
+                    color="primary"
+                    icon="heroicon-o-clipboard"
+                    class="w-full bg-primary"
+                    x-on:click="
+                        navigator.clipboard.writeText($refs.inputEl.value)
+                            .then(() => {
+                                mostrarToast = true;
+                                mostrarModal = false;
+                                setTimeout(() => mostrarToast = false, 2000);
+                            });
+                    "
+                >Copiar link</x-filament::button>
+            </div>
         </div>
-      </section>
-      
-@endsection
 
-@push('scripts')
-    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Hero Slider
-            new Swiper('.heroSwiper', {
-                loop: true,
-                autoplay: {
-                    delay: 4000,
-                    disableOnInteraction: false
-                },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev'
-                },
-            });
-            // Cards Carousel - movimiento constante
-            const cardsSwiper = new Swiper('.cardsSwiper', {
-                loop: true,
-                slidesPerView: 'auto',
-                spaceBetween: 12,
-                freeMode: true,
-                freeModeMomentum: false,
-                speed: 3000,
-                autoplay: {
-                    delay: 0,
-                    disableOnInteraction: false
-                },
-                navigation: {
-                    nextEl: '.cardsSwiper .swiper-button-next',
-                    prevEl: '.cardsSwiper .swiper-button-prev'
-                }
-            });
-            // Pausar/retomar autoplay al pasar hover
-            cardsSwiper.el.addEventListener('mouseenter', () => cardsSwiper.autoplay.stop());
-            cardsSwiper.el.addEventListener('mouseleave', () => cardsSwiper.autoplay.start());
-        });
-    </script>
-@endpush
+        {{-- TOAST: Confirmación de copia (fuera del space-y-8) --}}
+        <div
+            x-show="mostrarToast"
+            x-cloak
+            x-transition.opacity.duration.700ms
+            class="fixed bottom-6 right-6 z-50 flex items-center bg-white bg-opacity-95 backdrop-blur-sm border border-green-400 px-5 py-3 rounded-lg shadow-lg ring-1 ring-green-500/40"
+            style="min-width: 240px;"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8.414 8.414a1 1 0 01-1.414 0L3.293 10.707a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+            </svg>
+            <span class="text-green-900 font-semibold tracking-wide select-none">Link copiado al portapapeles</span>
+        </div>
+
+    </div>
+</x-filament::page>
