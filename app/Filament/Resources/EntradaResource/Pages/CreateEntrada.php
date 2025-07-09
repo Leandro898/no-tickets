@@ -86,7 +86,8 @@ class CreateEntrada extends CreateRecord
 
             $this
                 ->getCancelFormAction()
-                ->label('Cancelar'),
+                ->label('Cancelar')
+                ->extraAttributes(['class' => 'fi-color-primary']),
         ];
     }
 

@@ -7,7 +7,7 @@ use App\Filament\Resources\EventoResource;
 // fijarme si funciona todo esto importacion quizas no sirve use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Actions\CancelAction;
-use Filament\Pages\Actions\Action;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateEvento extends CreateRecord

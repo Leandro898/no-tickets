@@ -1,32 +1,75 @@
-{{-- resources/views/filament/resources/evento-resource/pages/detalles.blade.php --}}
-<x-filament::page>
-    {{-- Contenedor Alpine con estado --}}
-    <div x-data="{ mostrarModal: false, mostrarToast: false }">
+@extends('layouts.app')
 
-        {{-- CONTENIDO PRINCIPAL --}}
-        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-            <x-slot name="header">
-                <h2 class="font-semibold text-2xl text-gray-900 leading-tight">
-                    {{ $record->nombre }}
-                </h2>
-            </x-slot>
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <style>
+        /* Ocultar scrollbars en los sliders y evitar scroll horizontal global */
+        html,
+        body {
+            overflow-x: hidden !important;
+        }
 
-            {{-- RECAUDACIÓN GLOBAL --}}
-            <div tabindex="0" class="recaudacion-card">
-                <div class="hidden sm:flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xl font-bold text-purple-700">Recaudación global</h3>
-                        <p class="text-purple-400 text-sm mt-1"># Unidades vendidas</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="font-extrabold text-3xl text-purple-700">${{ number_format($recaudacionTotal,2) }}</span>
-                        <p class="text-purple-500 text-sm mt-1">{{ $ticketsVendidos }} de {{ $ticketsDisponibles }}</p>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+@endpush
+
+@section('content')
+    <!-- Hero Slider Full Width con Swiper -->
+    {{-- Hero Slider Full Width con Swiper (hardcodeado) --}}
+    <section class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden -mt-16 mb-4">
+        <div class="swiper heroSwiper hide-scrollbar h-[500px]">
+            <div class="swiper-wrapper">
+
+                <!-- Slide 1 -->
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/ej1.png') }}" alt="Concierto Chewelche"
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
                     </div>
                 </div>
-                <div class="sm:hidden text-center">
-                    <span class="font-extrabold text-4xl text-purple-700">${{ number_format($recaudacionTotal,2) }}</span>
-                    <p class="font-semibold mt-3 text-lg text-purple-700">Recaudación global</p>
-                    <p class="text-purple-500 text-sm mt-1">{{ $ticketsVendidos }} de {{ $ticketsDisponibles }}</p>
+
+                <!-- Slide 2 -->
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/ej2.jpg') }}" alt=""
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
+                    </div>
+                </div>
+
+                <!-- Slide 3-->
+                <div class="swiper-slide bg-black relative">
+                    <img src="{{ asset('storage/eventos/x1.jpg') }}" alt="Concierto Chewelche"
+                        class="w-full h-full object-contain" />
+
+                    <!-- Enlace que cubre TODO el slide -->
+                    <a href="#" class="absolute inset-0 z-30" aria-label="Ver detalle Concierto Chewelche"></a>
+
+                    <!-- Capa de texto superpuesta (ahora sin bloquear clics) -->
+                    <div
+                        class="absolute inset-0 z-20 bg-opacity-20 flex flex-col justify-center p-6 pointer-events-none">
+                        {{-- aquí podrás añadir <h2>, <p>, etc. sin que bloqueen el enlace --}}
+                    </div>
                 </div>
             </div>
 
@@ -75,59 +118,59 @@
                 >Suspender evento</x-filament::button>
             </div>
         </div>
+    </section> --}}
 
-        {{-- MODAL: Copiar enlace (fuera del space-y-8) --}}
-        <div
-            x-show="mostrarModal"
-            x-cloak
-            @click.self="mostrarModal = false"
-            x-transition:enter="transition ease-out duration-500"
-            x-transition:enter-start="opacity-0 scale-90"
-            x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-500"
-            x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-90"
-            class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center overflow-hidden w-screen h-screen"
-        >
-            <div class="bg-white rounded-lg shadow-md w-full max-w-md p-6 text-center m-4">
-                <h4 class="text-lg font-semibold mb-4 text-purple-800">Link del evento</h4>
-                <input
-                    x-ref="inputEl"
-                    type="text"
-                    readonly
-                    value="{{ route('eventos.show', ['evento' => $record->id]) }}"
-                    class="w-full border border-gray-300 rounded p-2 mb-4 bg-gray-50 text-gray-700 select-all cursor-pointer"
-                    @click="$refs.inputEl.select()"
+    <!-- Grid de Eventos -->
+    <section class="container mx-auto px-4 py-8">
+      
+        {{-- Grid de tarjetas --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          @forelse($eventos as $evento)
+            <a 
+              href="{{ route('eventos.show', $evento) }}"
+              class="block rounded-2xl overflow-hidden
+                     shadow-md transition-transform duration-300 ease-in-out
+                     hover:-translate-y-2 hover:shadow-xl"
+            >
+              {{-- Imagen con ratio fijo --}}
+              <div class="w-full h-64 overflow-hidden rounded-t-2xl">
+                <img
+                  src="{{ asset('storage/'.$evento->imagen) }}"
+                  alt="{{ $evento->nombre }}"
+                  class="w-full h-full object-cover object-center"
                 />
-                <x-filament::button
-                    type="button"
-                    color="primary"
-                    icon="heroicon-o-clipboard"
-                    class="w-full bg-primary"
-                    x-on:click="
-                        navigator.clipboard.writeText($refs.inputEl.value)
-                            .then(() => {
-                                mostrarToast = true;
-                                mostrarModal = false;
-                                setTimeout(() => mostrarToast = false, 2000);
-                            });
-                    "
-                >Copiar link</x-filament::button>
-            </div>
-        </div>
-
-        {{-- TOAST: Confirmación de copia (fuera del space-y-8) --}}
-        <div
-            x-show="mostrarToast"
-            x-cloak
-            x-transition.opacity.duration.700ms
-            class="fixed bottom-6 right-6 z-50 flex items-center bg-white bg-opacity-95 backdrop-blur-sm border border-green-400 px-5 py-3 rounded-lg shadow-lg ring-1 ring-green-500/40"
-            style="min-width: 240px;"
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 mr-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8.414 8.414a1 1 0 01-1.414 0L3.293 10.707a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-            </svg>
-            <span class="text-green-900 font-semibold tracking-wide select-none">Link copiado al portapapeles</span>
+              </div>              
+      
+              {{-- Nombre --}}
+              <div class="p-4">
+                <h3 class="text-lg font-semibold text-gray-900 leading-snug">
+                  {{ $evento->nombre }}
+                </h3>
+              </div>
+      
+              {{-- Footer: día/mes y hora --}}
+              <div class="flex items-center justify-between px-4 pb-4 border-t border-gray-100">
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('d') }}
+                  </span>
+                  <span class="text-xs text-gray-600 uppercase">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('M') }}
+                  </span>
+                </div>
+                <div class="flex items-baseline space-x-1">
+                  <span class="text-2xl font-bold text-gray-900">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('H') }}
+                  </span>
+                  <span class="text-xs text-gray-600">
+                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('i') }} hrs
+                  </span>
+                </div>
+              </div>
+            </a>
+          @empty
+            <p class="col-span-full text-center text-gray-500">No hay próximos eventos.</p>
+          @endforelse
         </div>
 
     </div>
