@@ -2,52 +2,57 @@
 
 namespace App\Livewire;
 
-use App\Models\PurchasedTicket;
-use App\Mail\TicketsPurchasedMail;
-use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
+use App\Models\PurchasedTicket;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TicketsResendMail;
 
 class ReenviarTicket extends Component
 {
-    public $ticketId;
+    public int $ticketId;
     public bool $enviando = false;
 
-    public function mount($ticketId)
+    public function mount(int $ticketId)
     {
         $this->ticketId = $ticketId;
     }
 
     public function reenviar()
     {
-        if ($this->enviando) return;
-
+        // Evita dobles envíos
+        if ($this->enviando) {
+            return;
+        }
         $this->enviando = true;
 
-        try {
-            $ticket = PurchasedTicket::find($this->ticketId);
-            if (!$ticket || !$ticket->order?->buyer_email) {
-                $this->dispatch('toast',
-                    title: 'Error',
-                    message: 'No se pudo reenviar.',
-                    type: 'error'
-                );
+        $ticket = PurchasedTicket::find($this->ticketId);
+        $email  = $ticket?->order?->buyer_email;
 
-            } else {
-                Mail::to($ticket->order->buyer_email)->send(new TicketsPurchasedMail($ticket->order, [$ticket]));
-                $this->dispatch('toast',
-                    title: 'Enviado',
-                    message: 'Entrada reenviada correctamente.',
-                    type: 'success'
-                );               
-            }
-        } finally {
-            $this->enviando = false;
+        if (! $ticket || ! $email) {
+            // Error de reenvío
+            $this->dispatch('toast', [
+                'title'   => 'Error',
+                'message' => 'No se pudo reenviar.',
+                'type'    => 'error',
+            ]);
+        } else {
+            // Envía el mail de reenvío
+            Mail::to($email)
+                ->send(new TicketsResendMail($ticket->order));
+
+            // Notifica éxito
+            $this->dispatch('toast', [
+                'title'   => '¡Listo!',
+                'message' => 'Entrada reenviada correctamente.',
+                'type'    => 'success',
+            ]);
         }
+
+        $this->enviando = false;
     }
 
     public function render()
     {
         return view('livewire.reenviar-ticket');
     }
-    
 }

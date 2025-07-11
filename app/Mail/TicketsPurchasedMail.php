@@ -3,15 +3,12 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use App\Models\Order;
-use Illuminate\Mail\Mailables\Attachment;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\PurchasedTicket;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Order;
 
 class TicketsPurchasedMail extends Mailable
 {
@@ -19,53 +16,46 @@ class TicketsPurchasedMail extends Mailable
 
     public $order;
     public $purchasedTickets;
-    public $resetUrl;
 
-    public function __construct(Order $order, $purchasedTickets, ?string $resetUrl = null)
+    /**
+     * @param Order $order
+     * @param \Illuminate\Support\Collection|array $purchasedTickets
+     */
+    public function __construct(Order $order, $purchasedTickets)
     {
-        $this->order = $order;
-        $this->purchasedTickets = collect($purchasedTickets);
-        $this->resetUrl = $resetUrl;
+        $this->order             = $order;
+        $this->purchasedTickets  = collect($purchasedTickets);
     }
-
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Reenvio de entradas ' . $this->order->event->nombre . ' 🎟️',
+            subject: "¡Gracias por tu compra – {$this->order->event->nombre} 🎟️",
         );
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.purchased_tickets',
+            view: 'emails.tickets_purchased',  // <--- corregido aquí
             with: [
-                'order' => $this->order,
+                'order'            => $this->order,
                 'purchasedTickets' => $this->purchasedTickets,
-                'resetUrl' => $this->resetUrl,
             ],
         );
     }
 
-
     public function attachments(): array
     {
         $attachments = [];
-
         foreach ($this->purchasedTickets as $ticket) {
-            $filePath = storage_path('app/public/' . $ticket->qr_path);
-
+            $filePath = storage_path("app/public/{$ticket->qr_path}");
             if (file_exists($filePath)) {
                 $attachments[] = Attachment::fromPath($filePath)
-                    ->as('qr_ticket_' . $ticket->unique_code . '.png')
+                    ->as("entrada-{$ticket->unique_code}.png")
                     ->withMime('image/png');
-            } else {
-                \Log::warning('QR file not found for ticket: ' . $ticket->id . ' at path: ' . $filePath);
             }
         }
-
         return $attachments;
     }
 }
-

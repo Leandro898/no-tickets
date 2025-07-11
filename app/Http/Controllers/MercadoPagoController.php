@@ -249,8 +249,9 @@ class MercadoPagoController extends Controller
                 Log::info("Bienvenida + tickets enviada a {$user->email}");
             } else {
                 // 2) Compra adicional: sólo tickets
+                $tickets = $order->purchasedTickets; // Collection de PurchasedTicket
                 Mail::to($user->email)
-                    ->send(new TicketsPurchasedMail($order));
+                    ->send(new TicketsPurchasedMail($order, $tickets));
 
                 Log::info("TicketsPurchasedMail enviada a {$user->email}");
             }
