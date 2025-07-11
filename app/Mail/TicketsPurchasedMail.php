@@ -17,14 +17,10 @@ class TicketsPurchasedMail extends Mailable
     public $order;
     public $purchasedTickets;
 
-    /**
-     * @param Order $order
-     * @param \Illuminate\Support\Collection|array $purchasedTickets
-     */
     public function __construct(Order $order, $purchasedTickets)
     {
-        $this->order             = $order;
-        $this->purchasedTickets  = collect($purchasedTickets);
+        $this->order            = $order;
+        $this->purchasedTickets = collect($purchasedTickets);
     }
 
     public function envelope(): Envelope
@@ -37,7 +33,7 @@ class TicketsPurchasedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.tickets_purchased',  // <--- corregido aquí
+            view: 'emails.tickets_purchased',
             with: [
                 'order'            => $this->order,
                 'purchasedTickets' => $this->purchasedTickets,
@@ -48,13 +44,26 @@ class TicketsPurchasedMail extends Mailable
     public function attachments(): array
     {
         $attachments = [];
+        $folder = storage_path('app/private/tickets');
+
+        // Asegura que la carpeta exista (importante para el primer uso)
+        if (!is_dir($folder)) {
+            mkdir($folder, 0775, true);
+        }
+
         foreach ($this->purchasedTickets as $ticket) {
-            $filePath = storage_path("app/public/{$ticket->qr_path}");
-            if (file_exists($filePath)) {
-                $attachments[] = Attachment::fromPath($filePath)
-                    ->as("entrada-{$ticket->unique_code}.png")
-                    ->withMime('image/png');
+            $filePath = $folder . "/entrada-{$ticket->short_code}.pdf";
+
+            // Si no existe, lo genera. Si existe, lo reutiliza.
+            if (!file_exists($filePath)) {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('tickets.pdf', ['ticket' => $ticket])
+                    ->setPaper('a4', 'portrait');
+                $pdf->save($filePath);
             }
+
+            $attachments[] = Attachment::fromPath($filePath)
+                ->as("entrada-{$ticket->short_code}.pdf")
+                ->withMime('application/pdf');
         }
         return $attachments;
     }

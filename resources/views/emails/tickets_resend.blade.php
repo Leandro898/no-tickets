@@ -7,18 +7,28 @@
 <body style="font-family: sans-serif; background-color: #f8fafc; color: #1a202c; padding: 30px;">
 
   <div style="max-width:600px; margin:auto; background:#fff; border-radius:8px; padding:30px;">
-    <h2 style="color:#4c1d95;">¡Reenviamos tus entradas! 🎉</h2>
+    <h2 style="color:#7c3aed;">¡Te reenviamos tus entradas! 🎟️</h2>
     <p>Hola <strong>{{ $order->buyer_full_name }}</strong>,</p>
-    <p>Te llegaron las entradas nuevamente.</p>
-    <hr>
-    <h3>Tus entradas:</h3>
-    <p>Hemos adjuntado <strong>{{ $order->purchasedTickets->count() }}</strong> archivos PNG con los códigos QR.</p>
-    <ol>
-      <li>Abre los archivos adjuntos.</li>
-      <li>Guarda los códigos QR.</li>
-      <li>Preséntalos en la entrada del evento.</li>
+    <p>
+      Adjuntamos nuevamente tus entradas en formato <strong>PDF</strong>.<br>
+      Recuerda que también podés verlas o descargarlas desde tu panel de usuario.
+    </p>
+    
+    <div style="text-align:center;margin:28px 0;">
+      <a href="{{ route('mis-entradas') }}"
+         style="display:inline-block;padding:12px 30px;background:#1dd570;color:#fff;
+                text-decoration:none;font-weight:bold;border-radius:6px;font-size:16px;">
+        Ver mis entradas
+      </a>
+    </div>
+    
+    <h3 style="color:#7c3aed;margin-top:32px;">¿Cómo usar tus entradas?</h3>
+    <ol style="padding-left:18px; color:#444;">
+      <li>Descargá los archivos <strong>PDF adjuntos</strong> (uno por cada ticket).</li>
+      <li>Presentá el PDF en tu celular o impreso en el evento (el QR está incluido).</li>
+      <li>No compartas tu entrada, el QR es personal y único.</li>
     </ol>
-    <p>Saludos,<br>El equipo de {{ config('app.name') }}</p>
+    <p style="margin-top:32px;">¡Nos vemos en el evento!<br>El equipo de <strong>Innova Ticket</strong></p>
   </div>
 
 </body>

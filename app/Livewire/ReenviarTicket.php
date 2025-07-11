@@ -30,22 +30,14 @@ class ReenviarTicket extends Component
 
         if (! $ticket || ! $email) {
             // Error de reenvío
-            $this->dispatch('toast', [
-                'title'   => 'Error',
-                'message' => 'No se pudo reenviar.',
-                'type'    => 'error',
-            ]);
+            $this->js('window.dispatchEvent(new CustomEvent("toast", { detail: { title: "Error", message: "No se pudo reenviar.", type: "error" } }))');
         } else {
             // Envía el mail de reenvío
-            Mail::to($email)
-                ->send(new TicketsResendMail($ticket->order));
+            \Mail::to($email)
+                ->send(new \App\Mail\TicketsResendMail($ticket->order));
 
             // Notifica éxito
-            $this->dispatch('toast', [
-                'title'   => '¡Listo!',
-                'message' => 'Entrada reenviada correctamente.',
-                'type'    => 'success',
-            ]);
+            $this->js('window.dispatchEvent(new CustomEvent("toast", { detail: { title: "¡Listo!", message: "Entrada reenviada correctamente.", type: "success" } }))');
         }
 
         $this->enviando = false;

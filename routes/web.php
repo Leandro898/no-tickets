@@ -174,6 +174,11 @@ Route::middleware(['auth', 'role:admin'])
 Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
 Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
 
+//RUTA PARA SERVIR ARCHIVOS DESDE CARPETA PRIVADA
+Route::get('/ticket/{ticket}/ver', [TicketPdfController::class, 'view'])
+    ->name('ticket.view')
+    ->middleware('auth');
+
 
 
 
