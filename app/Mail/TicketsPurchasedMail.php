@@ -13,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\PurchasedTicket;
 use Illuminate\Support\Facades\Storage;
 
-class PurchasedTicketsMail extends Mailable
+class TicketsPurchasedMail extends Mailable
 {
     use Queueable, SerializesModels;
 

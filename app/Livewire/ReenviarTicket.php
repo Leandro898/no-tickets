@@ -3,7 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\PurchasedTicket;
-use App\Mail\PurchasedTicketsMail;
+use App\Mail\TicketsPurchasedMail;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Component;
 
@@ -33,7 +33,7 @@ class ReenviarTicket extends Component
                 );
 
             } else {
-                Mail::to($ticket->order->buyer_email)->send(new PurchasedTicketsMail($ticket->order, [$ticket]));
+                Mail::to($ticket->order->buyer_email)->send(new TicketsPurchasedMail($ticket->order, [$ticket]));
                 $this->dispatch('toast',
                     title: 'Enviado',
                     message: 'Entrada reenviada correctamente.',

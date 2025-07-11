@@ -3,7 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PurchasedTicket;
-use App\Mail\PurchasedTicketsMail;
+// 1) cambiar la use al Mailable de reenvío
+use App\Mail\TicketsResendMail;
 use Illuminate\Support\Facades\Mail;
 
 class TicketReenvioController extends Controller
@@ -17,7 +18,9 @@ class TicketReenvioController extends Controller
             return back()->with('error', 'El ticket no tiene email asociado.');
         }
 
-        Mail::to($email)->send(new PurchasedTicketsMail($order, [$ticket]));
+        // 2) usar el Mailable correcto
+        Mail::to($email)
+            ->send(new TicketsResendMail($order));
 
         return back()->with('success', 'Entrada reenviada correctamente.');
     }

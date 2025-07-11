@@ -13,7 +13,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\PurchasedTicket;
-use App\Mail\PurchasedTicketsMail;
+use App\Mail\TicketsPurchasedMail;
 use Illuminate\Support\Facades\Mail;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action   as TableAction; // ← para el menú de cada fila
@@ -161,7 +161,7 @@ class ListaDigital extends Page implements HasTable
 
         if ($ticket && $ticket->order?->buyer_email) {
             Mail::to($ticket->order->buyer_email)->send(
-                new PurchasedTicketsMail($ticket->order, [$ticket])
+                new TicketsPurchasedMail($ticket->order, [$ticket])
             );
 
             Notification::make()

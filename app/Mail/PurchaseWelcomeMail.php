@@ -7,7 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Attachment;
 
-class CuentaCreadaMail extends Mailable
+class PurchaseWelcomeMail extends Mailable
 {
     use Queueable, SerializesModels;
 

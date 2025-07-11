@@ -33,6 +33,19 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');
 Route::post('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'store'])->name('eventos.comprar.split.store');
 
+
+// Paso 2: muestra el formulario de datos del comprador
+Route::get(
+    '/eventos/{evento}/comprar-split/datos',
+    [CompraEntradaSplitController::class, 'showDatos']
+)->name('eventos.comprar.split.showDatos');
+
+// Paso 2 (POST): procesa los datos del comprador y crea la orden
+Route::post(
+    '/eventos/{evento}/comprar-split/datos',
+    [CompraEntradaSplitController::class, 'storeDatos']
+)->name('eventos.comprar.split.storeDatos');
+
 // ----------------------- MERCADO PAGO -------------------------
 Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])->name('mercadopago.connect');
 Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])->name('mercadopago.callback');

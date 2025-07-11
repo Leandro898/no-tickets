@@ -1,5 +1,6 @@
 {{-- resources/views/filament/pages/ticket-scanner.blade.php --}}
 <x-filament-panels::page class="bg-violet-50 min-h-screen flex flex-col">
+
     <div class="flex-1 flex flex-col items-center justify-center">
 
         <h2 class="text-violet-800 text-2xl font-bold mb-6 mt-4 text-center tracking-tight">
@@ -35,7 +36,7 @@
     </div>
 
     <script>
-        window.scannerEndpoint      = "{{ route('admin.ticket-scanner.scan') }}";
+        window.csrfToken = "{{ csrf_token() }}";
         window.buscarTicketEndpoint  = "{{ route('admin.ticket-scanner.buscar') }}";
         window.validarTicketEndpoint = "{{ route('admin.ticket-scanner.validar') }}";
     </script>
