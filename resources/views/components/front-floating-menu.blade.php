@@ -56,9 +56,9 @@
                     align-items: flex-start;
                     animation: fadeInMenu 0.22s;
                 ">
-                <a href="/eventos" style="display: block; margin-bottom: 13px; font-size: 1.08rem; text-decoration: none; color: #222;">🗓️ Eventos</a>
+                <a href="/" style="display: block; margin-bottom: 13px; font-size: 1.08rem; text-decoration: none; color: #222;">🗓️ Eventos</a>
                 <a href="/mis-entradas" style="display: block; margin-bottom: 13px; font-size: 1.08rem; text-decoration: none; color: #222;">🎟️ Mis Entradas</a>
-                <a href="/perfil" style="display: block; font-size: 1.08rem; text-decoration: none; color: #222;">👤 Mi Perfil</a>
+                <a href="/profile" style="display: block; font-size: 1.08rem; text-decoration: none; color: #222;">👤 Mi Perfil</a>
             </div>
         </div>
     </template>

@@ -3,7 +3,7 @@
 
         <a href="{{ url('/') }}" class="text-2xl font-bold text-purple-700">Innova Ticket</a>
         <nav class="flex items-center text-base space-x-8">
-            <a href="{{ route('eventos.index') }}" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop">Eventos</a>
+            <a href="/" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop">Eventos</a>
             @auth
                 <a href="{{ route('mis-entradas') }}" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop">Mis Entradas</a>
                 <!-- Dropdown -->
