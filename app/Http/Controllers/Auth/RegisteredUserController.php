@@ -4,18 +4,20 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\MagicLink;
+use App\Notifications\MagicLinkLogin;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * Mostrar el formulario de registro.
      */
     public function create(): View
     {
@@ -23,33 +25,47 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * Procesar una petición de registro.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
+        // 1️⃣ Validar datos de formulario
         $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // 2️⃣ Crear o recuperar usuario (con password dummy para no romper NOT NULL)
+        $user = User::firstOrCreate(
+            ['email' => $request->email],
+            [
+                'name'     => $request->name,
+                'password' => Hash::make(Str::random(40)),
+            ]
+        );
 
-        // Dispara el envío del email de verificación
+        // 3️⃣ Disparar evento Registered (opcional si usas email verification de Laravel)
         event(new Registered($user));
 
-        // Inicia la sesión para que vea la página de "verifica tu correo"
-        Auth::login($user);
+        // 4️⃣ Generar y guardar el Magic Link
+        $token     = Str::random(64);
+        $expiresAt = now()->addHours(2);
 
-        // En lugar de ir al dashboard, lo mandamos al notice de verificación:
-        return redirect()->route('verification.notice');
-        // la linea de abajo era la que estaba antes que me redirijia al panel de usuario directamente
-        // return redirect(route('dashboard', absolute: false));
+        MagicLink::create([
+            'email'      => $user->email,
+            'token'      => $token,
+            'expires_at' => $expiresAt,
+        ]);
+
+        // 5️⃣ Enviar la notificación con el Magic Link
+        $user->notify(new MagicLinkLogin($token));
+
+        // 6️⃣ Guardar en sesión el email para mostrarlo en la vista
+        session()->flash('email_to_verify', $user->email);
+
+        // 7️⃣ Redirigir a la página pública “Revisa tu correo” sin loguear al usuario
+        return redirect()->route('auth.check-email');
     }
 }

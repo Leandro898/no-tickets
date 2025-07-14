@@ -25,6 +25,8 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Password;
 use App\Mail\PurchaseWelcomeMail;
 use Illuminate\Support\Facades\URL;
+use App\Models\MagicLink;
+use App\Notifications\MagicLinkLogin;
 
 
 class MercadoPagoController extends Controller
@@ -36,7 +38,7 @@ class MercadoPagoController extends Controller
         $sandboxMode = config('mercadopago.sandbox', true);
 
         if (! $token) {
-            Log::critical('MercadoPago: falta configurar platform_access_token en config/mercadopago.php (o en .env MERCADO_PAGO_ACCESS_TOKEN)');
+            //Log::critical('MercadoPago: falta configurar platform_access_token en config/mercadopago.php (o en .env MERCADO_PAGO_ACCESS_TOKEN)');
             // opcional: abort(500, 'MercadoPago sin token');
         }
 
@@ -50,9 +52,9 @@ class MercadoPagoController extends Controller
                 : MercadoPagoConfig::SERVER
         );
 
-        Log::info('MercadoPagoConfig inicializado', [
-            'sandbox' => $sandboxMode,
-        ]);
+        // Log::info('MercadoPagoConfig inicializado', [
+        //     'sandbox' => $sandboxMode,
+        // ]);
     }
 
     /**
@@ -96,12 +98,10 @@ class MercadoPagoController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        Log::info('Webhook de Mercado Pago recibido.', $request->all());
-
         // Extraemos el ID del pago
         $paymentId = null;
-        $topic = $request->input('topic');
-        $type  = $request->input('type');
+        $topic     = $request->input('topic');
+        $type      = $request->input('type');
 
         if ($topic === 'payment' && $request->has('id')) {
             $paymentId = $request->input('id');
@@ -120,8 +120,8 @@ class MercadoPagoController extends Controller
             $payment = (new PaymentClient())->get($paymentId);
 
             DB::transaction(function () use ($payment) {
-                $order = Order::where('id', $payment->external_reference)
-                    ->lockForUpdate()
+                $order = Order::lockForUpdate()
+                    ->where('id', $payment->external_reference)
                     ->first();
 
                 if (! $order) {
@@ -129,48 +129,69 @@ class MercadoPagoController extends Controller
                     return;
                 }
 
-                // 1) Actualizo estado interno
+                // Actualizo estado interno si ha cambiado
                 $newStatus = $this->mapMercadoPagoStatusToOrderStatus($payment->status);
                 if ($order->payment_status !== $newStatus) {
-                    $order->payment_status = $newStatus;
-                    $order->mp_payment_id  = $payment->id;
-                    $order->save();
-                    Log::info("Orden {$order->id} actualizada a '{$newStatus}' via webhook.");
+                    $order->update([
+                        'payment_status' => $newStatus,
+                        'mp_payment_id'  => $payment->id,
+                    ]);
+                    Log::info("Orden {$order->id} actualizada a '{$newStatus}'.");
                 }
 
-                // 2) Si se aprobó y aún no hay tickets, los genero
+                // Si se aprobó y aún no hay tickets, generarlos
                 if ($newStatus === 'approved' && ! $order->purchasedTickets()->exists()) {
                     $itemsData = json_decode($order->items_data, true);
+
                     foreach ($itemsData as $item) {
-                        $entrada = \App\Models\Entrada::find($item['entrada_id']);
+                        $entrada = Entrada::find($item['entrada_id']);
+
                         for ($i = 0; $i < $item['cantidad']; $i++) {
                             // Generar código único y QR
-                            $uuid   = (string) \Illuminate\Support\Str::uuid();
+                            $uuid   = (string) Str::uuid();
                             $qrPath = "qrcodes/{$uuid}.png";
 
-                            if (! Storage::disk('public')->exists('qrcodes')) {
-                                Storage::disk('public')->makeDirectory('qrcodes');
-                            }
-                            \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')
-                                ->size(300)->margin(4)
-                                ->generate($uuid, storage_path("app/public/{$qrPath}"));
+                            Storage::disk('public')->put(
+                                $qrPath,
+                                QrCode::format('png')->size(300)->margin(4)->generate($uuid)
+                            );
 
-                            // Crear PurchasedTicket
-                            \App\Models\PurchasedTicket::create([
+                            // Crear el registro en BD
+                            $ticket = PurchasedTicket::create([
                                 'order_id'     => $order->id,
                                 'entrada_id'   => $entrada->id,
                                 'unique_code'  => $uuid,
+                                'short_code'   => $uuid,
                                 'qr_path'      => $qrPath,
                                 'status'       => 'valid',
                                 'buyer_name'   => $order->buyer_full_name,
                                 'ticket_type'  => $entrada->nombre,
                             ]);
+
+                            Log::info("PurchasedTicket {$ticket->id} creado (QR en {$qrPath}).");
+
+                            // Generar y guardar el PDF
+                            $pdf = \PDF::loadView('tickets.pdf', [
+                                'ticket' => $ticket,
+                                'order'  => $order,
+                            ]);
+
+                            $filename = "entrada-{$ticket->short_code}.pdf";
+                            $fullPath = storage_path("app/private/tickets/{$filename}");
+
+                            if (! file_exists(dirname($fullPath))) {
+                                mkdir(dirname($fullPath), 0755, true);
+                            }
+
+                            $pdf->save($fullPath);
+                            $ticket->update(['pdf_path' => "tickets/{$filename}"]);
+
+                            Log::info("PDF generado para ticket {$ticket->id}: {$fullPath}");
                         }
+
                         // Reducir stock
                         $entrada->decrement('stock_actual', $item['cantidad']);
                     }
-
-                    Log::info("PurchasedTicket generados para la orden {$order->id}");
                 }
             });
 
@@ -183,6 +204,7 @@ class MercadoPagoController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Internal error'], 500);
         }
     }
+
 
 
     /**
@@ -210,19 +232,19 @@ class MercadoPagoController extends Controller
 
     public function success(Request $request, Order $order)
     {
-        Log::info("MercadoPago Success redirección para orden {$order->id}", $request->all());
+        // 1️⃣ Refrescar la orden en BD y verificar estado
         $order->refresh();
-
         if ($order->payment_status !== 'approved') {
             return redirect()
                 ->route('purchase.pending', ['order' => $order->id])
                 ->with('info', 'Estamos procesando tu pago. Te avisaremos cuando esté confirmado.');
         }
 
-        // ¿Existe ya ese e-mail?
+        // 2️⃣ Comprobar si es la primera vez que usamos este email
         $isNew = ! User::where('email', $order->buyer_email)->exists();
 
-        // Crear o recuperar usuario
+        // 3️⃣ Crear o recuperar el usuario, con password aleatoria
+        //    para cumplir la restricción NOT NULL en la tabla users
         $user = User::firstOrCreate(
             ['email' => $order->buyer_email],
             [
@@ -231,24 +253,30 @@ class MercadoPagoController extends Controller
             ]
         );
 
-        // Solo enviamos correo la primera vez que procesamos este pedido
+        // 4️⃣ Envío de correo solo la primera vez que procesamos esta orden
         if (is_null($order->email_sent_at)) {
             if ($isNew) {
-                // 1) Primera compra: envío de bienvenida + reset + tickets
+                //
+                // —— PRIMERA COMPRA —— envío de bienvenida + enlace para configurar contraseña + tickets
+                //
 
-                // Generar token de reset y URL
-                $token = Password::broker()->createToken($user);
+                // 4.1) Generar token y URL de reset de contraseña
+                $token    = Password::broker()->createToken($user);
                 $resetUrl = url(route('password.reset', [
                     'token' => $token,
                     'email' => $user->email,
                 ], false));
 
+                // 4.2) Enviar el Mailable con los adjuntos PDF y el reset link
                 Mail::to($user->email)
                     ->send(new PurchaseWelcomeMail($order, $resetUrl));
 
-                Log::info("Bienvenida + tickets enviada a {$user->email}");
+                Log::info("PurchaseWelcomeMail enviada (bienvenida + tickets + reset) a {$user->email}");
             } else {
-                // 2) Compra adicional: sólo tickets
+                //
+                // —— COMPRA ADICIONAL —— solo envío de tickets adjuntos
+                //
+
                 $tickets = $order->purchasedTickets; // Collection de PurchasedTicket
                 Mail::to($user->email)
                     ->send(new TicketsPurchasedMail($order, $tickets));
@@ -256,32 +284,34 @@ class MercadoPagoController extends Controller
                 Log::info("TicketsPurchasedMail enviada a {$user->email}");
             }
 
+            // 4.3) Marcar la orden para no volver a enviar el email
             $order->update(['email_sent_at' => now()]);
         }
 
-        // Asignar rol, loguear y redirigir
+        // 5️⃣ Asignar rol “cliente” si no lo tiene
         if (! $user->hasRole('cliente')) {
             $user->assignRole('cliente');
         }
+
+        // 6️⃣ Loguear al usuario inmediatamente para que acceda a “Mis Entradas”
         Auth::login($user);
 
+        // 7️⃣ Redirigir al panel de entradas con mensaje de éxito
         return redirect()
             ->route('mis-entradas')
-            ->with('success', '¡Compra exitosa! Tus entradas ya están disponibles.');
+            ->with('success', '¡Compra exitosa! Tus entradas ya están disponibles, y te hemos enviado un enlace para configurar tu contraseña.');
     }
-
-
 
     public function failure(Request $request, Order $order)
     {
-        Log::warning('MercadoPago Failed redireccin para orden ' . $order->id, $request->all());
+        //Log::warning('MercadoPago Failed redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.failure', compact('order'));
     }
 
     public function pending(Request $request, Order $order)
     {
-        Log::info('MercadoPago Pending redireccin para orden ' . $order->id, $request->all());
+        //Log::info('MercadoPago Pending redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.pending', compact('order'));
     }

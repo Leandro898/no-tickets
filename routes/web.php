@@ -21,6 +21,7 @@ use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TicketScannerController;
 use App\Filament\Pages\TicketScanner;
+use App\Http\Controllers\MagicLinkController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -187,8 +188,17 @@ Route::get('/verify-email', function () {
     ->middleware('auth')
     ->name('verification.notice');
 
+// 1) Ruta pública “Revisa tu correo”
+Route::get('/check-email', function () {
+    return view('auth.check-email', [
+        'email' => session('email_to_verify')
+    ]);
+})->name('auth.check-email');
 
-
+// 2) Ruta firmada que efectúa el login vía Magic Link
+Route::get('/magic-login', [MagicLinkController::class, 'login'])
+    ->name('magic.login')
+    ->middleware('signed');
 
 
 

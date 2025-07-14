@@ -1,58 +1,64 @@
-{{-- resources/views/auth/register.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
-<div class="flex items-center justify-center min-h-screen bg-gray-100">
-    <div class="bg-white rounded-lg shadow p-8 w-full max-w-md">
-        <h1 class="text-2xl font-bold text-purple-700 mb-6 text-center">Crear cuenta</h1>
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+  <div class="max-w-md w-full bg-white shadow-xl rounded-xl p-8">
+    <h2 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">
+      {{ __('Crear cuenta') }}
+    </h2>
 
-        @if ($errors->any())
-            <div class="mb-4 text-red-600">
-                <ul class="text-sm">
-                    @foreach ($errors->all() as $error)
-                        <li>- {{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
+    <form method="POST" action="{{ route('register') }}" class="space-y-6">
+      @csrf
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+      <!-- Nombre -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700">
+          {{ __('Nombre') }}
+        </label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          value="{{ old('name') }}"
+          required
+          autofocus
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+        >
+        @error('name')
+          <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+      </div>
 
-            <div class="mb-4">
-                <label for="name" class="block text-gray-700">Nombre</label>
-                <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
-                    class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600">
-            </div>
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">
+          {{ __('Correo electrónico') }}
+        </label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          value="{{ old('email') }}"
+          required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+        >
+        @error('email')
+          <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+        @enderror
+      </div>
 
-            <div class="mb-4">
-                <label for="email" class="block text-gray-700">Email</label>
-                <input id="email" type="email" name="email" value="{{ old('email') }}" required
-                    class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600">
-            </div>
-
-            <div class="mb-4">
-                <label for="password" class="block text-gray-700">Contraseña</label>
-                <input id="password" type="password" name="password" required
-                    class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600">
-            </div>
-
-            <div class="mb-6">
-                <label for="password_confirmation" class="block text-gray-700">Confirmar Contraseña</label>
-                <input id="password_confirmation" type="password" name="password_confirmation" required
-                    class="mt-1 w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-600">
-            </div>
-
-            <button type="submit"
-                class="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2 rounded transition">
-                Registrar
-            </button>
-        </form>
-
-        <p class="mt-6 text-center text-sm text-gray-600">
-            ¿Ya tienes cuenta?
-            <a href="{{ route('login') }}" class="text-purple-700 hover:underline">Ingresar</a>
-        </p>
-    </div>
+      <!-- Botón -->
+      <div>
+        <button
+          type="submit"
+          class="w-full flex justify-center py-2 px-4 bg-purple-600 hover:bg-purple-700
+                 text-white font-semibold rounded-md transition focus:outline-none focus:ring-2
+                 focus:ring-offset-2 focus:ring-purple-500"
+        >
+          {{ __('Recibir enlace mágico') }}
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
 @endsection
