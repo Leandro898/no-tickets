@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 // La línea "use Laravel\Sanctum\HasApiTokens;" debe estar comentada o eliminada
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -95,5 +96,13 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(\App\Models\Order::class, 'buyer_email', 'email');
+    }
+
+    /**
+     * Sobrescribe la notificación de restablecimiento.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

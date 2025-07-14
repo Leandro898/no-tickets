@@ -1,22 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
+<div
+  class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
+  style=""
+>
   <div class="max-w-md w-full bg-white shadow-xl rounded-xl p-8">
     <h2 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">
-      {{ __('Reset Password') }}
+      {{ __('Recuperar contraseña') }}
     </h2>
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-6">
       @csrf
 
-      <!-- Password Reset Token -->
+      <!-- Token de restablecimiento -->
       <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-      <!-- Email Address -->
+      <!-- Correo electrónico -->
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700">
-          {{ __('Email') }}
+          {{ __('Correo electrónico') }}
         </label>
         <input
           id="email"
@@ -34,10 +37,10 @@
         @enderror
       </div>
 
-      <!-- New Password -->
+      <!-- Nueva contraseña -->
       <div>
         <label for="password" class="block text-sm font-medium text-gray-700">
-          {{ __('Password') }}
+          {{ __('Contraseña nueva') }}
         </label>
         <input
           id="password"
@@ -53,10 +56,10 @@
         @enderror
       </div>
 
-      <!-- Confirm Password -->
+      <!-- Confirmar contraseña -->
       <div>
         <label for="password_confirmation" class="block text-sm font-medium text-gray-700">
-          {{ __('Confirm Password') }}
+          {{ __('Confirmar contraseña') }}
         </label>
         <input
           id="password_confirmation"
@@ -72,15 +75,16 @@
         @enderror
       </div>
 
-      <!-- Submit -->
+      <!-- Botón -->
       <div>
         <button
           type="submit"
-          class="w-full flex justify-center py-2 px-4 bg-purple-600 hover:bg-purple-700 
-                 text-white font-semibold rounded-md transition focus:outline-none focus:ring-2 
+          class="w-full flex justify-center py-2 px-4 
+                 bg-purple-600 hover:bg-purple-700 text-white font-semibold 
+                 rounded-md transition focus:outline-none focus:ring-2 
                  focus:ring-offset-2 focus:ring-purple-500"
         >
-          {{ __('Reset Password') }}
+          {{ __('Recuperar contraseña') }}
         </button>
       </div>
     </form>
