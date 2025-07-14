@@ -179,6 +179,14 @@ Route::get('/ticket/{ticket}/ver', [TicketPdfController::class, 'view'])
     ->name('ticket.view')
     ->middleware('auth');
 
+// Aviso de verificación en /verify-email
+Route::get('/verify-email', function () {
+    // Carga resources/views/auth/verify-email.blade.php
+    return view('auth.verify-email');
+})
+    ->middleware('auth')
+    ->name('verification.notice');
+
 
 
 

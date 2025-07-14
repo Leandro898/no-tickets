@@ -15,14 +15,14 @@ return [
         'array'   => 'El campo :attribute debe contener al menos :min elementos.',
     ],
 
-    // … (si necesitas más reglas, puedes copiarlas de https://github.com/laravel/laravel/blob/10.x/src/Illuminate/Validation/resources/lang/en/validation.php)
+    'unique' => 'El campo :attribute ya ha sido registrado.',
 
     /*
     |--------------------------------------------------------------------------
     | Atributos personalizados
     |--------------------------------------------------------------------------
     |
-    | Aquí defines nombres “legibles” para tus campos. 
+    | Aquí defines nombres “legibles” para tus campos.
     |
     */
 

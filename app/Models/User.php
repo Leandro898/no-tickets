@@ -2,7 +2,8 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail; // Mantén esta línea comentada si no la usas
+use Illuminate\Contracts\Auth\MustVerifyEmail; // Mantén esta línea comentada si no la usas
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,7 @@ class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     // ¡IMPORTANTE!: Quita 'HasApiTokens' de esta lnea si no vas a usar Sanctum
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, MustVerifyEmailTrait;
 
     /**
      * The attributes that are mass assignable.

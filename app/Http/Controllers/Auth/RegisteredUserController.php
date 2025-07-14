@@ -41,10 +41,15 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Dispara el envío del email de verificación
         event(new Registered($user));
 
+        // Inicia la sesión para que vea la página de "verifica tu correo"
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // En lugar de ir al dashboard, lo mandamos al notice de verificación:
+        return redirect()->route('verification.notice');
+        // la linea de abajo era la que estaba antes que me redirijia al panel de usuario directamente
+        // return redirect(route('dashboard', absolute: false));
     }
 }
