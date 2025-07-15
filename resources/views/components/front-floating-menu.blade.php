@@ -32,7 +32,7 @@
                 style="
                     position: fixed;
                     inset: 0;
-                    background: rgba(0,0,0,0.19);
+                    background: rgba(6, 6, 6, 0.64);
                     z-index: 1005;
                     transition: background 0.3s;
                 ">

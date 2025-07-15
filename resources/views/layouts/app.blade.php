@@ -39,5 +39,7 @@
 
   <!-- Alpine.js para dropdowns y otros componentes -->
   <script src="//unpkg.com/alpinejs" defer></script>
+  {{-- Menu flotante --}}
+  @include('components.front-floating-menu')
 </body>
 </html>
