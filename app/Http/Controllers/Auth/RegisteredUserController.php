@@ -31,36 +31,38 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // 1️⃣ Validar datos
         $data = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'role'  => ['required', 'in:cliente,productor'],
+            'telefono' => ['nullable', 'string', 'max:30'], // si quieres que sea opcional
         ]);
 
-        // 2️⃣ Crear usuario (password dummy para no romper NOT NULL)
+        // Crear usuario
         $user = User::firstOrCreate(
             ['email' => $data['email']],
             [
                 'name'     => $data['name'],
                 'password' => Hash::make(Str::random(40)),
+                'telefono' => $data['telefono'] ?? null,
             ]
         );
 
-        // 3️⃣ (Opcional) disparar evento Registered
+        // Asignar rol Spatie
+        $user->syncRoles([$data['role']]);
+
+        // Disparar evento Registered
         event(new Registered($user));
 
-        // 4️⃣ Generar y guardar el Magic Link en BD
+        // Generar Magic Link y notificar
         $token = Str::random(64);
         MagicLink::create([
             'email'      => $user->email,
             'token'      => $token,
             'expires_at' => now()->addHours(2),
         ]);
-
-        // 5️⃣ Enviar la notificación que creará el enlace firmado y el email
         $user->notify(new MagicLinkLogin($token));
 
-        // 6️⃣ Redirigir a “Revisa tu correo” pasando el email en session
         return redirect()
             ->route('auth.check-email')
             ->with('email_to_verify', $user->email);

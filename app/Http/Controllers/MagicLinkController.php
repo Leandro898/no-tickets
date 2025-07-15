@@ -35,7 +35,13 @@ class MagicLinkController extends Controller
             return redirect()->route('password.setup');
         }
 
-        // si ya tenía contraseña, va a su panel
+        // REDIRECCIÓN SEGÚN ROL
+        if ($user->hasRole('productor')) {
+            // Ajusta la ruta según tu configuración Filament
+            return redirect()->intended('/admin/eventos');
+        }
+
+        // Si es cliente o cualquier otro rol, redirige al home/front
         return redirect()->route('mis-entradas');
     }
 
@@ -59,6 +65,12 @@ class MagicLinkController extends Controller
         $user = Auth::user();
         $user->password = Hash::make($request->password);
         $user->save();
+
+        // Redirecciona según el rol
+        if ($user->hasAnyRole(['admin', 'productor'])) {
+            return redirect()->intended('/admin/eventos')
+                ->with('success', '¡Tu contraseña ha sido creada!');
+        }
 
         return redirect()->route('mis-entradas')
             ->with('success', '¡Tu contraseña ha sido creada!');

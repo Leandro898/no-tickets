@@ -1,18 +1,25 @@
 <header class="bg-white shadow w-full sticky top-0 z-50">
     <div class="container mx-auto px-4 sm:px-8 lg:px-12 py-3 flex justify-between items-center">
         <a href="{{ url('/') }}"
-           class="text-xl font-extrabold text-purple-700 sm:text-2xl whitespace-nowrap">
-            Innova Ticket
+           class="text-2xl font-extrabold text-purple-700 sm:text-3xl whitespace-nowrap tracking-tight leading-none">
+            Tickets Pro
         </a>
-        <nav class="flex items-center space-x-3 sm:space-x-8">
-            <a href="/" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop text-sm sm:text-base">Eventos</a>
+        {{-- NAV DESKTOP --}}
+        <nav class="hidden md:flex items-center space-x-3 sm:space-x-7 lg:space-x-10 nav-desktop">
+            <a href="/"
+               class="text-gray-700 hover:text-purple-700 font-medium text-lg px-2 py-1 rounded transition-all duration-150 hover:underline hover:underline-offset-8 hover:decoration-2">
+                Eventos
+            </a>
             @auth
-                <a href="{{ route('mis-entradas') }}" class="text-gray-700 hover:text-purple-700 font-medium nav-desktop text-sm sm:text-base">Mis Entradas</a>
+                <a href="{{ route('mis-entradas') }}"
+                   class="text-gray-700 hover:text-purple-700 font-medium text-lg px-2 py-1 rounded transition-all duration-150 hover:underline hover:underline-offset-8 hover:decoration-2">
+                    Mis Entradas
+                </a>
                 <!-- Dropdown -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open"
-                        class="flex items-center text-gray-700 hover:text-purple-700 font-medium focus:outline-none text-sm sm:text-base">
-                        <span class="mr-1 truncate max-w-[90px] sm:max-w-none">{{ Auth::user()->name }}</span>
+                        class="flex items-center text-gray-700 hover:text-purple-700 font-medium text-lg px-2 py-1 rounded transition-all duration-150 hover:underline hover:underline-offset-8 hover:decoration-2 focus:outline-none">
+                        <span class="mr-1 truncate max-w-[120px] sm:max-w-none">{{ Auth::user()->name }}</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                         </svg>
@@ -30,14 +37,36 @@
                     </div>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="text-gray-700 hover:text-purple-700 font-medium text-sm sm:text-base">Ingresar</a>
-                <a href="{{ route('register') }}" class="text-gray-700 hover:text-purple-700 font-medium text-sm sm:text-base">Registrar</a>
+                <a href="{{ route('login') }}"
+                   class="text-gray-700 hover:text-purple-700 font-medium text-lg px-2 py-1 rounded transition-all duration-150 hover:underline hover:underline-offset-8 hover:decoration-2">
+                    Ingresar
+                </a>
+                <a href="{{ route('register') }}"
+                   class="text-gray-700 hover:text-purple-700 font-medium text-lg px-2 py-1 rounded transition-all duration-150 hover:underline hover:underline-offset-8 hover:decoration-2">
+                    Registrar
+                </a>
             @endauth
         </nav>
+        {{-- NAV MOBILE (solo ingresar y registrar) --}}
+        @guest
+        <nav class="flex md:hidden items-center space-x-4 nav-mobile">
+            <a href="{{ route('login') }}"
+               class="text-gray-700 hover:text-purple-700 font-medium text-base px-1 py-1 rounded transition-all duration-150">
+                Ingresar
+            </a>
+            <a href="{{ route('register') }}"
+               class="text-gray-700 hover:text-purple-700 font-medium text-base px-1 py-1 rounded transition-all duration-150">
+                Registrar
+            </a>
+        </nav>
+        @endguest
     </div>
     <style>
-        @media (max-width: 767px) {
-            .nav-desktop { display: none !important; }
+        /* Nav desktop solo a partir de md */
+        .nav-desktop { display: none; }
+        @media (min-width: 768px) {
+            .nav-desktop { display: flex !important; }
+            .nav-mobile { display: none !important; }
         }
     </style>
 </header>

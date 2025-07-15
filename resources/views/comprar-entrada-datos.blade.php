@@ -1,15 +1,14 @@
-{{-- resources/views/comprar-entrada-datos.blade.php --}}
 @extends('layouts.app')
 
 {{-- Fondo degradado --}}
 @section('body-class','bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen flex flex-col')
 
 @section('content')
-  <div class="flex flex-1 items-start justify-center py-8">
-    <div class="w-full max-w-[420px] md:max-w-xl lg:max-w-2xl bg-white rounded-3xl shadow-xl px-3 sm:px-8 py-8 mx-auto">
+  <div class="flex flex-1 items-center justify-center px-2">
+    <div class="w-full max-w-4xl bg-white rounded-[240px] shadow-2xl px-6 sm:px-14 md:px-20 py-10 mx-auto mb-12">
 
       {{-- Resumen de selección previa --}}
-      <div class="bg-violet-50 border-l-4 border-violet-500 rounded-xl p-5 mb-8 shadow flex flex-col gap-2">
+      <div class="bg-violet-50 border-l-4 border-violet-500 rounded-2xl px-7 py-6 mb-10 shadow flex flex-col gap-3">
         <div class="flex items-center gap-3 mb-2">
           <svg class="w-6 h-6 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -17,15 +16,15 @@
           </svg>
           <span class="text-lg font-semibold text-violet-700">Resumen de tu compra</span>
         </div>
-        <div class="flex justify-between text-gray-700 text-base">
+        <div class="flex justify-between items-center text-gray-700 text-base py-1">
           <span class="font-medium">Entrada:</span>
           <span>{{ $entrada->nombre }}</span>
         </div>
-        <div class="flex justify-between text-gray-700 text-base">
+        <div class="flex justify-between items-center text-gray-700 text-base py-1">
           <span class="font-medium">Cantidad:</span>
           <span>{{ $cantidad }}</span>
         </div>
-        <div class="flex justify-between text-gray-900 text-xl font-extrabold mt-1">
+        <div class="flex justify-between items-center text-gray-900 text-xl font-extrabold pt-3">
           <span>Subtotal:</span>
           <span>${{ number_format($subtotal, 0, ',', '.') }}</span>
         </div>
@@ -34,14 +33,14 @@
       {{-- Formulario --}}
       <form action="{{ route('eventos.comprar.split.storeDatos', $evento) }}"
             method="POST"
-            class="space-y-7">
+            class="space-y-8">
         @csrf
         <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
         <input type="hidden" name="cantidad"    value="{{ $cantidad }}">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           {{-- Columna 1 --}}
-          <div class="space-y-5">
+          <div class="space-y-6">
             <div>
               <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
                 Nombre completo <span class="text-red-500">*</span>
@@ -59,7 +58,7 @@
           </div>
 
           {{-- Columna 2 --}}
-          <div class="space-y-5">
+          <div class="space-y-6">
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                 Email <span class="text-red-500">*</span>
@@ -89,7 +88,7 @@
 
         {{-- Botón de envío --}}
         <button type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl transition-shadow shadow-md hover:shadow-lg text-lg tracking-wide">
+                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl transition-shadow shadow-md hover:shadow-lg text-lg tracking-wide mt-2 mb-1">
           Proceder al pago
         </button>
       </form>

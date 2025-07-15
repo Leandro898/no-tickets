@@ -106,4 +106,10 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordNotification($token));
     }
+
+    // DECIR A FILAMENT LOS ROLES QUE TIENEN ACCESO
+    public function canAccessFilament(): bool
+    {
+        return $this->hasAnyRole(['admin', 'productor']);
+    }
 }
