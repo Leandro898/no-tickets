@@ -1,70 +1,103 @@
-{{-- resources/views/inicio.blade.php --}}
 @extends('layouts.app')
 
 @push('styles')
     <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css" />
+    <style>
+        /* Forzar que el slider no tenga scroll horizontal nunca */
+        .heroSwiper,
+        .heroSwiper .swiper-slide {
+            min-width: 0 !important;
+        }
+    </style>
 @endpush
 
 @section('slider')
-    <section
-        class="relative w-screen left-1/2 transform -translate-x-1/2 overflow-hidden mb-0 shadow-lg"
-        style="max-width: 100vw;"
-    >
-        <div class="swiper heroSwiper hide-scrollbar">
-            <div class="swiper-wrapper">
-                @foreach($eventos->take(3) as $slide)
-                    <div class="swiper-slide bg-black relative">
-                        <img
-                            src="{{ asset('storage/'.$slide->imagen) }}"
-                            alt="{{ $slide->nombre }}"
-                            class="w-full h-full object-contain object-center"
-                        />
-                        <a
-                            href="{{ route('eventos.show', $slide) }}"
-                            class="absolute inset-0 z-30"
-                            aria-label="Ver detalle"
-                        ></a>
-                    </div>
-                @endforeach
+    <section class="w-full overflow-hidden bg-black m-0 p-0" style="margin:0;padding:0;">
+        <div class="swiper heroSwiper bg-black h-[250px] lg:h-[250px]">
+            <div class="swiper-wrapper" style="margin:0;padding:0;">
+                <div class="swiper-slide" style="margin:0;padding:0;">
+                    <img src="{{ asset('storage/eventos/ej1.png') }}" alt="Ejemplo 1"
+                        class="w-full h-full object-contain object-center m-0 p-0" />
+                </div>
+                <div class="swiper-slide" style="margin:0;padding:0;">
+                    <img src="{{ asset('storage/eventos/ej2.jpg') }}" alt="Ejemplo 2"
+                        class="w-full h-full object-contain object-center m-0 p-0" />
+                </div>
+                <div class="swiper-slide" style="margin:0;padding:0;">
+                    <img src="{{ asset('storage/eventos/ej3.png') }}" alt="Ejemplo 3"
+                        class="w-full h-full object-contain object-center m-0 p-0" />
+                </div>
             </div>
             <div class="swiper-button-prev text-white"></div>
             <div class="swiper-button-next text-white"></div>
         </div>
+
     </section>
 @endsection
+
+@push('styles')
+    <style>
+        .heroSwiper,
+        .heroSwiper .swiper-wrapper,
+        .heroSwiper .swiper-slide {
+            height: 200px !important;
+            min-height: 0 !important;
+            max-height: 200px !important;
+        }
+
+        @media (min-width: 1024px) {
+
+            /* lg */
+            .heroSwiper,
+            .heroSwiper .swiper-wrapper,
+            .heroSwiper .swiper-slide {
+                height: 300px !important;
+                max-height: 300px !important;
+            }
+        }
+
+        @media (min-width: 1280px) {
+
+            /* xl */
+            .heroSwiper,
+            .heroSwiper .swiper-wrapper,
+            .heroSwiper .swiper-slide {
+                height: 360px !important;
+                max-height: 360px !important;
+            }
+        }
+    </style>
+@endpush
 
 @section('content')
     <div class="max-w-7xl mx-auto px-4 py-10">
         {{-- Título de sección --}}
-        <section class="mb-6">
-            <h2 class="text-2xl font-bold text-gray-800">Próximos eventos</h2>
+        <section class="mb-12">
+            <h2 class="text-4xl text-center font-bold text-gray-800 pb-4">Próximos eventos</h2>
         </section>
+
 
         {{-- Grid de tarjetas --}}
         <section>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 @forelse($eventos as $evento)
-                    <a
-                        href="{{ route('eventos.show', $evento) }}"
-                        class="evento-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 transition hover:shadow-xl hover:-translate-y-1"
-                    >
-                        <div class="evento-img w-full aspect-square overflow-hidden">
-                            <img
-                                src="{{ asset('storage/'.$evento->imagen) }}"
-                                alt="{{ $evento->nombre }}"
-                                class="w-full h-full object-cover object-center"
-                            />
+                    <a href="{{ route('eventos.show', $evento) }}"
+                        class="evento-card bg-white rounded-2xl overflow-hidden shadow-md border border-gray-100 
+                        ver:-translate-y-2">
+                        <div
+                            class="evento-img w-full h-45 sm:h-52 md:aspect-video overflow-hidden bg-black flex items-center justify-center">
+                            <img src="{{ asset('storage/' . $evento->imagen) }}" alt="{{ $evento->nombre }}"
+                                class="w-full h-full object-contain object-center" />
                         </div>
+
                         <div class="p-4 flex flex-col h-full">
                             <h3 class="font-semibold text-lg text-gray-900 mb-2">
                                 {{ $evento->nombre }}
                             </h3>
                             <div class="mt-auto flex justify-between items-center pt-2 border-t border-gray-200">
                                 <span class="text-gray-700 font-medium">
-                                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)
-                                         ->locale('es')
-                                         ->translatedFormat('d M Y') }}
+                                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->locale('es')->translatedFormat('d M Y') }}
                                 </span>
                                 <span class="text-purple-600 font-bold">
                                     ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
@@ -79,6 +112,7 @@
                 @endforelse
             </div>
         </section>
+
     </div>
 @endsection
 

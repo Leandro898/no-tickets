@@ -6,15 +6,20 @@
   <title>@yield('title', config('app.name'))</title>
   @vite('resources/css/app.css')
   @stack('styles')
+  <style>
+    html { overflow-y: scroll; }
+  </style>
 </head>
-<body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col')">
+<body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-y-scroll')">
 
   {{-- HEADER / NAV --}}
   @include('layouts.front-nav')
 
+  {{-- SLIDER (full width, fuera del main) --}}
+  @yield('slider')
+
   {{-- CONTENIDO --}}
   <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    @yield('slider')
     @yield('content')
   </main>
 
@@ -31,5 +36,8 @@
   </footer>
 
   @stack('scripts')
+
+  <!-- Alpine.js para dropdowns y otros componentes -->
+  <script src="//unpkg.com/alpinejs" defer></script>
 </body>
 </html>

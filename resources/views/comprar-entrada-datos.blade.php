@@ -1,78 +1,71 @@
 {{-- resources/views/comprar-entrada-datos.blade.php --}}
 @extends('layouts.app')
 
-{{-- Pintamos el fondo con tu degradado púrpura claro --}}
-@section('body-class','bg-gradient-to-br from-purple-50 to-purple-100')
+{{-- Fondo degradado --}}
+@section('body-class','bg-gradient-to-br from-purple-50 to-purple-100 min-h-screen flex flex-col')
 
 @section('content')
-  {{-- Este wrapper se desplazará al centro superior de la ventana al cargar --}}
-  <div
-    id="comprador"
-    x-data
-    x-init="$nextTick(() => {
-      document
-        .getElementById('comprador')
-        .scrollIntoView({ behavior: 'smooth', block: 'start' });
-    })"
-    class="min-h-screen flex items-start justify-center px-4 py-6"
-  >
-    <div class="w-full max-w-3xl bg-white rounded-3xl shadow-lg p-6">
-      {{-- Título --}}
-      <h2 class="text-4xl font-extrabold text-purple-700 text-center mb-6">
-        Datos del comprador
-      </h2>
+  <div class="flex flex-1 items-start justify-center py-8">
+    <div class="w-full max-w-[420px] md:max-w-xl lg:max-w-2xl bg-white rounded-3xl shadow-xl px-3 sm:px-8 py-8 mx-auto">
 
       {{-- Resumen de selección previa --}}
-      <div class="bg-gray-50 rounded-xl p-5 mb-6">
-        <div class="flex justify-between mb-2 text-gray-700">
+      <div class="bg-violet-50 border-l-4 border-violet-500 rounded-xl p-5 mb-8 shadow flex flex-col gap-2">
+        <div class="flex items-center gap-3 mb-2">
+          <svg class="w-6 h-6 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3M4 4h16v16H4V4z" />
+          </svg>
+          <span class="text-lg font-semibold text-violet-700">Resumen de tu compra</span>
+        </div>
+        <div class="flex justify-between text-gray-700 text-base">
           <span class="font-medium">Entrada:</span>
           <span>{{ $entrada->nombre }}</span>
         </div>
-        <div class="flex justify-between mb-2 text-gray-700">
+        <div class="flex justify-between text-gray-700 text-base">
           <span class="font-medium">Cantidad:</span>
           <span>{{ $cantidad }}</span>
         </div>
-        <div class="flex justify-between text-gray-900 font-semibold">
+        <div class="flex justify-between text-gray-900 text-xl font-extrabold mt-1">
           <span>Subtotal:</span>
           <span>${{ number_format($subtotal, 0, ',', '.') }}</span>
         </div>
       </div>
 
-      {{-- Formulario en grid responsivo --}}
+      {{-- Formulario --}}
       <form action="{{ route('eventos.comprar.split.storeDatos', $evento) }}"
             method="POST"
-            class="space-y-6">
+            class="space-y-7">
         @csrf
         <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
         <input type="hidden" name="cantidad"    value="{{ $cantidad }}">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           {{-- Columna 1 --}}
-          <div class="space-y-4">
+          <div class="space-y-5">
             <div>
               <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
                 Nombre completo <span class="text-red-500">*</span>
               </label>
               <input id="nombre" name="nombre" type="text" required
-                     class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
+                     class="w-full rounded-lg border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
             </div>
             <div>
               <label for="buyer_dni" class="block text-sm font-medium text-gray-700 mb-1">
                 DNI (opcional)
               </label>
               <input id="buyer_dni" name="buyer_dni" type="text"
-                     class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
+                     class="w-full rounded-lg border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
             </div>
           </div>
 
           {{-- Columna 2 --}}
-          <div class="space-y-4">
+          <div class="space-y-5">
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                 Email <span class="text-red-500">*</span>
               </label>
               <input id="email" name="email" type="email" required
-                     class="w-full rounded-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
+                     class="w-full rounded-lg border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
             </div>
             <div>
               <label for="whatsapp" class="block text-sm font-medium text-gray-700 mb-1">
@@ -83,20 +76,20 @@
                   +54
                 </span>
                 <input id="whatsapp" name="whatsapp" type="text" placeholder="11 1234-5678"
-                       class="flex-1 rounded-r-lg border border-gray-300 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
+                       class="flex-1 rounded-r-lg border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
               </div>
             </div>
           </div>
         </div>
 
         {{-- Nota informativa --}}
-        <p class="text-center text-sm text-gray-500">
-          Al finalizar, te enviaremos las entradas por <strong>Correo</strong> y <strong>WhatsApp</strong>.
+        <p class="text-center text-sm text-gray-500 mb-2">
+          Al finalizar, te enviaremos las entradas por <strong>Correo</strong>.
         </p>
 
-        {{-- Botón de envío full-width --}}
+        {{-- Botón de envío --}}
         <button type="submit"
-                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-shadow shadow-md hover:shadow-lg">
+                class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 rounded-xl transition-shadow shadow-md hover:shadow-lg text-lg tracking-wide">
           Proceder al pago
         </button>
       </form>

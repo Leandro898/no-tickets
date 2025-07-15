@@ -20,7 +20,7 @@
   <div class="max-w-7xl mx-auto px-4 pt-6 pb-8">
     {{-- Botón "Volver a Eventos" --}}
     <div class="flex justify-end mb-4">
-      <a href="{{ route('eventos.index') }}"
+      <a href="/"
          class="inline-flex items-center gap-2 bg-white hover:bg-purple-50 border border-purple-200
                 text-purple-700 font-semibold px-4 py-2 rounded-lg shadow transition">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
@@ -72,13 +72,18 @@
           </span>
         </div>
 
-        {{-- Entradas desde (más compacto) --}}
-        <div class="bg-purple-600 text-white rounded-2xl p-4 text-center shadow-lg">
-          <div class="text-md font-medium">Entradas desde</div>
-          <div class="text-3xl font-extrabold my-1">
-            ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
-          </div>
-        </div>
+        {{-- Entradas desde (compacto y centrado horizontal) --}}
+<div class="flex justify-center">
+  <div class="bg-purple-600 text-white rounded-xl p-2 text-center shadow max-w-xs w-full">
+    <div class="text-xs sm:text-sm font-medium">Entradas desde</div>
+    <div class="text-lg sm:text-xl font-extrabold my-0.5">
+      ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
+    </div>
+  </div>
+</div>
+
+
+
 
         {{-- Formulario de compra split --}}
         @foreach($evento->entradas as $entrada)
