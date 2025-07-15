@@ -9,12 +9,11 @@ return [
     |
     | This option controls the default mailer that is used to send all email
     | messages unless another mailer is explicitly specified when sending
-    | the message. All additional mailers can be configured within the
-    | "mailers" array. Examples of each type of mailer are provided.
+    | the message.
     |
     */
 
-    'default' => env('MAIL_MAILER', 'log'),
+    'default' => env('MAIL_MAILER', 'smtp'),
 
     /*
     |--------------------------------------------------------------------------
@@ -22,30 +21,24 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may configure all of the mailers used by your application plus
-    | their respective settings. Several examples have been configured for
-    | you and you are free to add your own as your application requires.
-    |
-    | Laravel supports a variety of mail "transport" drivers that can be used
-    | when delivering an email. You may specify which one you're using for
-    | your mailers below. You may also add additional mailers if needed.
-    |
-    | Supported: "smtp", "sendmail", "mailgun", "ses", "ses-v2",
-    |            "postmark", "resend", "log", "array",
-    |            "failover", "roundrobin"
+    | their respective settings.
     |
     */
 
     'mailers' => [
 
         'smtp' => [
-            'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.gmail.com'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
-            'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
+            'transport'    => 'smtp',
+            'host'         => env('MAIL_HOST', 'smtp.gmail.com'),
+            'port'         => env('MAIL_PORT', 587),
+            'encryption'   => env('MAIL_ENCRYPTION', 'tls'),
+            'username'     => env('MAIL_USERNAME'),
+            'password'     => env('MAIL_PASSWORD'),
+            'timeout'      => null,
+            'local_domain' => env(
+                'MAIL_EHLO_DOMAIN',
+                parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)
+            ),
         ],
 
         'ses' => [
@@ -54,10 +47,6 @@ return [
 
         'postmark' => [
             'transport' => 'postmark',
-            // 'message_stream_id' => env('POSTMARK_MESSAGE_STREAM_ID'),
-            // 'client' => [
-            //     'timeout' => 5,
-            // ],
         ],
 
         'resend' => [
@@ -66,12 +55,12 @@ return [
 
         'sendmail' => [
             'transport' => 'sendmail',
-            'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
+            'path'      => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -bs -i'),
         ],
 
         'log' => [
             'transport' => 'log',
-            'channel' => env('MAIL_LOG_CHANNEL'),
+            'channel'   => env('MAIL_LOG_CHANNEL'),
         ],
 
         'array' => [
@@ -79,20 +68,14 @@ return [
         ],
 
         'failover' => [
-            'transport' => 'failover',
-            'mailers' => [
-                'smtp',
-                'log',
-            ],
+            'transport'   => 'failover',
+            'mailers'     => ['smtp', 'log'],
             'retry_after' => 60,
         ],
 
         'roundrobin' => [
-            'transport' => 'roundrobin',
-            'mailers' => [
-                'ses',
-                'postmark',
-            ],
+            'transport'   => 'roundrobin',
+            'mailers'     => ['ses', 'postmark'],
             'retry_after' => 60,
         ],
 
@@ -111,7 +94,26 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'leandcief@gmail.com'),
-        'name' => env('MAIL_FROM_NAME', 'Test'),
+        'name'    => env('MAIL_FROM_NAME', 'Tickets Pro'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Markdown Mail Settings
+    |--------------------------------------------------------------------------
+    |
+    | If you are using Markdown based email rendering, you may configure your
+    | theme and component paths here, allowing you to customize the design
+    | of the emails.
+    |
+    */
+
+    'markdown' => [
+        'theme' => 'default',
+
+        'paths' => [
+            resource_path('views/vendor/mail'),
+        ],
     ],
 
 ];

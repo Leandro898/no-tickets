@@ -31,41 +31,38 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // 1️⃣ Validar datos de formulario
-        $request->validate([
+        // 1️⃣ Validar datos
+        $data = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
         ]);
 
-        // 2️⃣ Crear o recuperar usuario (con password dummy para no romper NOT NULL)
+        // 2️⃣ Crear usuario (password dummy para no romper NOT NULL)
         $user = User::firstOrCreate(
-            ['email' => $request->email],
+            ['email' => $data['email']],
             [
-                'name'     => $request->name,
+                'name'     => $data['name'],
                 'password' => Hash::make(Str::random(40)),
             ]
         );
 
-        // 3️⃣ Disparar evento Registered (opcional si usas email verification de Laravel)
+        // 3️⃣ (Opcional) disparar evento Registered
         event(new Registered($user));
 
-        // 4️⃣ Generar y guardar el Magic Link
-        $token     = Str::random(64);
-        $expiresAt = now()->addHours(2);
-
+        // 4️⃣ Generar y guardar el Magic Link en BD
+        $token = Str::random(64);
         MagicLink::create([
             'email'      => $user->email,
             'token'      => $token,
-            'expires_at' => $expiresAt,
+            'expires_at' => now()->addHours(2),
         ]);
 
-        // 5️⃣ Enviar la notificación con el Magic Link
+        // 5️⃣ Enviar la notificación que creará el enlace firmado y el email
         $user->notify(new MagicLinkLogin($token));
 
-        // 6️⃣ Guardar en sesión el email para mostrarlo en la vista
-        session()->flash('email_to_verify', $user->email);
-
-        // 7️⃣ Redirigir a la página pública “Revisa tu correo” sin loguear al usuario
-        return redirect()->route('auth.check-email');
+        // 6️⃣ Redirigir a “Revisa tu correo” pasando el email en session
+        return redirect()
+            ->route('auth.check-email')
+            ->with('email_to_verify', $user->email);
     }
 }

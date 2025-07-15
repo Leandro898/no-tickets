@@ -15,17 +15,12 @@ class ResetPasswordNotification extends BaseReset
         ], false));
 
         return (new MailMessage)
-            ->subject(__('Restablecer contraseña de :app', ['app' => config('app.name')]))
-            ->greeting(__('¡Hola!'))
-            ->line(__('Hemos recibido una solicitud para restablecer la contraseña de tu cuenta en :app.', [
-                'app' => config('app.name'),
-            ]))
-            ->action(__('Recuperar contraseña'), $url)
-            ->line(__('Este enlace expirará en :count minutos.', [
-                'count' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire'),
-            ]))
-            ->line(__('Si no solicitaste este cambio, puedes ignorar este correo.'))
-            // ← Aquí sobreescribimos la salutation por defecto
+            ->subject('Recuperar contraseña en TicketsPro')
+            ->greeting('¡Hola, ' . $notifiable->name . '!')
+            ->line('Recibimos una solicitud para restablecer tu contraseña.')
+            ->action('Restablecer contraseña', $url)
+            ->line('Este enlace expira en 60 minutos.')
+            ->line('Si no pediste este cambio, ignora este mensaje.')
             ->salutation('Saludos, Tickets Pro');
     }
 }

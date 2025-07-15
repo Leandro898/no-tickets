@@ -1,34 +1,35 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ str_replace('_','-',app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <title>@yield('title', 'Innova Ticket')</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    @vite(['resources/css/app.css', 'resources/css/filament/admin/filament.css', 'resources/js/app.js'])
-    @livewireStyles
-    @stack('styles')
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        html { overflow-y: scroll; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>@yield('title', config('app.name'))</title>
+  @vite('resources/css/app.css')
+  @stack('styles')
 </head>
-<body class="@yield('body-class','bg-gradient-to-br from-purple-50 to-purple-100') min-h-screen">
-    @include('layouts.front-nav')
+<body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col')">
 
-    {{-- SLIDER FUERA DEL CONTENEDOR, pegado al nav --}}
-    @hasSection('slider')
-        @yield('slider')
-    @endif
+  {{-- HEADER / NAV --}}
+  @include('layouts.front-nav')
 
-    {{-- Contenedor solo para el resto del contenido --}}
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <main>
-            @yield('content')
-            @include('components.front-floating-menu')
-        </main>
+  {{-- CONTENIDO --}}
+  <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    @yield('slider')
+    @yield('content')
+  </main>
+
+  {{-- FOOTER --}}
+  <footer class="bg-gray-900 text-gray-300 text-sm py-6">
+    <div class="container mx-auto text-center space-y-2">
+      <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
+      <div class="flex justify-center gap-4">
+        <a href="/privacy" class="hover:text-white">Política de privacidad</a>
+        <a href="/terms"   class="hover:text-white">Términos de uso</a>
+        <a href="/contact" class="hover:text-white">Contacto</a>
+      </div>
     </div>
-    @livewireScripts
-    @stack('scripts')
-    @include('partials.footer')
+  </footer>
+
+  @stack('scripts')
 </body>
 </html>

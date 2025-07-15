@@ -22,6 +22,10 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TicketScannerController;
 use App\Filament\Pages\TicketScanner;
 use App\Http\Controllers\MagicLinkController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -188,19 +192,34 @@ Route::get('/verify-email', function () {
     ->middleware('auth')
     ->name('verification.notice');
 
-// 1) Ruta pública “Revisa tu correo”
+// 1) La pantalla “Revisa tu correo” (para el flash de email_to_verify)
 Route::get('/check-email', function () {
     return view('auth.check-email', [
-        'email' => session('email_to_verify')
+        'email' => session('email_to_verify'),
     ]);
-})->name('auth.check-email');
+})
+->middleware('guest')
+->name('auth.check-email');
 
-// 2) Ruta firmada que efectúa el login vía Magic Link
-Route::get('/magic-login', [MagicLinkController::class, 'login'])
-    ->name('magic.login')
-    ->middleware('signed');
+// 2) La ruta firmada que hace el Auth::login()
+//    Fíjate en el {user} para que Laravel inyecte el User::find($id)
+Route::get('/magic-login/{user}', [MagicLinkController::class, 'login'])
+    ->middleware(['signed', 'guest'])
+    ->name('magic.login');
+
+// 3) Si el usuario no tiene contraseña, mostramos el form para crearla
+Route::get('/setup-password', [MagicLinkController::class, 'showSetupPassword'])
+    ->middleware('auth')
+    ->name('password.setup');
+
+// 4) Procesar el POST del form de creación de contraseña
+Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
+    ->middleware('auth')
+    ->name('password.setup.store');
 
 
 
-//esto conecta las rutas de autenticación
+
+
+// ——— aquí ya conectas las rutas “normales” de login/registro/etc
 require __DIR__ . '/auth.php';

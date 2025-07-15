@@ -1,8 +1,8 @@
+{{-- resources/views/vendor/mail/html/header.blade.php --}}
 @props(['url'])
 
 <tr>
   <td align="center" style="padding: 30px 0;">
-    <!-- contenedor óvalo -->
     <table role="presentation" cellpadding="0" cellspacing="0">
       <tr>
         <td
@@ -17,25 +17,16 @@
             href="{{ $url }}"
             style="display: inline-block; text-decoration: none;"
           >
-            <!-- si usas imagen -->
-            <img
-              src="{{ asset('images/logo-tickets-pro.png') }}"
-              alt="TicketsPro"
-              width="120"
-              style="display: block; max-width: 100%; height: auto;"
-            >
-
-            <!-- o si prefieres texto puro, sustituye el <img> por: -->
-            <!--
             <span style="
-              font-family: sans-serif;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
               font-size: 24px;
-              font-weight: bold;
+              font-weight: 700;
               color: #7c3aed;
+              line-height: 1;
+              display: inline-block;
             ">
-              TicketsPro
+              {{ config('app.name') }}
             </span>
-            -->
           </a>
         </td>
       </tr>

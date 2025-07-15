@@ -1,206 +1,168 @@
-<!DOCTYPE html>
-<html lang="es">
+{{-- resources/views/eventos/show.blade.php --}}
+@extends('layouts.app')
 
-    <head>
-        <meta charset="UTF-8">
-        <title>{{ $evento->nombre }} – Detalles del Evento</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            body {
-                font-family: 'Inter', sans-serif;
-            }
+{{-- Meta título --}}
+@section('title', $evento->nombre.' – Detalles del Evento')
 
-            /* Quitar flechas input number (Chrome, Safari, Edge) */
-            input[type="number"]::-webkit-inner-spin-button,
-            input[type="number"]::-webkit-outer-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }
+{{-- Forzamos scroll vertical y degradado de fondo --}}
+@section('body-class', 'bg-gradient-to-br from-purple-50 min-h-screen overflow-y-scroll')
 
-            /* Firefox */
-            input[type="number"] {
-                -moz-appearance: textfield;
-            }
-        </style>
-    </head>
+@push('styles')
+  <style>
+    /* Quitar flechas de inputs numéricos */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+@endpush
 
-    <body class="min-h-screen bg-gradient-to-br from-purple-50 to-purple-100">
-        <div class="max-w-7xl mx-auto px-4 py-10">
+@section('content')
+  <div class="max-w-7xl mx-auto px-4 pt-6 pb-8">
+    {{-- Botón "Volver a Eventos" --}}
+    <div class="flex justify-end mb-4">
+      <a href="{{ route('eventos.index') }}"
+         class="inline-flex items-center gap-2 bg-white hover:bg-purple-50 border border-purple-200
+                text-purple-700 font-semibold px-4 py-2 rounded-lg shadow transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver a eventos
+      </a>
+    </div>
 
-            {{-- Botón "Eventos" arriba, alineado a la derecha --}}
-            <div class="flex justify-end mb-3">
-                <a href="{{ route('eventos.index') }}"
-                    class="inline-flex items-center gap-2 bg-white hover:bg-purple-50 border border-purple-200
-                      text-purple-700 font-semibold px-5 py-2 rounded-lg shadow transition">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Eventos
-                </a>
+    {{-- Título del evento --}}
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-purple-700 text-center mb-6">
+      {{ $evento->nombre }}
+    </h1>
+
+    <div class="flex flex-col lg:flex-row items-start gap-8">
+      {{-- Columna izquierda: imagen + descripción --}}
+      <div class="w-full lg:w-1/2 space-y-6">
+        {{-- Banner --}}
+        <div class="flex justify-center">
+          @if($evento->imagen)
+            <img
+              src="{{ asset('storage/'.$evento->imagen) }}"
+              alt="Banner de {{ $evento->nombre }}"
+              class="w-full max-w-xs md:max-w-sm object-contain rounded-lg shadow-lg"
+            />
+          @else
+            <div class="w-64 h-40 bg-gray-100 flex items-center justify-center rounded-lg shadow-lg">
+              <span class="text-gray-400">Sin imagen disponible</span>
             </div>
-
-            {{-- Título perfectamente centrado --}}
-            <div class="mb-10">
-                <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-purple-700 text-center">
-                    {{ $evento->nombre }}
-                </h1>
-            </div>
-
-            <div class="flex flex-col lg:flex-row gap-12">
-
-                {{-- Columna Izquierda --}}
-                <div class="flex-1">
-                    {{-- Imagen centrada --}}
-                    <div class="w-full flex justify-center mb-8">
-                        <div class="bg-purple-50 rounded-xl ring-2 ring-purple-200 shadow p-2">
-                            @if ($evento->imagen)
-                                <img src="{{ asset('storage/' . $evento->imagen) }}"
-                                    alt="Banner del evento {{ $evento->nombre }}"
-                                    class="w-full max-w-md max-h-[300px] object-contain rounded-lg" />
-                            @else
-                                <div class="w-64 h-40 bg-gray-100 flex items-center justify-center rounded-lg">
-                                    <span class="text-gray-400">Sin imagen disponible</span>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    {{-- Contador --}}
-                    <div class="mb-8">
-                        <div class="inline-block bg-purple-600 text-white font-semibold px-5 py-2 rounded-lg shadow">
-                            Faltan 29 Días | 9 Horas | 44 Minutos | 7 Segundos
-                        </div>
-                    </div>
-
-                    {{-- Descripción --}}
-                    <div class="bg-white rounded-2xl p-8 shadow mb-10">
-                        <h2 class="text-2xl font-bold text-purple-700 mb-4">Acerca del evento</h2>
-                        <div x-data="{ expanded: false }" class="text-gray-800 space-y-4">
-                            <div x-show="!expanded">
-                                {{ \Illuminate\Support\Str::limit($evento->descripcion, 240) }}
-                                @if (strlen($evento->descripcion) > 240)
-                                    <button @click="expanded = true"
-                                        class="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold
-                                               px-4 py-2 rounded-lg transition">
-                                        Ver más
-                                    </button>
-                                @endif
-                            </div>
-                            <div x-show="expanded" x-cloak>
-                                {{ $evento->descripcion }}
-                                <button @click="expanded = false"
-                                    class="mt-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold
-                                           px-4 py-2 rounded-lg transition">
-                                    Ver menos
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Columna Derecha --}}
-                <div class="w-full lg:w-96 flex-shrink-0">
-
-                    {{-- Precio mínimo --}}
-                    <div class="bg-purple-600 text-white rounded-2xl p-8 text-center mb-8 shadow-lg">
-                        <div class="text-lg font-medium">Entradas desde</div>
-                        <div class="text-4xl font-extrabold my-2">
-                            ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
-                        </div>
-                    </div>
-
-                    {{-- Tarjetas de entradas con selector de cantidad --}}
-                    <div class="space-y-4 mb-8">
-                        @foreach ($evento->entradas as $entrada)
-                            <form action="{{ route('eventos.comprar.split.store', $evento) }}" method="POST"
-                                x-data="{ qty: 1 }"
-                                class="bg-white rounded-xl p-5 shadow border border-purple-100 max-w-sm mx-auto">
-                                @csrf
-                                <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
-
-                                {{-- 1) Fecha en español, destacada --}}
-                                <div class="text-sm font-bold text-gray-700 mb-2">
-                                    {{ \Carbon\Carbon::parse($evento->fecha_inicio)->locale('es')->translatedFormat('l d \\d\\e F, H:i') }}
-                                    hs
-                                </div>
-
-                                {{-- 2) Nombre de la entrada y precio --}}
-                                <div class="flex justify-between items-center mb-4">
-                                    <div class="text-lg font-semibold text-gray-800">
-                                        {{ $entrada->nombre }}
-                                    </div>
-                                    <div class="text-lg font-bold text-gray-900">
-                                        ${{ number_format($entrada->precio, 0, ',', '.') }}
-                                    </div>
-                                </div>
-
-                                {{-- 3) Stepper alineado al centro --}}
-                                <div class="flex justify-center items-center space-x-3 mb-4">
-                                    <button type="button" @click="qty = Math.max(1, qty - 1)"
-                                        class="w-8 h-8 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition">
-                                        −
-                                    </button>
-                                    <input type="number" name="cantidad" x-model.number="qty" min="1"
-                                        max="{{ $entrada->stock_actual }}"
-                                        class="w-12 text-center border border-gray-300 rounded" />
-                                    <button type="button"
-                                        @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
-                                        class="w-8 h-8 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition">
-                                        +
-                                    </button>
-                                </div>
-
-                                {{-- 4) Total + Comprar --}}
-                                <div class="flex justify-between items-center">
-                                    <div class="text-gray-700 font-medium">
-                                        Total: <span class="font-bold"
-                                            x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`"></span>
-                                    </div>
-                                    <button type="submit"
-                                        class="bg-green-500 hover:bg-green-600 text-white font-bold px-5 py-2 rounded-lg transition">
-                                        Comprar
-                                    </button>
-                                </div>
-                            </form>
-                        @endforeach
-                    </div>
-
-
-
-
-
-
-
-                    {{-- Acordeones extra (opcional) --}}
-                    {{-- 
-                <div class="space-y-3">
-                    @foreach (['Medios de pago', 'Estacionamiento'] as $info)
-                        <div x-data="{ open: false }">
-                            <button @click="open = !open"
-                                    class="flex items-center justify-between w-full px-4 py-3 bg-purple-50
-                                           rounded-lg focus:outline-none text-purple-800 font-medium">
-                                {{ $info }}
-                                <svg :class="{ 'rotate-180': open }"
-                                     class="w-5 h-5 transform transition-transform"
-                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </button>
-                            <div x-show="open" x-collapse class="mt-2 text-gray-700 bg-white rounded-lg p-4 shadow">
-                                Información sobre <strong>{{ strtolower($info) }}</strong>.
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-                --}}
-                </div>
-            </div>
+          @endif
         </div>
-    </body>
 
-</html>
+        {{-- Acerca del evento --}}
+        <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <h2 class="text-2xl font-bold text-purple-700 mb-3">Acerca del evento</h2>
+          <p class="text-gray-800">{{ $evento->descripcion }}</p>
+        </div>
+      </div>
+
+      {{-- Columna derecha: contador + entradas --}}
+      <div class="w-full lg:w-1/2 space-y-6" x-data>
+        {{-- Contador dinámico --}}
+        <div class="text-center">
+          <span id="countdown"
+                class="inline-block bg-purple-600 text-white font-semibold px-5 py-3 rounded-lg shadow-lg">
+            Cargando…
+          </span>
+        </div>
+
+        {{-- Entradas desde (más compacto) --}}
+        <div class="bg-purple-600 text-white rounded-2xl p-4 text-center shadow-lg">
+          <div class="text-md font-medium">Entradas desde</div>
+          <div class="text-3xl font-extrabold my-1">
+            ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
+          </div>
+        </div>
+
+        {{-- Formulario de compra split --}}
+        @foreach($evento->entradas as $entrada)
+          <form action="{{ route('eventos.comprar.split.store', $evento) }}"
+                method="POST" x-data="{ qty: 1 }"
+                class="bg-white rounded-xl p-5 shadow border border-purple-100">
+            @csrf
+            <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
+
+            {{-- Fecha y hora --}}
+            <div class="text-sm font-bold text-gray-700 mb-2">
+              {{ \Carbon\Carbon::parse($evento->fecha_inicio)
+                   ->locale('es')
+                   ->translatedFormat('l d \\d\\e F, H:i') }} hs
+            </div>
+
+            {{-- Nombre y precio --}}
+            <div class="flex justify-between items-center mb-4">
+              <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
+              <div class="text-lg font-bold text-gray-900">
+                ${{ number_format($entrada->precio, 0, ',', '.') }}
+              </div>
+            </div>
+
+            {{-- Stepper --}}
+            <div class="flex justify-center items-center space-x-4 mb-4">
+              <button type="button" @click="qty = Math.max(1, qty - 1)"
+                      class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl transition-shadow shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                −
+              </button>
+              <input type="number" name="cantidad" x-model.number="qty"
+                     min="1" max="{{ $entrada->stock_actual }}"
+                     class="w-16 h-10 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
+              <button type="button"
+                      @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
+                      class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl transition-shadow shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                +
+              </button>
+            </div>
+
+            {{-- Total y botón Comprar (destacado) --}}
+            <div class="flex justify-between items-center">
+              <div class="text-gray-700 font-medium">
+                Total:
+                <span class="font-bold"
+                      x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
+                </span>
+              </div>
+              <button type="submit"
+                      class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full transition-shadow shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400">
+                Comprar
+              </button>
+            </div>
+          </form>
+        @endforeach
+      </div>
+    </div>
+  </div>
+@endsection
+
+@push('scripts')
+  {{-- Alpine.js para stepper --}}
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  {{-- Contador dinámico --}}
+  <script>
+    (function(){
+      const target = new Date("{{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('Y/m/d H:i:s') }}").getTime();
+      const el = document.getElementById('countdown');
+      function update() {
+        const now = Date.now();
+        const diff = target - now;
+        if (diff <= 0) {
+          el.textContent = '¡El evento ha comenzado!';
+          clearInterval(timer);
+          return;
+        }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.textContent = `Faltan ${d} d | ${h} h | ${m} m | ${s} s`;
+      }
+      update();
+      const timer = setInterval(update, 1000);
+    })();
+  </script>
+@endpush

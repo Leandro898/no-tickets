@@ -5,21 +5,25 @@
 @section('body-class','bg-gradient-to-br from-purple-50 to-purple-100')
 
 @section('content')
-  {{-- Este wrapper se desplazará al centro de la ventana al cargar --}}
+  {{-- Este wrapper se desplazará al centro superior de la ventana al cargar --}}
   <div
     id="comprador"
     x-data
-    x-init="$nextTick(() => { document.getElementById('comprador').scrollIntoView({ behavior: 'smooth', block: 'start' }) })"
-    class="min-h-screen flex items-center justify-center px-4 py-12"
+    x-init="$nextTick(() => {
+      document
+        .getElementById('comprador')
+        .scrollIntoView({ behavior: 'smooth', block: 'start' });
+    })"
+    class="min-h-screen flex items-start justify-center px-4 py-6"
   >
-    <div class="w-full max-w-3xl bg-white rounded-3xl shadow-lg p-8">
+    <div class="w-full max-w-3xl bg-white rounded-3xl shadow-lg p-6">
       {{-- Título --}}
-      <h2 class="text-4xl font-extrabold text-purple-700 text-center mb-8">
+      <h2 class="text-4xl font-extrabold text-purple-700 text-center mb-6">
         Datos del comprador
       </h2>
 
       {{-- Resumen de selección previa --}}
-      <div class="bg-gray-50 rounded-xl p-5 mb-8">
+      <div class="bg-gray-50 rounded-xl p-5 mb-6">
         <div class="flex justify-between mb-2 text-gray-700">
           <span class="font-medium">Entrada:</span>
           <span>{{ $entrada->nombre }}</span>
