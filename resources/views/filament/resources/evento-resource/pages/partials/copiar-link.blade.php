@@ -4,7 +4,7 @@
         id="eventoLinkInput"
         type="text"
         readonly
-        value="{{ route('eventos.show', ['evento' => $record->id]) }}"
+        value="{{ route('eventos.show', ['evento' => $record->slug]) }}"
         class="w-full border border-gray-300 rounded-md p-2 mb-4 bg-gray-50 text-gray-700 select-all focus:outline-none focus:ring-2 focus:ring-purple-600"
         onclick="this.select()"
     />

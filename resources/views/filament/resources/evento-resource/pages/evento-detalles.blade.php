@@ -95,7 +95,7 @@
                     x-ref="inputEl"
                     type="text"
                     readonly
-                    value="{{ route('eventos.show', ['evento' => $record->id]) }}"
+                    value="{{ route('eventos.show', ['evento' => $record->slug]) }}"
                     class="w-full border border-gray-300 rounded p-2 mb-4 bg-gray-50 text-gray-700 select-all cursor-pointer"
                     @click="$refs.inputEl.select()"
                 />

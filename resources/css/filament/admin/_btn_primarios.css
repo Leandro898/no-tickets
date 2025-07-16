@@ -20,7 +20,7 @@
        BOTÓN SECUNDARIO · CANCELAR
     ────────────────────────────────*/
     .fi-ac-btn-action:not(.fi-color-success) {
-        @apply bg-transparent text-[#7c3aed] border border-[#d9d6fc] font-semibold rounded-lg px-7 py-3 text-base transition-colors duration-150;
+        @apply bg-[#7c3aed] text-[#7c3aed] border border-[#d9d6fc] font-semibold rounded-lg px-7 py-3 text-base transition-colors duration-150;
     }
     
     /* Cambio color a violeta más oscuro */

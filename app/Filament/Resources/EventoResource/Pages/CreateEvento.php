@@ -10,6 +10,7 @@ use Filament\Forms\Actions\CancelAction;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
+
 class CreateEvento extends CreateRecord
 {
     protected static string $resource = EventoResource::class;
@@ -47,5 +48,8 @@ class CreateEvento extends CreateRecord
                 ->url($this->getResource()::getUrl('index')),
         ];
     }
+
+    /* BOTONES DE ACCIONES DEL FORMULAIO */
+    
     
 }
