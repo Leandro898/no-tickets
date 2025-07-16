@@ -29,8 +29,6 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Toggle;
 use App\Filament\Resources\EntradaResource;
 
-
-
 class EventoResource extends Resource
 {
     protected static ?string $model = Evento::class;
@@ -90,7 +88,8 @@ class EventoResource extends Resource
                 ])
                 ->columnSpanFull()
                 ->icon('heroicon-o-information-circle')
-                ->collapsible(),
+                ->collapsible()
+                ->collapsed(),
 
             Section::make('Restricciones y requisitos')
                 ->description('Configura los requisitos para los asistentes.')
@@ -127,7 +126,8 @@ class EventoResource extends Resource
                         ->inline(false),
                 ])
                 ->icon('heroicon-o-identification')
-                ->collapsible(),
+                ->collapsible()
+                ->collapsed(),
 
             Section::make('Presentación')
                 ->description('Una buena descripción y banner aumentan la conversión.')
@@ -160,7 +160,8 @@ class EventoResource extends Resource
                         ->columnSpanFull(),
                 ])
                 ->icon('heroicon-o-photo')
-                ->collapsible(),
+                ->collapsible()
+                ->collapsed(),
 
             Hidden::make('estado')
                 ->default(fn() => 'activo')

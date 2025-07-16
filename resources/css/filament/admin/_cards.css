@@ -5,7 +5,7 @@
     .fi-section>.fi-section-header {
         @apply bg-gradient-to-r from-violet-100 via-white to-violet-100;
         /* degradado suave */
-        color: #6d28d9 !important;
+        color: #6d28d9 !important;  
         /* Violeta branding */
         font-weight: bold;
         font-size: 1.2rem;

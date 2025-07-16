@@ -4,12 +4,10 @@ namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EntradaResource;
 use App\Filament\Resources\EventoResource;
-// fijarme si funciona todo esto importacion quizas no sirve use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Actions\CancelAction;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
-
+use Illuminate\Support\HtmlString;
 
 class CreateEvento extends CreateRecord
 {
@@ -41,7 +39,6 @@ class CreateEvento extends CreateRecord
     protected function getActions(): array
     {
         return [
-            // Botón de volver al listado de eventos
             Action::make('back')
                 ->label('Volver a Eventos')
                 ->icon('heroicon-o-arrow-left')
@@ -49,7 +46,14 @@ class CreateEvento extends CreateRecord
         ];
     }
 
-    /* BOTONES DE ACCIONES DEL FORMULAIO */
-    
-    
+    /**
+     * Aquí personalizamos el botón de Crear para que pida confirmación.
+     */
+    protected function getFormActions(): array
+    {
+        return [
+            CreateAction::make('create')
+                ->label('Crear Evento'),
+        ];
+    }
 }

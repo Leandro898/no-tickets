@@ -66,5 +66,16 @@
       background-color: blueviolet!important;
     }
 
+    /* PRUEBAS NUEVAS */
+    
+    /* Selecciona el contenido colapsable de Sections */
+.fi-forms-section-content[x-collapse] {
+    /* Fuerza la transición sólo sobre la altura */
+    transition-property: height !important;
+    /* 5 segundos de animación */
+    transition-duration: 5s !important;
+    /* easing opcional */
+    transition-timing-function: ease-in-out !important;
+  }
     
 }
