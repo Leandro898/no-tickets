@@ -14,6 +14,7 @@
 @import "./_varios.css";
 @import "./_recaudacion_global.css";
 @import "./_scanner.css";
+@import "./_form_validation_message.css";
 
 @tailwind base;
 @tailwind components;
@@ -62,20 +63,33 @@
     }
 
     /* ESTA CLASE SOBREESCIBRE A LA CLASE QUE YA TIENE EL BOTON DEL LOGIN */
-    .fi-color-primary{
-      background-color: blueviolet!important;
+    .fi-color-primary {
+        background-color: blueviolet !important;
     }
 
     /* PRUEBAS NUEVAS */
-    
-    /* Selecciona el contenido colapsable de Sections */
-.fi-forms-section-content[x-collapse] {
-    /* Fuerza la transición sólo sobre la altura */
-    transition-property: height !important;
-    /* 5 segundos de animación */
-    transition-duration: 5s !important;
-    /* easing opcional */
-    transition-timing-function: ease-in-out !important;
-  }
-    
+
+    /* Botón primario (Crear Evento) */
+    .fi-btn-color-primary {
+        background: #a21caf !important; /* violeta fuerte o el color de tu marca */
+        color: #fff !important;
+        border: none !important;
+        font-weight: 600;
+        box-shadow: 0 2px 8px #a21caf22;
+        transition: background 0.2s;
+    }
+    .fi-btn-color-primary:hover {
+        background: #86198f !important; /* un violeta más oscuro al hover */
+    }
+
+    /* Botón secundario (Cancelar) */
+    .fi-btn-color-secondary {
+        background: #fff !important;
+        color: #a21caf !important;
+        border: 2px solid #a21caf !important;
+        font-weight: 600;
+    }
+    .fi-btn-color-secondary:hover {
+        background: #f3e8ff !important;
+    }
 }

@@ -1,44 +1,11 @@
 @layer components {
     /* ───────────────────────────────
-       BOTÓN PRIMARIO · GUARDAR CAMBIOS
+       BOTÓN PRIMARIO · GUARDAR CAMBIOS · CREAR EVENTO
     ────────────────────────────────*/
     .fi-ac-btn-action.fi-color-success {
         /* branding violeta + tamaño medio-grande */
         @apply bg-[#7c3aed] text-white font-semibold rounded-lg px-7 py-3 text-base shadow-sm transition-colors duration-150;
     }
 
-    /* EL HOVER DEL BOTON DE ACCION SUCCESS*/
-    .fi-ac-btn-action.fi-color-success:hover {
-        @apply bg-[#8b5cf6] text-white;
-    }
-
-    .fi-ac-btn-action.fi-color-success:disabled {
-        @apply opacity-60 cursor-not-allowed;
-    }
-
-    /* ───────────────────────────────
-       BOTÓN SECUNDARIO · CANCELAR
-    ────────────────────────────────*/
-    .fi-ac-btn-action:not(.fi-color-success) {
-        @apply bg-[#7c3aed] text-[#7c3aed] border border-[#d9d6fc] font-semibold rounded-lg px-7 py-3 text-base transition-colors duration-150;
-    }
     
-    /* Cambio color a violeta más oscuro */
-    .fi-ac-btn-action:not(.fi-color-success):hover {
-        @apply bg-[#7c3aed] text-white border-transparent;
-    }
-
-    /* BOTON VOLVER A DETALLES Y VOLVER EN OTRAS SECCIONES*/
-    .btn-volver {
-        @apply px-6 py-3 rounded-lg shadow-sm transition;
-        /* tamaño y radios */
-        background-color: #7c3aed !important;
-        /* violeta base   */
-        color: #ffffff !important;
-    }
-
-    .btn-volver:hover {
-        background-color: #8b5cf6 !important;
-        /* hover violeta 500 */
-    }
 }

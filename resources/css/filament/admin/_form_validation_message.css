@@ -1,0 +1,18 @@
+@layer components{
+    /* COLORES PARA LOS MENSAJES DE VALIDACION */
+    /* Selecciona el contenido colapsable de Sections */
+    .fi-forms-section-content[x-collapse] {
+        /* Fuerza la transición sólo sobre la altura */
+        transition-property: height !important;
+        /* 5 segundos de animación */
+        transition-duration: 5s !important;
+        /* easing opcional */
+        transition-timing-function: ease-in-out !important;
+    }
+
+    .fi-fo-field-wrp-error-message,
+    .text-danger-600 {
+        color: #ff0404 !important; /* o el violeta que prefieras (#7c3aed, #c026d3, etc.) */
+        font-weight: bold !important;
+    }
+}

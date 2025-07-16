@@ -8,10 +8,14 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\HtmlString;
+use Filament\Forms\Actions;
 
 class CreateEvento extends CreateRecord
 {
     protected static string $resource = EventoResource::class;
+
+    // PROPIEDAD PARA OVERRIDA BLADE
+    protected static string $view = 'vendor.filament-panels.pages.evento-create';
 
     protected function getRedirectUrl(): string
     {
@@ -52,8 +56,11 @@ class CreateEvento extends CreateRecord
     protected function getFormActions(): array
     {
         return [
+            // Botón crear
             CreateAction::make('create')
-                ->label('Crear Evento'),
+                ->label('Crear Evento')
+                ->createAnother(false),
+                
         ];
     }
 }
