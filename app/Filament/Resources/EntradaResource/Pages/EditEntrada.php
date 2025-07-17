@@ -60,15 +60,15 @@ class EditEntrada extends EditRecord
     {
         return [
             $this
-                ->getSaveFormAction()
-                ->label('Guardar Cambios')
-                ->color('success'),
-
-
-            $this
                 ->getCancelFormAction()
                 ->label('Cancelar')
-                ->extraAttributes(['class' => 'fi-color-primary']),
+                ->extraAttributes(['class' => 'fi-btn-color-secondary']),
+
+            $this
+                ->getSaveFormAction()
+                ->label('Guardar Cambios')
+                ->color('success')
+                ->extraAttributes(['class' => 'fi-btn-color-primary']),
         ];
     }
 

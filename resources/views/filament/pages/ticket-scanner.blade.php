@@ -20,18 +20,18 @@
                 class="font-semibold text-violet-700 hover:underline text-base bg-transparent border-none">
                 Ingresar datos manualmente
             </button>
-            <div class="text-gray-500 text-sm">
-                ¿Querés una mejor experiencia de escaneo?<br>
-                Escaneá más rápido y sin internet en nuestra app.
+            <div class="text-gray-500 text-sm h-12">
+                {{-- ¿Querés una mejor experiencia de escaneo?<br> --}}
+                {{-- Escaneá más rápido y sin internet en nuestra app. --}}
             </div>
-            <div class="flex gap-4 justify-center mt-2">
+            {{-- <div class="flex gap-4 justify-center mt-2">
                 <a href="#"
                     class="bg-violet-600 text-white rounded-xl px-5 py-2 text-sm font-bold shadow hover:bg-violet-700 transition">Play
                     Store</a>
                 <a href="#"
                     class="bg-gray-200 text-violet-700 rounded-xl px-5 py-2 text-sm font-bold shadow hover:bg-gray-300 transition">App
                     Store</a>
-            </div>
+            </div> --}}
         </div>
     </div>
 

@@ -22,6 +22,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\ToggleColumn;
 
+
 class ListaDigital extends Page implements HasTable
 {
     use InteractsWithTable;
@@ -69,13 +70,20 @@ class ListaDigital extends Page implements HasTable
                 ->formatStateUsing(fn($state) => '$' . number_format($state, 2, ',', '.')),
             TextColumn::make('order.payment_status')
                 ->label('Estado Pedido')
-                ->formatStateUsing(fn($state) => ucfirst($state)) // Opcional para capitalizar
+                ->badge()
+                ->formatStateUsing(fn($state) => [
+                    'paid' => 'Pagado',
+                    'pending' => 'Pendiente',
+                    'failed' => 'Fallido',
+                ][$state] ?? ucfirst($state))
                 ->color(fn($state) => match ($state) {
                     'paid' => 'success',
                     'pending' => 'warning',
                     'failed' => 'danger',
                     default => 'secondary',
-                }),
+                })
+            // Solo si querés forzar color sólido (opcional):
+                ->extraAttributes(['class' => ''])
             // TextColumn::make('Detalles')
             //     ->action(
             //         Action::make('verDetalles')
@@ -88,7 +96,7 @@ class ListaDigital extends Page implements HasTable
             //             }),
             //     )
             // EL MANEJO DE ESTADO DE TICKETS ES PARA FUTURAS VERSIONES PORQUE ESO SOLAMENTE APLICA CUANDO SE VENDEN ENTRADAS INDIVIDUALES COMO EN EVENTIN
-                // SelectColumn::make('status')
+            // SelectColumn::make('status')
             //     ->label('Estado')
             //     ->options([
             //         'valid' => 'Valido',
@@ -100,7 +108,7 @@ class ListaDigital extends Page implements HasTable
             //     ->selectablePlaceholder(false)
             //     ->searchable()
             //     ->default('valid'),
-                
+
         ];
     }
 
@@ -122,6 +130,11 @@ class ListaDigital extends Page implements HasTable
                     ->label('Reenviar por Email')
                     ->icon('heroicon-o-envelope')
                     ->requiresConfirmation()
+                    ->modalHeading('Reenviar entradas')
+                    ->modalDescription('')
+                    ->modalSubmitActionLabel('Si, enviar')
+                    ->modalCancelActionLabel('Cancelar')
+                    ->modalIcon('heroicon-o-envelope')
                     ->action(fn($record) => $this->reenviarEntrada($record)),
 
                 Action::make('reenviar_whatsapp')
@@ -150,7 +163,8 @@ class ListaDigital extends Page implements HasTable
             ->striped()                                 // zebra
             ->paginated([10, 25])                       // solo 10 / 25
             ->defaultPaginationPageOption(25)           // 25 por defecto
-            ->defaultSort('id', 'desc');
+            ->defaultSort('id', 'desc')
+            ->searchPlaceholder('Buscar por nombre o email...');
     }
 
     /* ---------- Métodos auxiliares ---------- */
@@ -195,9 +209,9 @@ class ListaDigital extends Page implements HasTable
                 ->url(
                     EventoResource::getUrl('detalles', ['record' => $this->record])
                 )
-                ->color('secondary')
+                ->color('primary')
                 ->button()
-                ->extraAttributes(['class' => 'btn-volver']),
+                ->extraAttributes(['class' => 'fi-btn-color-primary']),
         ];
     }
 }

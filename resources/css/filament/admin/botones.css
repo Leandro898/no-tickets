@@ -26,14 +26,17 @@
     }
 
     .btn-detalles svg {
-        @apply w-8 h-8 text-violet-600 transition-colors duration-300;
+        @apply w-8 h-8 text-white transition-colors duration-300;
     }
-
+    
     .btn-detalles:hover svg {
-        @apply text-violet-700;
+        @apply text-white;
     }
 
-    /* Variante “danger” */
+    /* ───────────────────────────────
+       BOTON DE CANCELAR EVENTO
+    ────────────────────────────────*/
+    
     .btn-detalles.danger,
     .btn-detalles[color="danger"] {
         @apply text-red-600;

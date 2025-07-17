@@ -82,12 +82,13 @@ class CreateEntrada extends CreateRecord
             $this
                 ->getCreateFormAction()
                 ->label('Crear Entrada')
-                ->color('success'),
+                ->color('success')
+                ->extraAttributes(['class' => 'fi-btn-color-primary']),
 
             $this
                 ->getCancelFormAction()
                 ->label('Cancelar')
-                ->extraAttributes(['class' => 'fi-color-primary']),
+                ->extraAttributes(['class' => 'fi-btn-color-secondary']),
         ];
     }
 

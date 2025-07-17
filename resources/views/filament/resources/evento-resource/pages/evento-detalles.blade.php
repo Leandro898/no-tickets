@@ -30,6 +30,10 @@
                 </div>
             </div>
 
+            {{-- ESPACIADOR --}}
+            
+            <div class="h-8"></div> {{-- Espaciador de 80px de alto --}}
+
             {{-- BOTONES DE ACCIÓN --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <x-filament::button

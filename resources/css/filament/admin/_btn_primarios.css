@@ -2,10 +2,50 @@
     /* ───────────────────────────────
        BOTÓN PRIMARIO · GUARDAR CAMBIOS · CREAR EVENTO
     ────────────────────────────────*/
-    .fi-ac-btn-action.fi-color-success {
-        /* branding violeta + tamaño medio-grande */
-        @apply bg-[#7c3aed] text-white font-semibold rounded-lg px-7 py-3 text-base shadow-sm transition-colors duration-150;
+    /* Botón primario (Crear Evento) */
+    .fi-btn-color-primary {
+        background: #a21caf !important; /* violeta fuerte o el color de tu marca */
+        color: #fff !important;
+        border: none !important;
+        font-weight: 600;
+        box-shadow: 0 2px 8px #a21caf22;
+        transition: background 0.2s;
+    }
+    .fi-btn-color-primary:hover {
+        background: #86198f !important; /* un violeta más oscuro al hover */
     }
 
+    /* ───────────────────────────────
+       BOTÓN SECUNDARIO · GUARDAR CAMBIOS · CREAR EVENTO
+    ────────────────────────────────*/
+
+    /* Botón secundario (Cancelar) */
+    .fi-btn-color-secondary {
+        background: #fff !important;
+        color: #a21caf !important;
+        border: 2px solid #a21caf !important;
+        font-weight: 600;
+    }
+    .fi-btn-color-secondary:hover {
+        background: #f3e8ff !important;
+    }
+
+    /* ───────────────────────────────
+       BOTON DE NUEVA ENTRADA EN LA VISTA GESTIONAR ENTRADAS
+    ────────────────────────────────*/
+    
+    .fi-btn-color-nueva-entrada {
+        background-color: #a020f0 !important;
+        color: #fafafa !important;
+        border: 1.5px solid #a020f0 !important;
+        /* opacity: 1 !important; */
+    }
+    .fi-btn-color-nueva-entrada:hover {
+        background-color: #c4b5fd !important;
+    }
+    .fi-btn-color-nueva-entrada:disabled {
+        background-color: #ede9fe !important;
+        color: #c4b5fd !important;
+    }
     
 }

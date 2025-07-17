@@ -22,8 +22,30 @@ export default {
             },
             colors: {
                 primary: '#7c3aed',
-                500: '#a084ee', // violeta claro
-                600: '#7c3aed', // violeta principal
+                500: '#a084ee',
+                600: '#7c3aed',
+                // <<<<< AÑADÍ ESTO >>>>>
+                success: {
+                    DEFAULT: '#22c55e', // tailwind green-500
+                    50: '#f0fdf4',
+                    100: '#dcfce7',
+                    200: '#bbf7d0',
+                    300: '#86efac',
+                    400: '#4ade80',
+                    500: '#22c55e', // verde principal
+                    600: '#16a34a',
+                    700: '#15803d',
+                    800: '#166534',
+                    900: '#14532d',
+                },
+                warning: {
+                    DEFAULT: '#facc15', // tailwind yellow-400
+                    500: '#facc15',
+                },
+                danger: {
+                    DEFAULT: '#ef4444', // tailwind red-500
+                    500: '#ef4444',
+                },
             },
         },
     },
