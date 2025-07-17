@@ -6,6 +6,7 @@
   <title>@yield('title', config('app.name'))</title>
   <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/tickets-pro.png') }}">
   @vite('resources/css/app.css')
+  
   @stack('styles')
   <style>
     html { overflow-y: scroll; }
@@ -42,5 +43,6 @@
   <script src="//unpkg.com/alpinejs" defer></script>
   {{-- Menu flotante --}}
   @include('components.front-floating-menu')
+  
 </body>
 </html>
