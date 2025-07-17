@@ -216,8 +216,8 @@ Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
     ->middleware('auth')
     ->name('password.setup.store');
 
-
-
+//prueba
+Route::get('/test-counter', fn() => view('test-counter'));
 
 
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc

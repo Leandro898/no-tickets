@@ -1,27 +1,36 @@
 <div>
+    {{-- Botón principal en tu grid --}}
     <x-filament::button
         type="button"
-        icon="heroicon-o-x-circle"
-        class="btn-detalles danger"
-        wire:click="$set('mostrarModal', true)"
+        color="danger"
+        wire:click="abrirModal"
+        class="btn-detalles"
     >
         Suspender evento
     </x-filament::button>
 
-    @if($mostrarModal)
+    {{-- Modal de confirmación Livewire --}}
+    @if ($mostrarModal)
         <div class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
             <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                <h4 class="text-lg font-semibold mb-4 text-purple-800">¿Estás seguro?</h4>
-                <p>Esta acción suspenderá el evento y no podrá vender más entradas.</p>
-                <div class="mt-6 flex gap-2 justify-center">
+                <h4 class="text-lg font-semibold mb-4 text-red-700">
+                    ¿Estás seguro de eliminar este evento?
+                </h4>
+                <p class="mb-4">Esta acción es irreversible.</p>
+                <div class="flex justify-center gap-2">
                     <x-filament::button
+                        type="button"
                         color="danger"
                         wire:click="suspender"
-                    >Sí, suspender</x-filament::button>
+                    >
+                        Sí, eliminar
+                    </x-filament::button>
                     <x-filament::button
-                        color="secondary"
-                        wire:click="$set('mostrarModal', false)"
-                    >Cancelar</x-filament::button>
+                        type="button"
+                        wire:click="cancelar"
+                    >
+                        Cancelar
+                    </x-filament::button>
                 </div>
             </div>
         </div>

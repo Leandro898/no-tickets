@@ -8,30 +8,39 @@ use Filament\Notifications\Notification;
 
 class SuspenderEvento extends Component
 {
-    public $eventoId;
-    public $mostrarModal = false;
+    public int  $eventoId;
+    public bool $mostrarModal = false;
 
-    public function mount($eventoId)
+    public function mount(int $eventoId)
     {
         $this->eventoId = $eventoId;
     }
 
+    public function abrirModal(): void
+    {
+        $this->mostrarModal = true;
+    }
+
+    public function cancelar(): void
+    {
+        $this->mostrarModal = false;
+    }
+
     public function suspender()
     {
-        $evento = Evento::findOrFail($this->eventoId);
+        // Borramos (o suspendemos) el evento
+        Evento::findOrFail($this->eventoId)->delete();
 
-        dd('OK'); // Debería aparecerte cuando hagas click en el botón "Sí, suspender"
-
-        $evento->estado = 'suspended';
-        $evento->save();
-
+        // Notificamos
         Notification::make()
-            ->title('Evento suspendido correctamente.')
+            ->title('Evento eliminado correctamente.')
             ->success()
             ->send();
 
-        return redirect()->route('filament.admin.resources.eventos.index');
+        // Redirige con la API de Livewire
+        return $this->redirectRoute('filament.admin.resources.eventos.index');
     }
+
 
     public function render()
     {

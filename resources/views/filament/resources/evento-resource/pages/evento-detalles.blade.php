@@ -60,9 +60,6 @@
                 </x-filament::button> --}}
                 <livewire:suspender-evento :eventoId="$record->id" />
 
-                {{-- PRUEBA DEBUG --}}
-                <livewire:test-counter />
-
             </div>
         </div>
 
