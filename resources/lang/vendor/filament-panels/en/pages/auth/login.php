@@ -2,19 +2,19 @@
 
 return [
 
-    'title' => 'Ingresar',
+    'title' => 'Login',
 
-    'heading' => 'ACCESO PARA PRODUCTOR',
+    'heading' => 'Sign in',
 
     'actions' => [
 
         'register' => [
-            'before' => 'o',
-            'label' => 'crear una cuenta',
+            'before' => 'or',
+            'label' => 'sign up for an account',
         ],
 
         'request_password_reset' => [
-            'label' => 'Perdiste la contraseña?',
+            'label' => 'Forgot password?',
         ],
 
     ],
@@ -22,21 +22,21 @@ return [
     'form' => [
 
         'email' => [
-            'label' => 'Email',
+            'label' => 'Email address',
         ],
 
         'password' => [
-            'label' => 'Contraseña',
+            'label' => 'Password',
         ],
 
         'remember' => [
-            'label' => 'Mantener conectado',
+            'label' => 'Remember me',
         ],
 
         'actions' => [
 
             'authenticate' => [
-                'label' => 'Ingresar',
+                'label' => 'Sign in',
             ],
 
         ],
@@ -45,15 +45,15 @@ return [
 
     'messages' => [
 
-        'failed' => 'Estas credenciales no coinciden con nuestros registros.',
+        'failed' => 'These credentials do not match our records.',
 
     ],
 
     'notifications' => [
 
         'throttled' => [
-            'title' => 'Demasiados intentos de inicio de sesión',
-            'body' => 'Por favor, inténtelo de nuevo en :segundos segundos.',
+            'title' => 'Too many login attempts',
+            'body' => 'Please try again in :seconds seconds.',
         ],
 
     ],

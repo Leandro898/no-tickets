@@ -8,8 +8,8 @@
     $getLogoClasses = fn (bool $isDarkMode): string => \Illuminate\Support\Arr::toCssClasses([
         'fi-logo',
         'flex' => ! $hasDarkModeBrandLogo,
-        'flex' => $hasDarkModeBrandLogo && (! $isDarkMode),
-        'hidden' => $hasDarkModeBrandLogo && $isDarkMode,
+        'flex dark:hidden' => $hasDarkModeBrandLogo && (! $isDarkMode),
+        'hidden dark:flex' => $hasDarkModeBrandLogo && $isDarkMode,
     ]);
 
     $logoStyles = "height: {$brandLogoHeight}";
@@ -41,7 +41,7 @@
             {{
                 $attributes->class([
                     $getLogoClasses($isDarkMode),
-                    'text-xl font-bold leading-5 tracking-tight text-gray-950',
+                    'text-xl font-bold leading-5 tracking-tight text-gray-950 dark:text-white',
                 ])
             }}
         >

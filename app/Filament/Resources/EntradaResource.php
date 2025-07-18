@@ -45,12 +45,6 @@ class EntradaResource extends Resource
                     ->label('Nombre de la Entrada')
                     ->placeholder('Ej: Entrada General, VIP, Early Bird'),
 
-                Forms\Components\Textarea::make('descripcion')
-                    ->rows(3)
-                    ->maxLength(500)
-                    ->columnSpanFull()
-                    ->label('Descripción'),
-
                 Forms\Components\Grid::make()
                     ->schema([
                         Forms\Components\TextInput::make('precio')
@@ -67,40 +61,46 @@ class EntradaResource extends Resource
                             ->label('Stock Inicial (Cantidad total de entradas disponible)'),
                     ])
                     ->columns(2),
+                
+                Forms\Components\Textarea::make('descripcion')
+                    ->rows(3)
+                    ->maxLength(100)
+                    //->columnSpanFull()
+                    ->label('Descripción'),
 
                 Forms\Components\TextInput::make('max_por_compra')
                     ->numeric()
                     ->nullable()
                     ->minValue(1)
                     ->label('Máximo de entradas por Compra')
-                    ->placeholder('Dejar vacío para ilimitado por compra')
-                    ->columnSpanFull(),
+                    ->placeholder('Dejar vacío para ilimitado por compra'),
+                    //->columnSpanFull(),
 
-                Forms\Components\Toggle::make('valido_todo_el_evento')
-                    ->label('Este producto es válido para cualquier día del evento')
-                    ->reactive()
-                    ->columnSpanFull()
-                    ->helperText('Si está activo, no se usan fechas específicas de validez. Por lo tanto es válido para cualquier día del evento o todo el dia del evento si es un solo día'),
+                // Forms\Components\Toggle::make('valido_todo_el_evento')
+                //     ->label('Este producto es válido para cualquier día del evento')
+                //     ->reactive()
+                //     ->columnSpanFull()
+                //     ->helperText('Si está activo, no se usan fechas específicas de validez. Por lo tanto es válido para cualquier día del evento o todo el dia del evento si es un solo día'),
 
-                Forms\Components\Fieldset::make('Fechas de validez')
-                    ->schema([
-                        Forms\Components\Grid::make()
-                            ->schema([
-                                Forms\Components\DateTimePicker::make('disponible_desde')
-                                    ->label('Disponible Desde')
-                                    ->nullable()
-                                    ->seconds(false),
+                // Forms\Components\Fieldset::make('Fechas de validez')
+                //     ->schema([
+                //         Forms\Components\Grid::make()
+                //             ->schema([
+                //                 Forms\Components\DateTimePicker::make('disponible_desde')
+                //                     ->label('Disponible Desde')
+                //                     ->nullable()
+                //                     ->seconds(false),
 
-                                Forms\Components\DateTimePicker::make('disponible_hasta')
-                                    ->label('Disponible Hasta')
-                                    ->nullable()
-                                    ->seconds(false),
-                            ])
-                            ->columns(2),
-                    ])
-                    ->visible(fn(callable $get) => !$get('valido_todo_el_evento'))
-                    ->columnSpanFull()
-                    ->extraAttributes(['class' => 'mt-6']),
+                //                 Forms\Components\DateTimePicker::make('disponible_hasta')
+                //                     ->label('Disponible Hasta')
+                //                     ->nullable()
+                //                     ->seconds(false),
+                //             ])
+                //             ->columns(2),
+                //     ])
+                //     ->visible(fn(callable $get) => !$get('valido_todo_el_evento'))
+                //     ->columnSpanFull()
+                //     ->extraAttributes(['class' => 'mt-6']),
             ]);
     }
 

@@ -88,46 +88,46 @@ class EventoResource extends Resource
                 ])
                 ->columnSpanFull()
                 ->icon('heroicon-o-information-circle')
-                ->collapsible()
-                ->collapsed(),
+                ->collapsible(),
+                //->collapsed()
 
-            Section::make('Restricciones y requisitos')
-                ->description('Configura los requisitos para los asistentes.')
-                ->schema([
-                    // 1) Toggle para habilitar edad mínima
-                    Toggle::make('restringir_edad')
-                        ->label('¿Restringir por edad mínima?')
-                        ->reactive(),  // importante para que los campos dependientes reaccionen
+            // Section::make('Restricciones y requisitos')
+            //     ->description('Configura los requisitos para los asistentes.')
+            //     ->schema([
+            //         // 1) Toggle para habilitar edad mínima
+            //         Toggle::make('restringir_edad')
+            //             ->label('¿Restringir por edad mínima?')
+            //             ->reactive(),  // importante para que los campos dependientes reaccionen
 
-                    // 2) Campos numéricos, sólo visibles si el toggle está activo
-                    Grid::make(2)
-                        ->schema([
-                            TextInput::make('edad_min_hombres')
-                                ->label('Edad mínima Hombres')
-                                ->numeric()
-                                ->minValue(0)
-                                ->default(18)
-                                ->visible(fn(callable $get) => $get('restringir_edad')),
+            //         // 2) Campos numéricos, sólo visibles si el toggle está activo
+            //         Grid::make(2)
+            //             ->schema([
+            //                 TextInput::make('edad_min_hombres')
+            //                     ->label('Edad mínima Hombres')
+            //                     ->numeric()
+            //                     ->minValue(0)
+            //                     ->default(18)
+            //                     ->visible(fn(callable $get) => $get('restringir_edad')),
 
-                            TextInput::make('edad_min_mujeres')
-                                ->label('Edad mínima Mujeres')
-                                ->numeric()
-                                ->minValue(0)
-                                ->default(18)
-                                ->visible(fn(callable $get) => $get('restringir_edad')),
-                        ])
-                        ->columns(2)
-                        ->columnSpanFull(),
+            //                 TextInput::make('edad_min_mujeres')
+            //                     ->label('Edad mínima Mujeres')
+            //                     ->numeric()
+            //                     ->minValue(0)
+            //                     ->default(18)
+            //                     ->visible(fn(callable $get) => $get('restringir_edad')),
+            //             ])
+            //             ->columns(2)
+            //             ->columnSpanFull(),
 
-                    // 3) Toggle para requerir DNI
-                    Toggle::make('requerir_dni')
-                        ->label('¿Requerir DNI para la compra?')
-                        ->helperText('Tus asistentes deberán ingresar su DNI al comprar.')
-                        ->inline(false),
-                ])
-                ->icon('heroicon-o-identification')
-                ->collapsible()
-                ->collapsed(),
+            //         // 3) Toggle para requerir DNI
+            //         Toggle::make('requerir_dni')
+            //             ->label('¿Requerir DNI para la compra?')
+            //             ->helperText('Tus asistentes deberán ingresar su DNI al comprar.')
+            //             ->inline(false),
+            //     ])
+            //     ->icon('heroicon-o-identification')
+            //     ->collapsible()
+            //     ->collapsed(),
 
             Section::make('Presentación')
                 ->description('Una buena descripción y banner aumentan la conversión.')

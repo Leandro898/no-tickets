@@ -3,8 +3,8 @@
 return [
 
     'field' => [
-        'label' => 'Buscar',
-        'placeholder' => 'Buscar',
+        'label' => 'Global search',
+        'placeholder' => 'Search',
     ],
 
     'no_results_message' => 'No search results found.',
