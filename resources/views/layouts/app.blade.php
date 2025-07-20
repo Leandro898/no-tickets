@@ -30,9 +30,9 @@
     <div class="container mx-auto text-center space-y-2">
       <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
       <div class="flex justify-center gap-4">
-        <a href="/privacy" class="hover:text-white">Política de privacidad</a>
-        <a href="/terms"   class="hover:text-white">Términos de uso</a>
-        <a href="/contact" class="hover:text-white">Contacto</a>
+        <a href="#" class="hover:text-white">Política de privacidad</a>
+        <a href="#"   class="hover:text-white">Términos de uso</a>
+        <a href="#" class="hover:text-white">Contacto</a>
       </div>
     </div>
   </footer>

@@ -11,7 +11,7 @@
     @endslot
 
     {{-- 2) Saludo destacado --}}
-    # {{ $greeting }}
+     {{ $greeting }}
 
     {{-- 3) Descripción del flujo --}}
     <p>¡Gracias por unirte a {{ config('app.name') }}! Tu cuenta ha sido creada exitosamente.</p>

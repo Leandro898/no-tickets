@@ -11,13 +11,19 @@
   <style>
     /* Quitar flechas de inputs numéricos */
     input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
   </style>
 @endpush
 
 @section('content')
   <div class="max-w-7xl mx-auto px-4 pt-6 pb-8">
+
     {{-- Botón "Volver a Eventos" --}}
     <div class="flex justify-end mb-4">
       <a href="/"
@@ -72,81 +78,87 @@
           </span>
         </div>
 
-        {{-- Entradas desde (compacto y centrado horizontal) --}}
-<div class="flex justify-center">
-  <div class="bg-purple-600 text-white rounded-xl p-2 text-center shadow max-w-xs w-full">
-    <div class="text-xs sm:text-sm font-medium">Entradas desde</div>
-    <div class="text-lg sm:text-xl font-extrabold my-0.5">
-      ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
-    </div>
-  </div>
-</div>
+        {{-- Entradas desde --}}
+        <div class="flex justify-center">
+          <div class="bg-purple-600 text-white rounded-xl p-2 text-center shadow max-w-xs w-full">
+            <div class="text-xs sm:text-sm font-medium">Entradas desde</div>
+            <div class="text-lg sm:text-xl font-extrabold my-0.5">
+              ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
+            </div>
+          </div>
+        </div>
 
-
-
-
-        {{-- Formulario de compra split --}}
+        {{-- Formulario de compra / Mensaje agotado --}}
         @foreach($evento->entradas as $entrada)
-          <form action="{{ route('eventos.comprar.split.store', $evento) }}"
-                method="POST" x-data="{ qty: 1 }"
-                class="bg-white rounded-xl p-5 shadow border border-purple-100">
-            @csrf
-            <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
+          @if($entrada->stock_actual > 0)
+            <form action="{{ route('eventos.comprar.split.store', $evento) }}"
+                  method="POST" x-data="{ qty: 1 }"
+                  class="bg-white rounded-xl p-5 shadow border border-purple-100">
+              @csrf
+              <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
 
-            {{-- Fecha y hora --}}
-            <div class="text-sm font-bold text-gray-700 mb-2">
-              {{ \Carbon\Carbon::parse($evento->fecha_inicio)
-                   ->locale('es')
-                   ->translatedFormat('l d \\d\\e F, H:i') }} hs
-            </div>
-
-            {{-- Nombre y precio --}}
-            <div class="flex justify-between items-center mb-4">
-              <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
-              <div class="text-lg font-bold text-gray-900">
-                ${{ number_format($entrada->precio, 0, ',', '.') }}
+              {{-- Fecha y hora --}}
+              <div class="text-sm font-bold text-gray-700 mb-2">
+                {{ \Carbon\Carbon::parse($evento->fecha_inicio)
+                     ->locale('es')
+                     ->translatedFormat('l d \\d\\e F, H:i') }} hs
               </div>
-            </div>
 
-            {{-- Stepper --}}
-            <div class="flex justify-center items-center space-x-4 mb-4">
-              <button type="button" @click="qty = Math.max(1, qty - 1)"
-                      class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl transition-shadow shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                −
-              </button>
-              <input type="number" name="cantidad" x-model.number="qty"
-                     min="1" max="{{ $entrada->stock_actual }}"
-                     class="w-16 h-10 text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" />
-              <button type="button"
-                      @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
-                      class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl transition-shadow shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500">
-                +
-              </button>
-            </div>
-
-            {{-- Total y botón Comprar (destacado) --}}
-            <div class="flex justify-between items-center">
-              <div class="text-gray-700 font-medium">
-                Total:
-                <span class="font-bold"
-                      x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
-                </span>
+              {{-- Nombre y precio --}}
+              <div class="flex justify-between items-center mb-4">
+                <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
+                <div class="text-lg font-bold text-gray-900">
+                  ${{ number_format($entrada->precio, 0, ',', '.') }}
+                </div>
               </div>
-              <button type="submit"
-                      class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full transition-shadow shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400">
-                Comprar
-              </button>
+
+              {{-- Stepper --}}
+              <div class="flex justify-center items-center space-x-4 mb-4">
+                <button type="button" @click="qty = Math.max(1, qty - 1)"
+                        class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+                  −
+                </button>
+                <input type="number" name="cantidad" x-model.number="qty"
+                       min="1" max="{{ $entrada->stock_actual }}"
+                       class="w-16 h-10 text-center border border-gray-300 rounded-lg" />
+                <button type="button"
+                        @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
+                        class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+                  +
+                </button>
+              </div>
+
+              {{-- Total y botón Comprar --}}
+              <div class="flex justify-between items-center">
+                <div class="text-gray-700 font-medium">
+                  Total:
+                  <span class="font-bold"
+                        x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
+                  </span>
+                </div>
+                <button type="submit"
+                        class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full">
+                  Comprar
+                </button>
+              </div>
+            </form>
+          @else
+            {{-- Mensaje si está agotado --}}
+            <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center">
+              Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
             </div>
-          </form>
+          @endif
         @endforeach
+
       </div>
     </div>
   </div>
 @endsection
 
 @push('scripts')
-  {{-- Alpine.js para stepper --}}
+  {{-- Alpine.js para stepper y contador --}}
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
   {{-- Contador dinámico --}}
   <script>
     (function(){

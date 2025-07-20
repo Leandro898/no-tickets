@@ -5,7 +5,7 @@
 
 @section('content')
   <div class="flex flex-1 items-center justify-center px-2">
-    <div class="w-full max-w-4xl bg-white rounded-[240px] shadow-2xl px-6 sm:px-14 md:px-20 py-10 mx-auto mb-12">
+    <div class="w-full max-w-4xl bg-white rounded-[100px] shadow-2xl px-6 sm:px-14 md:px-20 py-10 mx-auto mb-12">
 
       {{-- Resumen de selección previa --}}
       <div class="bg-violet-50 border-l-4 border-violet-500 rounded-2xl px-7 py-6 mb-10 shadow flex flex-col gap-3">
@@ -74,7 +74,7 @@
                 <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-white text-gray-600">
                   +54
                 </span>
-                <input id="whatsapp" name="whatsapp" type="text" placeholder="11 1234-5678"
+                <input id="whatsapp" name="whatsapp" type="text" placeholder="2944 123456"
                        class="flex-1 rounded-r-lg border border-gray-300 px-4 py-3 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-transparent" />
               </div>
             </div>

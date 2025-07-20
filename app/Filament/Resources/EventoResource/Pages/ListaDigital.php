@@ -135,7 +135,7 @@ class ListaDigital extends Page implements HasTable
                     ->modalSubmitActionLabel('Si, enviar')
                     ->modalCancelActionLabel('Cancelar')
                     ->modalIcon('heroicon-o-envelope')
-                    ->action(fn($record) => $this->reenviarEntrada($record)),
+                    ->action(fn(PurchasedTicket $ticket) => $this->reenviarEntrada($ticket)),
 
                 Action::make('reenviar_whatsapp')
                     ->label('Enviar por WhatsApp')
@@ -169,24 +169,40 @@ class ListaDigital extends Page implements HasTable
 
     /* ---------- Métodos auxiliares ---------- */
 
-    public function reenviarEntrada($ticketId): void
+    
+    public function reenviarEntrada(PurchasedTicket $ticket): void
     {
-        $ticket = PurchasedTicket::find($ticketId);
+    //     dd([
+    //     'mail.default'    => config('mail.default'),
+    //     'smtp settings'   => config('mail.mailers.smtp'),
+    // ]);
+    
+        $ticket->load('order');
 
-        if ($ticket && $ticket->order?->buyer_email) {
-            Mail::to($ticket->order->buyer_email)->send(
-                new TicketsPurchasedMail($ticket->order, [$ticket])
-            );
+        $email = $ticket->order?->buyer_email;
 
+        if (empty($email)) {
             Notification::make()
-                ->title('Entrada reenviada')
-                ->body('El email con las entradas fue reenviado a ' . $ticket->order->buyer_email)
-                ->success()
+                ->title('Sin email de comprador')
+                ->warning()
                 ->send();
+
+            return;
         }
+
+        Mail::to($email)
+            ->send(new TicketsPurchasedMail($ticket->order, [$ticket]));
+
+        Notification::make()
+            ->title('Entrada reenviada')
+            ->body("El email con las entradas fue reenviado a {$email}")
+            ->success()
+            ->send();
 
         $this->dispatch('$refresh');
     }
+
+
 
     public function toggleEstado($ticketId): void
     {
