@@ -108,7 +108,7 @@ class EditEntrada extends EditRecord
         }
 
         // Debug: ahora debería incluir 'agregar_stock'
-        Log::info('Estado form al guardar:', $this->form->getState());
+        //Log::info('Estado form al guardar:', $this->form->getState());
 
         // Suma el stock
         $adicional = intval($this->form->getState()['agregar_stock'] ?? 0);

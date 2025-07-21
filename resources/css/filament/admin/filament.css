@@ -21,6 +21,7 @@
 @tailwind utilities;
 
 @layer utilities {
+
     /* PRUEBAS NUEVAS */
     .fi-btn-icon {
         color: #fbfbfb !important;
@@ -40,23 +41,26 @@
         font-weight: 500;
         transition: background 0.2s, color 0.2s;
     }
-    
+
     .fi-btn-color-primary.btn-detalles svg {
         color: #7c3aed !important;
         width: 2.5rem;
         height: 2.5rem;
         transition: color 0.2s;
     }
-    
+
     .fi-btn-color-primary.btn-detalles:hover {
-        background: #f5f3ff !important; /* Un fondo violeta MUY CLARO al pasar mouse */
-        color: #5b21b6 !important;      /* Violeta más oscuro al hover */
+        background: #f5f3ff !important;
+        /* Un fondo violeta MUY CLARO al pasar mouse */
+        color: #5b21b6 !important;
+        /* Violeta más oscuro al hover */
         border-color: #7c3aed !important;
     }
-    
+
     .fi-btn-color-primary.btn-detalles:hover svg {
-        color: #5b21b6 !important;      /* Ícono más oscuro al hover */
+        color: #5b21b6 !important;
+        /* Ícono más oscuro al hover */
     }
-    
+
     
 }
