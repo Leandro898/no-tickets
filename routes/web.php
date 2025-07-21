@@ -25,6 +25,7 @@ use App\Http\Controllers\MagicLinkController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Http\Controllers\Admin\DashboardController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -218,6 +219,13 @@ Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
 
 //prueba
 Route::get('/test-counter', fn() => view('test-counter'));
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    });
 
 
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc

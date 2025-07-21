@@ -12,6 +12,6 @@
 
 <div class="logo-mobile flex items-center pl-4 font-bold text-lg text-primary-600">
     <a href="{{ url('/admin/eventos') }}">
-        Innova Ticket
+        Tickets Pro
     </a>
 </div>

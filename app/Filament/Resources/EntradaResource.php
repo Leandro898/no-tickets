@@ -19,6 +19,13 @@ use Filament\Forms\Components\DateTimePicker; // Para campos de fecha y hora
 use Filament\Forms\Components\Checkbox; // Ya lo tienes, pero para recordar
 use Filament\Forms\Components\Hidden; // Ya lo tienes, pero para recordar
 use Filament\Forms\Components\Select; // Si en algún momento necesitas un selector de eventos en el form principal
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\Log;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Card;
+
+
 
 class EntradaResource extends Resource
 {
@@ -35,74 +42,64 @@ class EntradaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Hidden::make('evento_id')
+                Hidden::make('evento_id')
                     ->default(fn() => request()->get('evento_id'))
                     ->required(),
 
-                Forms\Components\TextInput::make('nombre')
-                    ->required()
-                    ->maxLength(255)
+                TextInput::make('nombre')
                     ->label('Nombre de la Entrada')
-                    ->placeholder('Ej: Entrada General, VIP, Early Bird'),
+                    ->placeholder('Ej: Entrada General, VIP, Early Bird')
+                    ->required()
+                    ->columnSpanFull(),
 
-                Forms\Components\Grid::make()
+                Grid::make(2)
                     ->schema([
-                        Forms\Components\TextInput::make('precio')
+                        TextInput::make('stock_inicial')
+                            ->label('Stock Inicial')
                             ->numeric()
-                            ->required()
-                            ->step(0.01)
-                            ->prefix('ARS$')
-                            ->label('Precio'),
-
-                        Forms\Components\TextInput::make('stock_inicial')
-                            ->numeric()
-                            ->required()
                             ->minValue(0)
-                            ->label('Stock Inicial (Cantidad total de entradas disponible)'),
-                    ])
-                    ->columns(2),
-                
-                Forms\Components\Textarea::make('descripcion')
-                    ->rows(3)
-                    ->maxLength(100)
-                    //->columnSpanFull()
-                    ->label('Descripción'),
+                            ->required()
+                            // siempre visible, pero no editable al editar
+                            ->disabledOn(EditRecord::class)
+                            ->columnSpan(2),
 
-                Forms\Components\TextInput::make('max_por_compra')
-                    ->numeric()
-                    ->nullable()
-                    ->minValue(1)
+                        TextInput::make('agregar_stock')
+                            ->label('Agregar más entradas')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(0)
+                            ->helperText('Cantidad a sumar al stock actual')
+                            // solo en editar
+                            ->visibleOn(EditRecord::class)
+                            ->hiddenOn(CreateRecord::class)
+                            ->columnSpan(2),
+                    ]),
+
+                Grid::make(2)
+                    ->schema([
+                        TextInput::make('precio')
+                            ->label('Precio')
+                            ->prefix('ARS$')
+                            ->numeric()
+                            ->step(0.01)
+                            ->required(),
+
+                        Textarea::make('descripcion')
+                            ->label('Descripción')
+                            ->rows(3)
+                            ->maxLength(200),
+                    ]),
+
+                TextInput::make('max_por_compra')
                     ->label('Máximo de entradas por Compra')
-                    ->placeholder('Dejar vacío para ilimitado por compra'),
-                    //->columnSpanFull(),
-
-                // Forms\Components\Toggle::make('valido_todo_el_evento')
-                //     ->label('Este producto es válido para cualquier día del evento')
-                //     ->reactive()
-                //     ->columnSpanFull()
-                //     ->helperText('Si está activo, no se usan fechas específicas de validez. Por lo tanto es válido para cualquier día del evento o todo el dia del evento si es un solo día'),
-
-                // Forms\Components\Fieldset::make('Fechas de validez')
-                //     ->schema([
-                //         Forms\Components\Grid::make()
-                //             ->schema([
-                //                 Forms\Components\DateTimePicker::make('disponible_desde')
-                //                     ->label('Disponible Desde')
-                //                     ->nullable()
-                //                     ->seconds(false),
-
-                //                 Forms\Components\DateTimePicker::make('disponible_hasta')
-                //                     ->label('Disponible Hasta')
-                //                     ->nullable()
-                //                     ->seconds(false),
-                //             ])
-                //             ->columns(2),
-                //     ])
-                //     ->visible(fn(callable $get) => !$get('valido_todo_el_evento'))
-                //     ->columnSpanFull()
-                //     ->extraAttributes(['class' => 'mt-6']),
+                    ->numeric()
+                    ->minValue(1)
+                    ->nullable()
+                    ->helperText('Dejar vacío para ilimitado')
+                    ->columnSpanFull(),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -114,7 +111,7 @@ class EntradaResource extends Resource
                 // --- Columnas de STOCK en la tabla ---
 
                 TextColumn::make('stock_inicial')->label('Stock Inicial'),
-                //TextColumn::make('stock_actual')->label('Stock Actual'),
+                TextColumn::make('stock_actual')->label('Stock Actual'),
                 TextColumn::make('max_por_compra')->label('Máx. x Compra'),
 
                 // --- Columnas de FECHA DE DISPONIBILIDAD ---
@@ -195,27 +192,29 @@ class EntradaResource extends Resource
     /** Esto inicializa el stock_actual con el valor que coloca el productor en stock_inicial */
     public static function mutateFormDataBeforeCreate(array $data): array
     {
-        $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
-
-        if (!$evento || $evento->organizador_id !== auth()->id()) {
-            abort(403, 'No estás autorizado para crear entradas en este evento.');
-        }
-
+        // validación de organizador…
         $data['stock_actual'] = $data['stock_inicial'] ?? 0;
-
         return $data;
     }
 
 
+    // YA SE EJECUTA EN EditEntrada.php
+    // public static function mutateFormDataBeforeSave(array $data): array
+    // {
+    //     // Validación de organizador
+    //     $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
+    //     if (!$evento || $evento->organizador_id !== auth()->id()) {
+    //         abort(403, 'No estás autorizado para modificar entradas en este evento.');
+    //     }
 
-    public static function mutateFormDataBeforeSave(array $data): array
-    {
-        $evento = \App\Models\Evento::find($data['evento_id'] ?? null);
+    //     // Opcional: log para debug
+    //     Log::info('mutateFormDataBeforeSave recibió:', $data);
 
-        if (!$evento || $evento->organizador_id !== auth()->id()) {
-            abort(403, 'No estás autorizado para modificar entradas en este evento.');
-        }
+    //     // Suma el stock adicional al stock_actual existente
+    //     $entrada = Entrada::findOrFail(request()->route('record'));
+    //     $adicional = intval(request()->input('agregar_stock', 0));
+    //     $data['stock_actual'] = $entrada->stock_actual + $adicional;
 
-        return $data;
-    }
+    //     return $data;
+    // }
 }
