@@ -8,9 +8,9 @@
   @vite('resources/css/app.css')
   
   @stack('styles')
-  <style>
+  <!-- <style>
     html { overflow-y: scroll; }
-  </style>
+  </style> -->
 </head>
 <body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-y-scroll')">
 
