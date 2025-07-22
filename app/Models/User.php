@@ -10,8 +10,13 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 // La línea "use Laravel\Sanctum\HasApiTokens;" debe estar comentada o eliminada
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Support\Facades\Log;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+
+
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     // ¡IMPORTANTE!: Quita 'HasApiTokens' de esta lnea si no vas a usar Sanctum
@@ -108,7 +113,7 @@ class User extends Authenticatable
     }
 
     // DECIR A FILAMENT LOS ROLES QUE TIENEN ACCESO
-    public function canAccessFilament(): bool
+    public function canAccessPanel(Panel $panel): bool
     {
         return $this->hasAnyRole(['admin', 'productor']);
     }

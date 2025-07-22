@@ -5,7 +5,7 @@
 
 @section('content')
   <div class="flex flex-1 items-center justify-center px-2">
-    <div class="w-full max-w-4xl bg-white rounded-[100px] shadow-2xl px-6 sm:px-14 md:px-20 py-10 mx-auto mb-12">
+    <div class="w-full max-w-4xl bg-white rounded-[95px] shadow-2xl px-6 sm:px-14 md:px-20 py-10 mx-auto mb-12">
 
       {{-- Resumen de selección previa --}}
       <div class="bg-violet-50 border-l-4 border-violet-500 rounded-2xl px-7 py-6 mb-10 shadow flex flex-col gap-3">

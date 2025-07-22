@@ -227,6 +227,20 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     });
 
+// RUTAS PARA ACTUALIZAR EL ESTADO DEL PEDIDO DE FORMA AUTOMATICA
+Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'])
+     ->name('purchase.approved');
+
+Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
+     ->name('purchase.rejected');
+
+// Para actualizar pagina de pending - compra pendiente
+Route::get('orders/{order}/status', function (Order $order) {
+    return response()->json([
+        'status' => $order->status, // asegúrate de que tu modelo tenga este campo
+    ]);
+});
+
 
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc
 require __DIR__ . '/auth.php';

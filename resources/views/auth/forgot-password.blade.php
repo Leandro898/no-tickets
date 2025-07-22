@@ -8,7 +8,7 @@
 <div class="flex items-center justify-center min-h-screen px-4 py-12">
   <div class="bg-white rounded-3xl shadow-lg w-full max-w-md p-8">
     <h1 class="text-3xl font-extrabold text-purple-700 mb-6 text-center">
-      Recuperar contraseña
+      Establecer contraseña
     </h1>
 
     {{-- 1) Aquí interceptamos el status de la sesión --}}

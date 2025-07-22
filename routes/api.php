@@ -2,25 +2,28 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MercadoPagoController; // Asegúrate de importar tu controlador
-use App\Http\Controllers\TicketValidationController;
+use App\Http\Controllers\MercadoPagoController;
+use App\Models\Order;
 
 /*
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
 */
 
-// Puedes dejar esta ruta de ejemplo que Laravel suele incluir
+// Ruta de ejemplo de Laravel Sanctum
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// --- ¡MUEVE TU RUTA DE WEBHOOK AQUÍ! ---
-// NOTA: Quita el prefijo '/api' de la URL aquí, ya que el archivo api.php ya lo añade automáticamente.
-Route::post('/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
+// 1️⃣ Webhook de Mercado Pago
+Route::post('mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])
+     ->name('mercadopago.webhook');
+
+// 2️⃣ Endpoint para el polling de status
+Route::get('orders/{order}/status', function (Order $order) {
+    return response()->json([
+        // aquí comprueba el campo que utilizas para guardar el estado
+        'status' => $order->payment_status,
+    ]);
+});

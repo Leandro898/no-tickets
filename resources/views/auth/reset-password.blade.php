@@ -7,7 +7,7 @@
 >
   <div class="max-w-md w-full bg-white shadow-xl rounded-xl p-8">
     <h2 class="text-2xl font-extrabold text-gray-900 mb-6 text-center">
-      {{ __('Recuperar contraseña') }}
+      {{ __('Establecer contraseña') }}
     </h2>
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-6">
@@ -84,7 +84,7 @@
                  rounded-md transition focus:outline-none focus:ring-2 
                  focus:ring-offset-2 focus:ring-purple-500"
         >
-          {{ __('Recuperar contraseña') }}
+          {{ __('Establecer contraseña') }}
         </button>
       </div>
     </form>

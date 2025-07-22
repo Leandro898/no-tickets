@@ -17,15 +17,15 @@
         <div class="swiper heroSwiper bg-black h-[250px] lg:h-[250px]">
             <div class="swiper-wrapper" style="margin:0;padding:0;">
                 <div class="swiper-slide" style="margin:0;padding:0;">
-                    <img src="{{ asset('storage/eventos/ej1.png') }}" alt="Ejemplo 1"
+                    <img src="{{ asset('storage/eventos/slider/ej1.png') }}" alt="Ejemplo 1"
                         class="w-full h-full object-contain object-center m-0 p-0" />
                 </div>
                 <div class="swiper-slide" style="margin:0;padding:0;">
-                    <img src="{{ asset('storage/eventos/ej2.jpg') }}" alt="Ejemplo 2"
+                    <img src="{{ asset('storage/eventos/slider/ej2.jpg') }}" alt="Ejemplo 2"
                         class="w-full h-full object-contain object-center m-0 p-0" />
                 </div>
                 <div class="swiper-slide" style="margin:0;padding:0;">
-                    <img src="{{ asset('storage/eventos/ej3.png') }}" alt="Ejemplo 3"
+                    <img src="{{ asset('storage/eventos/slider/ej3.png') }}" alt="Ejemplo 3"
                         class="w-full h-full object-contain object-center m-0 p-0" />
                 </div>
             </div>
