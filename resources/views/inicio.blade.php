@@ -113,6 +113,18 @@
             </div>
         </section>
 
+                {{-- CTA Publicar Evento --}}
+        <section class="mt-16 mb-20 text-center">
+            <div class="bg-purple-100 text-purple-800 px-6 py-10 rounded-2xl max-w-3xl mx-auto">
+                <h3 class="text-2xl font-bold mb-4">¿Querés publicar tu próximo evento?</h3>
+                <p class="mb-6 text-gray-700">Contactanos por WhatsApp y te ayudamos a promocionarlo en nuestra plataforma.</p>
+                <a href="https://wa.me/549XXXXXXXXXX" target="_blank"
+                    class="inline-block bg-purple-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+                    Escribinos por WhatsApp
+                </a>
+            </div>
+        </section>
+
     </div>
 @endsection
 
