@@ -6,7 +6,6 @@ use App\Http\Controllers\CompraEntradaSplitController;
 use App\Http\Controllers\TicketValidationController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\MercadoPagoOAuthController;
-use App\Livewire\TestScanner;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\Auth\RegistroProductorController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -69,12 +68,8 @@ Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showV
 //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 // Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
-Route::get('/scanner-test', TestScanner::class);
 
-// OTRO TEST FUERA DE FILAMENT
-/* Route::middleware(['auth', 'role:scanner'])->group(function () {
-    Route::get('/scanner-test', [ScannerController::class, 'index']);
-}); */
+
 
 // ULTIMO SCANNER
 Route::middleware(['auth'])->get('/scanner', function () {

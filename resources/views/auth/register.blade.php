@@ -6,7 +6,7 @@
 @section('body-class', 'bg-gradient-to-br from-purple-50 to-purple-100 overflow-y-scroll')
 
 @section('content')
-<div x-data="{ role: 'cliente' }" class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+<div x-data="{ role: 'cliente', loading: false }" class="min-h-screen flex items-center justify-center p-8">
     <div class="w-full max-w-md bg-white rounded-xl shadow-xl p-8">
 
         {{-- Selección de tipo de cuenta --}}
@@ -53,9 +53,13 @@
 
 
         {{-- Formulario --}}
-        <form method="POST" action="{{ route('register') }}" class="space-y-6">
+        <form
+            method="POST"
+            action="{{ route('register') }}"
+            class="space-y-6"
+            @submit="loading = true"
+        >
             @csrf
-
             <input type="hidden" name="role" :value="role">
 
             {{-- Nombre --}}
@@ -116,14 +120,28 @@
             <div>
                 <button
                     type="submit"
-                    class="w-full flex justify-center py-2 px-4 bg-purple-600 hover:bg-purple-700
-                        text-white font-semibold rounded-md transition focus:outline-none
-                        focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                    :disabled="loading"
+                    class="w-full flex items-center justify-center py-2 px-4
+                           bg-purple-600 hover:bg-purple-700 text-white font-semibold
+                           rounded-md transition focus:outline-none focus:ring-2
+                           focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    <span x-text="role === 'cliente' ? 'Crear cuenta como Cliente' : 'Crear cuenta como Productor'"></span>
+                    <!-- Texto normal -->
+                    <span x-show="!loading" x-text="role === 'cliente' ? 'Crear cuenta como Cliente' : 'Crear cuenta como Productor'"></span>
+
+                    <!-- Spinner + texto mientras carga -->
+                    <span x-show="loading" class="flex items-center space-x-2">
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                          <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                        </svg>
+                        <span>Cargando…</span>
+                    </span>
                 </button>
             </div>
         </form>
+
     </div>
 </div>
 @endsection

@@ -45,7 +45,7 @@
                         <a href="https://prueba.cyberespacio.online/admin/eventos" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
                             🗓️ <span>Eventos</span>
                         </a>
-                        <a href="https://prueba.cyberespacio.online/scanner-test" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
+                        <a href="https://prueba.cyberespacio.online/admin/ticket-scanner" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">
                             🔍 <span>Scanner</span>
                         </a>
                         <a href="https://prueba.cyberespacio.online/admin/oauth-connect-page" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded">

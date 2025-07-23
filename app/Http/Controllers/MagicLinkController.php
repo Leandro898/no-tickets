@@ -60,6 +60,8 @@ class MagicLinkController extends Controller
     {
         $request->validate([
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.confirmed' => 'La confirmación de contraseña no coincide.',
         ]);
 
         $user = Auth::user();
