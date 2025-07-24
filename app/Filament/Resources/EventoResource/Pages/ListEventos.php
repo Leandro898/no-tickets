@@ -17,16 +17,18 @@ class ListEventos extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('create')
-                ->label('Crear evento')
+            Action::make('crear-evento')               // Nombre único
+                ->label('Crear Evento')
                 ->icon('heroicon-o-plus')
                 ->modalHeading('¿Tendrá butacas numeradas?')
+                // 1) Definimos el form del modal
                 ->form([
                     Toggle::make('has_seats')
                         ->label('Usar butacas numeradas')
                         ->helperText('Marca para configurar butacas numeradas en este evento.')
                         ->default(false),
                 ])
+                // 2) Botones del modal
                 ->modalActions([
                     Action::make('cancel')
                         ->label('Cancelar')
@@ -37,7 +39,6 @@ class ListEventos extends ListRecords
                         ->color('primary')
                         ->action(fn(array $data) => redirect(
                             EventoResource::getUrl('create', [
-                                // aquí usamos null-coalescing para no explotar si no viene la clave
                                 'has_seats' => ! empty($data['has_seats'] ?? false) ? 1 : 0,
                             ])
                         ))

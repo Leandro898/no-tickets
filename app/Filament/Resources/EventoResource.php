@@ -41,6 +41,9 @@ class EventoResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
+            Hidden::make('has_seats')
+                ->default(fn() => request()->boolean('has_seats'))
+                ->dehydrated(true),
             Section::make('Datos principales')
                 ->description('Completa la información general del evento.')
                 ->schema([

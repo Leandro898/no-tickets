@@ -15,7 +15,7 @@ class CreateEvento extends CreateRecord
     protected static string $resource = EventoResource::class;
 
     // PROPIEDAD PARA OVERRIDA BLADE
-    protected static string $view = 'vendor.filament-panels.pages.evento-create';
+    //protected static string $view = 'vendor.filament-panels.pages.evento-create';
 
     protected function getRedirectUrl(): string
     {
@@ -50,17 +50,17 @@ class CreateEvento extends CreateRecord
         ];
     }
 
-    /**
-     * Aquí personalizamos el botón de Crear para que pida confirmación.
-     */
-    protected function getFormActions(): array
-    {
-        return [
-            // Botón crear
-            CreateAction::make('create')
-                ->label('Crear Evento')
-                ->createAnother(false),
+    // /**
+    //  * Aquí personalizamos el botón de Crear para que pida confirmación.
+    //  */
+    // protected function getFormActions(): array
+    // {
+    //     return [
+    //         // Botón crear
+    //         CreateAction::make('create')
+    //             ->label('Crear Evento')
+    //             ->createAnother(false),
                 
-        ];
-    }
+    //     ];
+    // }
 }
