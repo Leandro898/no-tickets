@@ -1,0 +1,2 @@
+@props(['slot'])
+{{-- Subcopy eliminada --}}

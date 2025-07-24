@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\URL; // Importa la fachada URL
 use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +29,12 @@ class AppServiceProvider extends ServiceProvider
         Notification::configureUsing(function (Notification $notification): void {
             $notification->view('filament.notifications.notification');
         });
+
+        // ESTA REDIRECCION LA USE PARA FORZAR LAS PRUEBAS Y VER SI LLEGABA LA PETICION AL SERVIDOR. NO ES NECESARIO PORQUE LIVEWIRE YA MANEJA TODO EL FLUJO INTERNAMENTE. PERO LO DEJO COMO RECORDATORIO DE LAS PRUEBAS QUE HICE.
+        // ERAN PRUEBAS PARA QUE FUNCIONE EL BOTON DE SUSPENDER EVENTO
+        // Livewire::setUpdateRoute(function ($handle) {
+        //     return Route::post('/livewire/update', $handle);
+        // });
     }
 
 }

@@ -1,44 +1,51 @@
 @layer components {
     /* ───────────────────────────────
-       BOTÓN PRIMARIO · GUARDAR CAMBIOS
+       BOTÓN PRIMARIO · GUARDAR CAMBIOS · CREAR EVENTO
     ────────────────────────────────*/
-    .fi-ac-btn-action.fi-color-success {
-        /* branding violeta + tamaño medio-grande */
-        @apply bg-[#7c3aed] text-white font-semibold rounded-lg px-7 py-3 text-base shadow-sm transition-colors duration-150;
+    /* Botón primario (Crear Evento) */
+    .fi-btn-color-primary {
+        background: #a21caf !important; /* violeta fuerte o el color de tu marca */
+        color: #fff !important;
+        border: none !important;
+        font-weight: 600;
+        box-shadow: 0 2px 8px #a21caf22;
+        transition: background 0.2s;
     }
-
-    /* EL HOVER DEL BOTON DE ACCION SUCCESS*/
-    .fi-ac-btn-action.fi-color-success:hover {
-        @apply bg-[#8b5cf6] text-white;
-    }
-
-    .fi-ac-btn-action.fi-color-success:disabled {
-        @apply opacity-60 cursor-not-allowed;
+    .fi-btn-color-primary:hover {
+        background: #86198f !important; /* un violeta más oscuro al hover */
     }
 
     /* ───────────────────────────────
-       BOTÓN SECUNDARIO · CANCELAR
+       BOTÓN SECUNDARIO · GUARDAR CAMBIOS · CREAR EVENTO
     ────────────────────────────────*/
-    .fi-ac-btn-action:not(.fi-color-success) {
-        @apply bg-transparent text-[#7c3aed] border border-[#d9d6fc] font-semibold rounded-lg px-7 py-3 text-base transition-colors duration-150;
+
+    /* Botón secundario (Cancelar) */
+    .fi-btn-color-secondary {
+        background: #fff !important;
+        color: #a21caf !important;
+        border: 2px solid #a21caf !important;
+        font-weight: 600;
+    }
+    .fi-btn-color-secondary:hover {
+        background: #f3e8ff !important;
+    }
+
+    /* ───────────────────────────────
+       BOTON DE NUEVA ENTRADA EN LA VISTA GESTIONAR ENTRADAS
+    ────────────────────────────────*/
+    
+    .fi-btn-color-nueva-entrada {
+        background-color: #a020f0 !important;
+        color: #fafafa !important;
+        border: 1.5px solid #a020f0 !important;
+        /* opacity: 1 !important; */
+    }
+    .fi-btn-color-nueva-entrada:hover {
+        background-color: #c4b5fd !important;
+    }
+    .fi-btn-color-nueva-entrada:disabled {
+        background-color: #ede9fe !important;
+        color: #c4b5fd !important;
     }
     
-    /* Cambio color a violeta más oscuro */
-    .fi-ac-btn-action:not(.fi-color-success):hover {
-        @apply bg-[#7c3aed] text-white border-transparent;
-    }
-
-    /* BOTON VOLVER A DETALLES Y VOLVER EN OTRAS SECCIONES*/
-    .btn-volver {
-        @apply px-6 py-3 rounded-lg shadow-sm transition;
-        /* tamaño y radios */
-        background-color: #7c3aed !important;
-        /* violeta base   */
-        color: #ffffff !important;
-    }
-
-    .btn-volver:hover {
-        background-color: #8b5cf6 !important;
-        /* hover violeta 500 */
-    }
 }

@@ -2,18 +2,25 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail; // Mantén esta línea comentada si no la usas
+use Illuminate\Contracts\Auth\MustVerifyEmail; // Mantén esta línea comentada si no la usas
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 // La línea "use Laravel\Sanctum\HasApiTokens;" debe estar comentada o eliminada
+use App\Notifications\ResetPasswordNotification;
+use Illuminate\Support\Facades\Log;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+
+
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     // ¡IMPORTANTE!: Quita 'HasApiTokens' de esta lnea si no vas a usar Sanctum
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, MustVerifyEmailTrait;
 
     /**
      * The attributes that are mass assignable.
@@ -95,5 +102,19 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(\App\Models\Order::class, 'buyer_email', 'email');
+    }
+
+    /**
+     * Sobrescribe la notificación de restablecimiento.
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    // DECIR A FILAMENT LOS ROLES QUE TIENEN ACCESO
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->hasAnyRole(['admin', 'productor']);
     }
 }

@@ -36,7 +36,7 @@ class GestionarEntradas extends Page
                 ->label('Nueva entrada')
                 ->url(EntradaResource::getUrl('create', ['evento_id' => $this->evento->id]))
                 ->button()
-                ->color('success')
+                ->color('nueva-entrada')
                 //->icon('heroicon-o-plus'),
         ];
     }

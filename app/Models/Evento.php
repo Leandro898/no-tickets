@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Jobs\RefundMercadoPagoPayment; // Importa el Job
-use Illuminate\Support\Facades\Log; // Para loguear
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use App\Jobs\RefundMercadoPagoPayment;
 
 class Evento extends Model
 {
@@ -14,6 +14,7 @@ class Evento extends Model
 
     protected $fillable = [
         'nombre',
+        'slug',
         'ubicacion',
         'fecha_inicio',
         'fecha_fin',
@@ -27,6 +28,13 @@ class Evento extends Model
         'requerir_dni',
     ];
 
+    // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'
+    public function getRouteKeyName(): string
+    {
+        // si la URL arranca con "admin", usamos ID; si no, slug
+        return request()->is('admin/*') ? 'id' : 'slug';
+    }
+
     public function entradas()
     {
         return $this->hasMany(Entrada::class);
@@ -37,29 +45,47 @@ class Evento extends Model
         return $this->belongsTo(User::class, 'organizador_id');
     }
 
-    // --- NUEVA RELACIÓN (Ahora Evento tiene muchas Órdenes) ---
     public function orders()
     {
         return $this->hasMany(Order::class, 'event_id');
     }
 
-    // Usaremos un "model event" para despachar el reembolso cuando un evento sea eliminado
     protected static function booted(): void
     {
-        static::deleting(function (Evento $event) {
-            Log::info("Iniciando proceso de eliminación para el evento ID: {$event->id}. Despachando reembolsos...");
+        parent::booted();
 
-            // Recuperar todas las órdenes asociadas a este evento que hayan sido 'approved'
-            $ordersToRefund = $event->orders()->where('payment_status', 'approved')->get();
+        // 1) Generar slug único al crear o actualizar
+        static::saving(function (Evento $evento) {
+            if (empty($evento->slug) || $evento->isDirty('nombre')) {
+                $base   = Str::slug($evento->nombre);
+                $slug   = $base;
+                $i      = 1;
+                while (
+                    Evento::where('slug', $slug)
+                    ->where('id', '<>', $evento->id)
+                    ->exists()
+                ) {
+                    $slug = "{$base}-{$i}";
+                    $i++;
+                }
+                $evento->slug = $slug;
+            }
+        });
 
-            if ($ordersToRefund->isEmpty()) {
-                Log::info("No se encontraron órdenes 'approved' para reembolsar para el evento ID: {$event->id}.");
+        // 2) Al eliminar un evento, despachar reembolsos de órdenes 'approved'
+        static::deleting(function (Evento $evento) {
+            Log::info("Iniciando eliminación evento ID {$evento->id}. Despachando reembolsos...");
+
+            $orders = $evento->orders()
+                ->where('payment_status', 'approved')
+                ->get();
+
+            if ($orders->isEmpty()) {
+                Log::info("No hay órdenes 'approved' para el evento ID {$evento->id}.");
             } else {
-                foreach ($ordersToRefund as $order) {
-                    // Despachar el Job para cada orden.
-                    // Esto agregará el job a la cola y se ejecutará en segundo plano.
+                foreach ($orders as $order) {
                     RefundMercadoPagoPayment::dispatch($order);
-                    Log::info("Job de reembolso despachado para la orden ID: {$order->id}, Payment ID MP: {$order->mp_payment_id} (Evento: {$event->id})");
+                    Log::info("Reembolso programado para orden ID {$order->id}, MP Payment ID {$order->mp_payment_id}.");
                 }
             }
         });

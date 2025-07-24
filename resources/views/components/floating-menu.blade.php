@@ -59,7 +59,7 @@
                     animation: fadeInMenu 0.22s;
                 ">
                 <a href="/admin/eventos" style="display: block; margin-bottom: 14px; font-size: 1.08rem; text-decoration: none; color: #222;">🗓️ Eventos</a>
-                <a href="/scanner-test" style="display: block; margin-bottom: 14px; font-size: 1.08rem; text-decoration: none; color: #222;">🔍 Scanner</a>
+                <a href="/admin/ticket-scanner" style="display: block; margin-bottom: 14px; font-size: 1.08rem; text-decoration: none; color: #222;">🔍 Scanner</a>
                 <a href="/admin/oauth-connect-page" style="display: block; font-size: 1.08rem; text-decoration: none; color: #222;">💳 Pagos</a>
             </div>
         </div>

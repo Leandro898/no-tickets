@@ -17,6 +17,8 @@ use Filament\Forms\Get;
 use Filament\Pages\Actions\Action;
 use App\Filament\Widgets\SpacerWidget;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Log;
+use App\Models\Entrada;
 
 class EditEntrada extends EditRecord
 {
@@ -60,15 +62,15 @@ class EditEntrada extends EditRecord
     {
         return [
             $this
-                ->getSaveFormAction()
-                ->label('Guardar Cambios')
-                ->color('success'),
-
-
-            $this
                 ->getCancelFormAction()
                 ->label('Cancelar')
-                ->extraAttributes(['class' => 'fi-color-primary']),
+                ->extraAttributes(['class' => 'fi-btn-color-secondary']),
+
+            $this
+                ->getSaveFormAction()
+                ->label('Guardar Cambios')
+                ->color('success')
+                ->extraAttributes(['class' => 'fi-btn-color-primary']),
         ];
     }
 
@@ -97,4 +99,21 @@ class EditEntrada extends EditRecord
             ->send();
     }
 
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        // Validación de organizador
+        $evento = \App\Models\Evento::find($data['evento_id']);
+        if (! $evento || $evento->organizador_id !== auth()->id()) {
+            abort(403);
+        }
+
+        // Debug: ahora debería incluir 'agregar_stock'
+        //Log::info('Estado form al guardar:', $this->form->getState());
+
+        // Suma el stock
+        $adicional = intval($this->form->getState()['agregar_stock'] ?? 0);
+        $data['stock_actual'] = $this->record->stock_actual + $adicional;
+
+        return $data;
+    }
 }

@@ -77,7 +77,8 @@ class AdminPanelProvider extends PanelProvider
                 \Spatie\Permission\Middleware\RoleMiddleware::class . ':admin|productor',
             ])
             ->viteTheme('resources/css/filament/admin/filament.css')
-            ->brandName('Innova Ticket');
+            ->brandName('Tickets Pro')
+            ->favicon('/favicon/tickets-pro.png');
     }
 
 

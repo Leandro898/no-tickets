@@ -4,18 +4,20 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\MagicLink;
+use App\Notifications\MagicLinkLogin;
 use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
     /**
-     * Display the registration view.
+     * Mostrar el formulario de registro.
      */
     public function create(): View
     {
@@ -23,28 +25,46 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * Procesar una petición de registro.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        $data = $request->validate([
+            'name'  => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'role'  => ['required', 'in:cliente,productor'],
+            'telefono' => ['nullable', 'string', 'max:30'], // si quieres que sea opcional
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        // Crear usuario
+        $user = User::firstOrCreate(
+            ['email' => $data['email']],
+            [
+                'name'     => $data['name'],
+                'password' => Hash::make(Str::random(40)),
+                'telefono' => $data['telefono'] ?? null,
+            ]
+        );
 
+        // Asignar rol Spatie
+        $user->syncRoles([$data['role']]);
+
+        // Disparar evento Registered
         event(new Registered($user));
 
-        Auth::login($user);
+        // Generar Magic Link y notificar
+        $token = Str::random(64);
+        MagicLink::create([
+            'email'      => $user->email,
+            'token'      => $token,
+            'expires_at' => now()->addHours(2),
+        ]);
+        $user->notify(new MagicLinkLogin($token));
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()
+            ->route('auth.check-email')
+            ->with('email_to_verify', $user->email);
     }
 }

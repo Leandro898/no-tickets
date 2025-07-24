@@ -1,38 +1,48 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ str_replace('_','-',app()->getLocale()) }}">
 <head>
-    <meta charset="UTF-8">
-    <title>@yield('title', 'Innova Ticket')</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    @vite(['resources/css/app.css', 'resources/css/filament/admin/filament.css', 'resources/js/app.js'])
-
-    @livewireStyles
-    {{-- <<< AÑADE ESTO: --}}
-    @stack('styles')
-
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <style>
-        html { overflow-y: scroll; }
-    </style>
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>@yield('title', config('app.name'))</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/tickets-pro.png') }}">
+  @vite('resources/css/app.css')
+  
+  @stack('styles')
+  <!-- <style>
+    html { overflow-y: scroll; }
+  </style> -->
 </head>
-<body class="bg-gray-100 min-h-screen">
-    {{-- NAV FUERA DEL CONTENEDOR --}}
-    @include('layouts.front-nav')
+<body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-y-scroll')">
 
-    {{-- Ahora el contenido sí en el contenedor central --}}
-    <div class="max-w-7xl mx-auto px-4 py-8">
-        <main class="py-8">
-            @yield('content')
-            @include('components.front-floating-menu')
-        </main>
+  {{-- HEADER / NAV --}}
+  @include('layouts.front-nav')
+
+  {{-- SLIDER (full width, fuera del main) --}}
+  @yield('slider')
+
+  {{-- CONTENIDO --}}
+  <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    @yield('content')
+  </main>
+
+  {{-- FOOTER --}}
+  <footer class="bg-gray-900 text-gray-300 text-sm py-6">
+    <div class="container mx-auto text-center space-y-2">
+      <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
+      <div class="flex justify-center gap-4">
+        <a href="#" class="hover:text-white">Política de privacidad</a>
+        <a href="#"   class="hover:text-white">Términos de uso</a>
+        <a href="#" class="hover:text-white">Contacto</a>
+      </div>
     </div>
-    @livewireScripts
-    @stack('scripts')
+  </footer>
 
-    {{-- FOOTER --}}
-    @include('partials.footer')
+  @stack('scripts')
 
+  <!-- Alpine.js para dropdowns y otros componentes -->
+  <script src="//unpkg.com/alpinejs" defer></script>
+  {{-- Menu flotante --}}
+  @include('components.front-floating-menu')
+  
 </body>
 </html>

@@ -14,7 +14,7 @@ class TicketScanner extends Page
 
     public static function shouldRegisterNavigation(): bool
     {
-        // Sólo admins
-        return auth()->check() && auth()->user()->hasRole('admin');
+        // Admins y productores
+        return auth()->check() && auth()->user()->hasAnyRole(['admin', 'productor']);
     }
 }

@@ -6,7 +6,6 @@ use App\Http\Controllers\CompraEntradaSplitController;
 use App\Http\Controllers\TicketValidationController;
 use App\Http\Controllers\MercadoPagoController;
 use App\Http\Controllers\MercadoPagoOAuthController;
-use App\Livewire\TestScanner;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\Auth\RegistroProductorController;
 use App\Http\Controllers\Auth\GoogleController;
@@ -21,6 +20,11 @@ use App\Http\Controllers\TicketPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Admin\TicketScannerController;
 use App\Filament\Pages\TicketScanner;
+use App\Http\Controllers\MagicLinkController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+use App\Http\Controllers\Admin\DashboardController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -32,6 +36,19 @@ Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('evento
 // ---------------------- COMPRA CON SPLIT ----------------------
 Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');
 Route::post('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'store'])->name('eventos.comprar.split.store');
+
+
+// Paso 2: muestra el formulario de datos del comprador
+Route::get(
+    '/eventos/{evento}/comprar-split/datos',
+    [CompraEntradaSplitController::class, 'showDatos']
+)->name('eventos.comprar.split.showDatos');
+
+// Paso 2 (POST): procesa los datos del comprador y crea la orden
+Route::post(
+    '/eventos/{evento}/comprar-split/datos',
+    [CompraEntradaSplitController::class, 'storeDatos']
+)->name('eventos.comprar.split.storeDatos');
 
 // ----------------------- MERCADO PAGO -------------------------
 Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])->name('mercadopago.connect');
@@ -51,12 +68,8 @@ Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showV
 //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
 // Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
-Route::get('/scanner-test', TestScanner::class);
 
-// OTRO TEST FUERA DE FILAMENT
-/* Route::middleware(['auth', 'role:scanner'])->group(function () {
-    Route::get('/scanner-test', [ScannerController::class, 'index']);
-}); */
+
 
 // ULTIMO SCANNER
 Route::middleware(['auth'])->get('/scanner', function () {
@@ -161,10 +174,68 @@ Route::middleware(['auth', 'role:admin'])
 Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
 Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
 
+//RUTA PARA SERVIR ARCHIVOS DESDE CARPETA PRIVADA
+Route::get('/ticket/{ticket}/ver', [TicketPdfController::class, 'view'])
+    ->name('ticket.view')
+    ->middleware('auth');
+
+// Aviso de verificación en /verify-email
+Route::get('/verify-email', function () {
+    // Carga resources/views/auth/verify-email.blade.php
+    return view('auth.verify-email');
+})
+    ->middleware('auth')
+    ->name('verification.notice');
+
+// 1) La pantalla “Revisa tu correo” (para el flash de email_to_verify)
+Route::get('/check-email', function () {
+    return view('auth.check-email', [
+        'email' => session('email_to_verify'),
+    ]);
+})
+->middleware('guest')
+->name('auth.check-email');
+
+// 2) La ruta firmada que hace el Auth::login()
+//    Fíjate en el {user} para que Laravel inyecte el User::find($id)
+Route::get('/magic-login/{user}', [MagicLinkController::class, 'login'])
+    ->middleware(['signed', 'guest'])
+    ->name('magic.login');
+
+// 3) Si el usuario no tiene contraseña, mostramos el form para crearla
+Route::get('/setup-password', [MagicLinkController::class, 'showSetupPassword'])
+    ->middleware('auth')
+    ->name('password.setup');
+
+// 4) Procesar el POST del form de creación de contraseña
+Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
+    ->middleware('auth')
+    ->name('password.setup.store');
+
+//prueba
+Route::get('/test-counter', fn() => view('test-counter'));
+
+Route::middleware(['auth', 'role:admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    });
+
+// RUTAS PARA ACTUALIZAR EL ESTADO DEL PEDIDO DE FORMA AUTOMATICA
+Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'])
+     ->name('purchase.approved');
+
+Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
+     ->name('purchase.rejected');
+
+// Para actualizar pagina de pending - compra pendiente
+Route::get('orders/{order}/status', function (Order $order) {
+    return response()->json([
+        'status' => $order->status, // asegúrate de que tu modelo tenga este campo
+    ]);
+});
 
 
-
-
-
-//esto conecta las rutas de autenticación
+// ——— aquí ya conectas las rutas “normales” de login/registro/etc
 require __DIR__ . '/auth.php';

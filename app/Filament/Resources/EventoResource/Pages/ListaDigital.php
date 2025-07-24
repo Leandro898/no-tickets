@@ -13,7 +13,7 @@ use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\PurchasedTicket;
-use App\Mail\PurchasedTicketsMail;
+use App\Mail\TicketsPurchasedMail;
 use Illuminate\Support\Facades\Mail;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action   as TableAction; // ← para el menú de cada fila
@@ -21,6 +21,7 @@ use Filament\Actions\Action          as PageAction;  // ← para el header
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\ToggleColumn;
+
 
 class ListaDigital extends Page implements HasTable
 {
@@ -69,13 +70,20 @@ class ListaDigital extends Page implements HasTable
                 ->formatStateUsing(fn($state) => '$' . number_format($state, 2, ',', '.')),
             TextColumn::make('order.payment_status')
                 ->label('Estado Pedido')
-                ->formatStateUsing(fn($state) => ucfirst($state)) // Opcional para capitalizar
+                ->badge()
+                ->formatStateUsing(fn($state) => [
+                    'paid' => 'Pagado',
+                    'pending' => 'Pendiente',
+                    'failed' => 'Fallido',
+                ][$state] ?? ucfirst($state))
                 ->color(fn($state) => match ($state) {
                     'paid' => 'success',
                     'pending' => 'warning',
                     'failed' => 'danger',
                     default => 'secondary',
-                }),
+                })
+            // Solo si querés forzar color sólido (opcional):
+                ->extraAttributes(['class' => ''])
             // TextColumn::make('Detalles')
             //     ->action(
             //         Action::make('verDetalles')
@@ -88,7 +96,7 @@ class ListaDigital extends Page implements HasTable
             //             }),
             //     )
             // EL MANEJO DE ESTADO DE TICKETS ES PARA FUTURAS VERSIONES PORQUE ESO SOLAMENTE APLICA CUANDO SE VENDEN ENTRADAS INDIVIDUALES COMO EN EVENTIN
-                // SelectColumn::make('status')
+            // SelectColumn::make('status')
             //     ->label('Estado')
             //     ->options([
             //         'valid' => 'Valido',
@@ -100,7 +108,7 @@ class ListaDigital extends Page implements HasTable
             //     ->selectablePlaceholder(false)
             //     ->searchable()
             //     ->default('valid'),
-                
+
         ];
     }
 
@@ -122,7 +130,12 @@ class ListaDigital extends Page implements HasTable
                     ->label('Reenviar por Email')
                     ->icon('heroicon-o-envelope')
                     ->requiresConfirmation()
-                    ->action(fn($record) => $this->reenviarEntrada($record)),
+                    ->modalHeading('Reenviar entradas')
+                    ->modalDescription('')
+                    ->modalSubmitActionLabel('Si, enviar')
+                    ->modalCancelActionLabel('Cancelar')
+                    ->modalIcon('heroicon-o-envelope')
+                    ->action(fn(PurchasedTicket $ticket) => $this->reenviarEntrada($ticket)),
 
                 Action::make('reenviar_whatsapp')
                     ->label('Enviar por WhatsApp')
@@ -150,29 +163,46 @@ class ListaDigital extends Page implements HasTable
             ->striped()                                 // zebra
             ->paginated([10, 25])                       // solo 10 / 25
             ->defaultPaginationPageOption(25)           // 25 por defecto
-            ->defaultSort('id', 'desc');
+            ->defaultSort('id', 'desc')
+            ->searchPlaceholder('Buscar por nombre o email...');
     }
 
     /* ---------- Métodos auxiliares ---------- */
 
-    public function reenviarEntrada($ticketId): void
+    
+    public function reenviarEntrada(PurchasedTicket $ticket): void
     {
-        $ticket = PurchasedTicket::find($ticketId);
+    //     dd([
+    //     'mail.default'    => config('mail.default'),
+    //     'smtp settings'   => config('mail.mailers.smtp'),
+    // ]);
+    
+        $ticket->load('order');
 
-        if ($ticket && $ticket->order?->buyer_email) {
-            Mail::to($ticket->order->buyer_email)->send(
-                new PurchasedTicketsMail($ticket->order, [$ticket])
-            );
+        $email = $ticket->order?->buyer_email;
 
+        if (empty($email)) {
             Notification::make()
-                ->title('Entrada reenviada')
-                ->body('El email con las entradas fue reenviado a ' . $ticket->order->buyer_email)
-                ->success()
+                ->title('Sin email de comprador')
+                ->warning()
                 ->send();
+
+            return;
         }
+
+        Mail::to($email)
+            ->send(new TicketsPurchasedMail($ticket->order, [$ticket]));
+
+        Notification::make()
+            ->title('Entrada reenviada')
+            ->body("El email con las entradas fue reenviado a {$email}")
+            ->success()
+            ->send();
 
         $this->dispatch('$refresh');
     }
+
+
 
     public function toggleEstado($ticketId): void
     {
@@ -195,9 +225,9 @@ class ListaDigital extends Page implements HasTable
                 ->url(
                     EventoResource::getUrl('detalles', ['record' => $this->record])
                 )
-                ->color('secondary')
+                ->color('primary')
                 ->button()
-                ->extraAttributes(['class' => 'btn-volver']),
+                ->extraAttributes(['class' => 'fi-btn-color-primary']),
         ];
     }
 }

@@ -4,6 +4,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Brand
+    |--------------------------------------------------------------------------
+    |
+    | Aquí defines nombre, logo y favicon de tu panel.
+    |
+    */
+    'locale' => 'es',
+    'brand' => [
+        'name'    => env('FILAMENT_NAME', 'Mi Admin'),
+        'logo'    => null, // o asset('favicon/tickets-pro.png')
+        'favicon' => '/favicon/tickets-pro.png',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Colores para badges, botones, etc. (AGREGADO)
+    |--------------------------------------------------------------------------
+    |
+    | Asigna los nombres de colores a los valores de Tailwind que definiste.
+    | Así los badges de 'success' usarán tu verde personalizado.
+    */
+    'colors' => [
+        'primary' => 'violet',    // Usa el alias 'violet' de Tailwind
+        'success' => 'success',   // Usa tu alias 'success' definido en tailwind.config.js
+        'warning' => 'warning',   // Usa tu alias 'warning' definido en tailwind.config.js
+        'danger'  => 'danger',    // Usa tu alias 'danger' definido en tailwind.config.js
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Broadcasting
     |--------------------------------------------------------------------------
     |
@@ -13,7 +43,6 @@ return [
     | This will allow your users to receive real-time notifications.
     |
     */
-
     'broadcasting' => [
 
         // 'echo' => [
@@ -40,7 +69,6 @@ return [
     | any of the disks defined in the `config/filesystems.php`.
     |
     */
-
     'default_filesystem_disk' => env('FILAMENT_FILESYSTEM_DISK', 'public'),
 
     /*
@@ -54,7 +82,6 @@ return [
     | After changing the path, you should run `php artisan filament:assets`.
     |
     */
-
     'assets_path' => null,
 
     /*
@@ -68,7 +95,6 @@ return [
     | After changing the path, you should run `php artisan filament:cache-components`.
     |
     */
-
     'cache_path' => base_path('bootstrap/cache/filament'),
 
     /*
@@ -83,7 +109,6 @@ return [
     | Livewire's standard 200ms delay.
     |
     */
-
     'livewire_loading_delay' => 'default',
 
     /*
@@ -95,7 +120,6 @@ return [
     | such as the routes for downloading exports and failed import rows.
     |
     */
-
     'system_route_prefix' => 'filament',
 
     /*
@@ -105,7 +129,6 @@ return [
     |
     |
     */
-
     'middleware' => [
         'web',
         'auth',
@@ -121,10 +144,7 @@ return [
     | de todas las páginas del admin.
     |
     */
-
-    'styles' => [
-
-    ],
+    'styles' => [],
 
     /*
     |--------------------------------------------------------------------------
@@ -135,7 +155,7 @@ return [
     |
     */
     'scripts' => [
-        // asset('js/app.js'),
+        
     ],
 
 ];

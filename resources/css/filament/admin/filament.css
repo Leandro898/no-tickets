@@ -1,6 +1,5 @@
 /* Todos los @import primero */
 @import "./barra-lateral.css";
-@import "./botones.css";
 @import "./panels.css";
 @import "./_inputs.css";
 @import "./_checkbox.css";
@@ -14,56 +13,53 @@
 @import "./_varios.css";
 @import "./_recaudacion_global.css";
 @import "./_scanner.css";
+@import "./_form_validation_message.css";
+@import "./botones.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer utilities {
-    /* ── Botones de acción “btn-detalles” ── */
-    .btn-detalles {
-        @apply bg-gradient-to-br from-purple-50 to-white
-           rounded-lg border border-transparent shadow
-           px-6 py-4
-           text-purple-800 font-semibold text-base
-           flex items-center justify-center gap-4
-           transition-all duration-200 ease-in-out;
+
+    /* PRUEBAS NUEVAS */
+    .fi-btn-icon {
+        color: #fbfbfb !important;
     }
 
-    /* Ícono más grande y violeta suave */
-    .btn-detalles svg {
-        @apply w-8 h-8 text-purple-700;
+    /* .fi-btn-color-primary.btn-detalles {
+        background: #7c3aed !important;
+        color: #fff !important;
+    } */
+
+    .fi-btn-color-primary.btn-detalles {
+        background: #fff !important;
+        color: #7c3aed !important;
+        border: 2px solid #bbaaecc1 !important;
+        box-shadow: 0 2px 8px 0 rgba(124, 58, 237, 0.07);
+        border-radius: 5px;
+        font-weight: 500;
+        transition: background 0.2s, color 0.2s;
     }
 
-    /* Elevación, ligero desplazamiento y icono más oscuro al hover */
-    .btn-detalles:hover {
-        transform: translateY(-4px) scale(1.02);
-        @apply shadow-xl;
-    }
-    .btn-detalles:hover svg {
-        @apply text-purple-800;
+    .fi-btn-color-primary.btn-detalles svg {
+        color: #7c3aed !important;
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: color 0.2s;
     }
 
-    /* Variante “danger” */
-    .btn-detalles.danger,
-    .btn-detalles[color="danger"] {
-        @apply bg-gradient-to-br from-red-50 to-white
-           text-red-700;
-        border-color: #fecaca;
-    }
-    .btn-detalles.danger svg,
-    .btn-detalles[color="danger"] svg {
-        @apply w-8 h-8 text-red-600;
-    }
-    .btn-detalles.danger:hover,
-    .btn-detalles[color="danger"]:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 8px 32px rgba(220, 38, 38, 0.12);
+    .fi-btn-color-primary.btn-detalles:hover {
+        background: #f5f3ff !important;
+        /* Un fondo violeta MUY CLARO al pasar mouse */
+        color: #5b21b6 !important;
+        /* Violeta más oscuro al hover */
+        border-color: #7c3aed !important;
     }
 
-    /* ESTA CLASE SOBREESCIBRE A LA CLASE QUE YA TIENE EL BOTON DEL LOGIN */
-    .fi-color-primary{
-      background-color: blueviolet!important;
+    .fi-btn-color-primary.btn-detalles:hover svg {
+        color: #5b21b6 !important;
+        /* Ícono más oscuro al hover */
     }
 
     
