@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MercadoPagoController;
 use App\Models\Order;
+use App\Http\Controllers\SeatMapController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +28,11 @@ Route::get('orders/{order}/status', function (Order $order) {
         'status' => $order->payment_status,
     ]);
 });
+
+//RUTAS PARA SELECCION DE ASIENTOS
+
+// Listar entradas para el mapa (GET /api/eventos/{evento}/entradas)
+Route::get('/eventos/{evento}/entradas', [SeatMapController::class, 'listTickets']);
+
+// Guardar la configuración de asientos (POST /api/eventos/{evento}/asientos)
+Route::post('/eventos/{evento}/asientos', [SeatMapController::class, 'saveSeats']);

@@ -1,5 +1,14 @@
-<x-filament::page>
-    <h2 class="text-2xl font-bold mb-4">Configurar Mapa de Asientos: {{ $evento->nombre }}</h2>
-    <div id="seat-map-app" data-event-id="{{ $evento->id }}"></div>
+{{-- resources/views/filament/pages/evento/configure-seats.blade.php --}}
+<x-filament::page
+    heading="Configurar Mapa de Asientos: {{ $record->nombre }}"
+>
+    <p class="text-sm text-gray-600 mb-6">
+        Entradas a x : {{ $entriesCount }}
+    </p>
+
+    <x-filament::card class="overflow-hidden">
+        <div id="seat-map-app" data-event-id="{{ $record->id }}"></div>
+    </x-filament::card>
+
     @vite('resources/js/app.js')
 </x-filament::page>

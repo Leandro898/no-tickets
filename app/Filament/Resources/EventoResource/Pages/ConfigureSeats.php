@@ -3,29 +3,33 @@
 namespace App\Filament\Resources\EventoResource\Pages;
 
 use App\Filament\Resources\EventoResource;
-use Filament\Resources\Pages\Page;
+use Filament\Resources\Pages\Page;               // ← fíjate bien aquí
+use Illuminate\Contracts\View\View;
 
 class ConfigureSeats extends Page
 {
     protected static string $resource = EventoResource::class;
     protected static string $view     = 'filament.pages.evento.configure-seats';
 
+    public $record;
+    public int $entriesCount = 0;
+
     public function mount($record): void
     {
-        // Cargamos el modelo
         $this->record = EventoResource::getModel()::findOrFail($record);
+        $this->entriesCount = $this->record
+            ->entradas()
+            ->sum('stock_actual');
     }
 
-    protected function getViewData(): array
+    public function getTitle(): string
     {
-        // Estos datos estarán disponibles en la blade como $evento
-        return [
-            'evento' => $this->record,
-        ];
+        return 'Configurar Mapa de Asientos';
     }
 
     public function getBreadcrumbs(): array
     {
         return [];
     }
+
 }

@@ -25,6 +25,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\PurchaseController;
+use Filament\Http\Middleware\Authorize as FilamentAuthorize;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -235,6 +237,16 @@ Route::get('orders/{order}/status', function (Order $order) {
         'status' => $order->status, // asegúrate de que tu modelo tenga este campo
     ]);
 });
+
+
+
+
+
+
+
+
+
+
 
 
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc

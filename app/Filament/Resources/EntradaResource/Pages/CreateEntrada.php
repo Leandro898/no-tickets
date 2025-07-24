@@ -53,14 +53,22 @@ class CreateEntrada extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        $evento = $this->record->evento; // asumiendo que tu relación es correcta
+        $evento = $this->record->evento;
 
         if ($evento->has_seats) {
-            return EventoResource::getUrl('configure-seats', ['record' => $evento->id]);
+            // Redirige al mapa de asientos
+            return EventoResource::getUrl('configure-seats', [
+                'record' => $evento->id,
+            ]);
         }
 
-        return EventoResource::getUrl('gestionar-entradas', ['record' => $evento->id]);
+        // Si no tiene butacas numeradas, va a gestionar entradas
+        return EventoResource::getUrl('gestionar-entradas', [
+            'record' => $evento->id,
+        ]);
     }
+
+
 
 
     // QUITAR MIGAS DE PAN
