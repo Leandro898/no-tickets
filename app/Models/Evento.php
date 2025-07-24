@@ -26,6 +26,12 @@ class Evento extends Model
         'edad_min_hombres',
         'edad_min_mujeres',
         'requerir_dni',
+        'has_seats',
+    ];
+
+    protected $casts = [
+        // …otros casts…
+        'has_seats' => 'boolean',
     ];
 
     // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'

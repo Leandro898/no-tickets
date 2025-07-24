@@ -29,6 +29,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Toggle;
 use App\Filament\Resources\EntradaResource;
 
+
 class EventoResource extends Resource
 {
     protected static ?string $model = Evento::class;
@@ -232,6 +233,7 @@ class EventoResource extends Resource
             //'view' => Pages\EventoDetalles::route('/{record}'),
             'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
             'lista-digital' => Pages\ListaDigital::route('/{record}/lista-digital'),
+            'configure-seats' => Pages\ConfigureSeats::route('/{record}/asientos'),
         ];
     }
 

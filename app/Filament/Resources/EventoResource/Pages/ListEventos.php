@@ -7,6 +7,7 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
 use Illuminate\Contracts\Support\Htmlable;
 use Filament\Forms\Components\Toggle;
+use function redirect;
 
 
 
@@ -17,33 +18,19 @@ class ListEventos extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('crear-evento')               // Nombre único
-                ->label('Crear Evento')
-                ->icon('heroicon-o-plus')
-                ->modalHeading('¿Tendrá butacas numeradas?')
-                // 1) Definimos el form del modal
-                ->form([
-                    Toggle::make('has_seats')
-                        ->label('Usar butacas numeradas')
-                        ->helperText('Marca para configurar butacas numeradas en este evento.')
-                        ->default(false),
-                ])
-                // 2) Botones del modal
-                ->modalActions([
-                    Action::make('cancel')
-                        ->label('Cancelar')
-                        ->color('secondary')
-                        ->close(),
-                    Action::make('continue')
-                        ->label('Continuar')
-                        ->color('primary')
-                        ->action(fn(array $data) => redirect(
-                            EventoResource::getUrl('create', [
-                                'has_seats' => ! empty($data['has_seats'] ?? false) ? 1 : 0,
-                            ])
-                        ))
-                        ->close(),
-                ]),
+            Action::make('crear-normal')
+                ->label('Crear evento sin butacas')
+                ->icon('heroicon-o-calendar')
+                ->url(fn() => EventoResource::getUrl('create', [
+                    'has_seats' => 0,
+                ])),
+
+            Action::make('crear-con-butacas')
+                ->label('Crear evento con butacas')
+                ->icon('heroicon-o-ticket')
+                ->url(fn() => EventoResource::getUrl('create', [
+                    'has_seats' => 1,
+                ])),
         ];
     }
 
@@ -55,6 +42,8 @@ class ListEventos extends ListRecords
 
     protected function getTableRecordUrlUsing(): ?\Closure
     {
-        return fn($record) => EventoResource::getUrl('detalles', ['record' => $record]);
+        return fn($record) => EventoResource::getUrl('detalles', [
+            'record' => $record->getKey(), // o $record->id
+        ]);
     }
 }

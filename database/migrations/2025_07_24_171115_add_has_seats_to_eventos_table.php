@@ -9,24 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
         Schema::table('eventos', function (Blueprint $table) {
-            if (! Schema::hasColumn('eventos', 'slug')) {
-                $table->string('slug')->after('nombre');
-            }
+            $table->boolean('has_seats')->default(false)->after('organizador_id');
         });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down()
+    public function down(): void
     {
         Schema::table('eventos', function (Blueprint $table) {
-            if (Schema::hasColumn('eventos', 'slug')) {
-                $table->dropColumn('slug');
-            }
+            $table->dropColumn('has_seats');
         });
     }
 };
