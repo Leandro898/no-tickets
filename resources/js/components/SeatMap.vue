@@ -1,9 +1,7 @@
 <template>
     <div>
-        <!-- Toolbar -->
-        <div class="flex items-center gap-4 px-6 pt-6 pb-4 bg-white shadow rounded-t-lg"
-            style="border-bottom: 1px solid #eee;">
-            <ImageUploader @imageLoaded="setBgImage" />
+        <div class="flex gap-2 mb-4">
+            <ImageUploader @imageLoaded="setBgImage" @imageUploaded="onImageUploaded" />
             <button v-if="bgImage" @click="removeBgImage"
                 class="px-4 py-2 bg-gray-100 border text-gray-700 rounded hover:bg-red-100 hover:text-red-700"
                 type="button">
@@ -11,49 +9,47 @@
             </button>
         </div>
 
-        <!-- Lienzo -->
-        <div class="bg-gray-100 p-8 flex justify-center items-center rounded-b-lg">
-            <v-stage :config="{ width, height }" @wheel="onWheel" @mousedown="onMouseDown" @mousemove="onMouseMove"
-                @mouseup="onMouseUp" @mouseleave="onMouseUp"
-                style="background: white; border-radius: 8px; box-shadow: 0 2px 12px #0001;">
-                <v-layer>
-                    <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
-                    <v-rect v-if="selectionBox.visible" :config="{
-                        x: selectionBox.x,
-                        y: selectionBox.y,
-                        width: selectionBox.width,
-                        height: selectionBox.height,
-                        fill: 'rgba(60, 120, 255, 0.2)',
-                        stroke: 'rgba(60, 120, 255, 0.5)',
-                        dash: [4, 4]
-                    }" />
-                    <v-circle v-for="(seat, i) in seats" :key="i" :config="{
-                        x: seat.x,
-                        y: seat.y,
-                        radius: 22,
-                        fill: seat.selected ? '#7c3aed' : '#e5e7eb',
-                        stroke: '#7c3aed',
-                        strokeWidth: 2,
-                        draggable: true
-                    }" @dragmove="onDragMove(i, $event)" @click="toggleSelect(i)" />
-                </v-layer>
-            </v-stage>
-        </div>
+        <v-stage :config="{ width, height }" @wheel="onWheel" @mousedown="onMouseDown" @mousemove="onMouseMove"
+            @mouseup="onMouseUp" @mouseleave="onMouseUp">
+            <v-layer>
+                <!-- Imagen de fondo -->
+                <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
 
-        <!-- Botón agregar asiento -->
-        <div class="flex justify-end mt-6">
-            <button class="px-6 py-2 bg-purple-600 text-white rounded shadow hover:bg-purple-700 transition"
-                @click="addSeat">
-                Agregar asiento
-            </button>
-        </div>
+                <!-- Rectángulo de selección de zona -->
+                <v-rect v-if="selectionBox.visible" :config="{
+                    x: selectionBox.x,
+                    y: selectionBox.y,
+                    width: selectionBox.width,
+                    height: selectionBox.height,
+                    fill: 'rgba(60, 120, 255, 0.2)',
+                    stroke: 'rgba(60, 120, 255, 0.5)',
+                    dash: [4, 4]
+                }" />
+
+                <!-- Asientos -->
+                <v-circle v-for="(seat, i) in seats" :key="i" :config="{
+                    x: seat.x,
+                    y: seat.y,
+                    radius: 22,
+                    fill: seat.selected ? '#7c3aed' : '#e5e7eb',
+                    stroke: '#7c3aed',
+                    strokeWidth: 2,
+                    draggable: true
+                }" @dragmove="onDragMove(i, $event)" @click="toggleSelect(i)" />
+            </v-layer>
+        </v-stage>
+
+        <button class="mt-4 px-4 py-2 bg-purple-600 text-white rounded" @click="addSeat">
+            Agregar asiento
+        </button>
     </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import ImageUploader from './ImageUploader.vue'
+
+// constantes
 
 const width = 800
 const height = 400
@@ -63,12 +59,35 @@ const seats = ref([
 ])
 const bgImage = ref(null)
 
+// Función para manejar la url subida del backend
+const bgImageUrl = ref('')
+
+
+// funciones
+
 function setBgImage(img) {
     bgImage.value = img
 }
 function removeBgImage() {
     bgImage.value = null
+
+    if (bgImageUrl.value) {
+        fetch('/api/seat-map/delete-bg', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: bgImageUrl.value })
+        })
+        bgImageUrl.value = ''
+    }
 }
+
+// ⬇️ INICIO AGREGADO: función que recibe la URL del backend cuando la imagen se sube
+function onImageUploaded(url) {
+    bgImageUrl.value = url
+    // Aquí podrías guardar la url en la base de datos cuando el usuario guarde el mapa completo
+}
+// ⬆️ FIN AGREGADO
+
 function addSeat() {
     seats.value.push({ x: 150, y: 150, selected: false })
 }

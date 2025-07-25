@@ -36,3 +36,6 @@ Route::get('/eventos/{evento}/entradas', [SeatMapController::class, 'listTickets
 
 // Guardar la configuración de asientos (POST /api/eventos/{evento}/asientos)
 Route::post('/eventos/{evento}/asientos', [SeatMapController::class, 'saveSeats']);
+
+// RUTA PARA GUARDAR LA IMAGEN DE FONDO EN LOS EVENTOS QUE VENDEN ENTRADAS CON ASIENTOS
+Route::post('/seat-map/upload-bg', [SeatMapController::class, 'uploadBg']);
