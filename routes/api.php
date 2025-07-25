@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MercadoPagoController;
 use App\Models\Order;
 use App\Http\Controllers\SeatMapController;
+use App\Http\Controllers\EventoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,4 +39,9 @@ Route::get('/eventos/{evento}/entradas', [SeatMapController::class, 'listTickets
 Route::post('/eventos/{evento}/asientos', [SeatMapController::class, 'saveSeats']);
 
 // RUTA PARA GUARDAR LA IMAGEN DE FONDO EN LOS EVENTOS QUE VENDEN ENTRADAS CON ASIENTOS
-Route::post('/seat-map/upload-bg', [SeatMapController::class, 'uploadBg']);
+
+// ahora la subida de imagen va al método uploadBg() que ya existe
+Route::post('/eventos/{evento}/upload-bg',   [SeatMapController::class, 'uploadBg']);
+
+// (el delete-bg puedes dejarlo en EventoController si ya lo tienes probado,
+//  o bien delegarlo también en SeatMapController con un deleteBg() idéntico)

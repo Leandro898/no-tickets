@@ -23,6 +23,7 @@
         "@zxing/browser": "^0.1.5",
         "html5-qrcode": "^2.3.8",
         "konva": "^9.3.22",
-        "vue-konva": "^3.2.2"
+        "vue-konva": "^3.2.2",
+        "vue-router": "^4.5.1"
     }
 }

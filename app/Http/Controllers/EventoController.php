@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Evento; // Importa tu modelo Evento
 use Illuminate\Http\Request; // Importa Request si lo vas a usar en otros métodos
+use Illuminate\Support\Facades\Storage;
 
 class EventoController extends Controller
 {
@@ -83,5 +84,43 @@ class EventoController extends Controller
         // Lógica para eliminar un evento
         // $evento->delete();
         // return redirect()->route('eventos.index')->with('success', 'Evento eliminado.');
+    }
+
+    // ⬇️ INICIO AGREGADO: subir imagen y guardar en eventos
+    public function uploadBgImage(Request $request, $eventoId)
+    {
+        $request->validate([
+            'image' => 'required|image|max:2048'
+        ]);
+
+        $evento = Evento::findOrFail($eventoId);
+
+        // Elimina la anterior si existe
+        if ($evento->bg_image_url) {
+            $oldPath = str_replace(asset('storage') . '/', '', $evento->bg_image_url);
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $path = $request->file('image')->store('seat_maps', 'public');
+        $url = asset('storage/' . $path);
+
+        $evento->bg_image_url = $url;
+        $evento->save();
+
+        return response()->json(['url' => $url]);
+    }
+
+    public function deleteBgImage(Request $request, $eventoId)
+    {
+        $evento = Evento::findOrFail($eventoId);
+
+        if ($evento->bg_image_url) {
+            $path = str_replace('storage/', '', $evento->bg_image_url);
+            Storage::disk('public')->delete($path);
+            $evento->bg_image_url = null;
+            $evento->save();
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 }

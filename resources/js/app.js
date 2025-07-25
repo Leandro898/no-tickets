@@ -6,7 +6,8 @@ import SeatMap from './components/SeatMap.vue'
 const el = document.getElementById('seat-map-app')
 if (el) {
     const app = createApp(SeatMap, {
-        eventId: el.dataset.eventId,
+        eventoId: el.dataset.eventId, // ⬅️ Notá el nombre: eventoId
+        initialBgImageUrl: el.dataset.bgImageUrl
     })
     app.use(VueKonva)
     app.mount(el)

@@ -12,12 +12,32 @@ class SeatMapController extends Controller
         return $evento->entradas()->select('id', 'nombre', 'stock_inicial')->get();
     }
 
-    public function saveSeats(Evento $evento, Request $request)
+    // app/Http/Controllers/SeatMapController.php
+
+    public function saveSeats(Request $request, Evento $evento)
     {
-        // Aquí haces tu lógica para insertar/actualizar en tu tabla `seats`
-        // p.ej. foreach ($request->seats as $seat) { Seat::updateOrCreate(...); }
-        return response()->json(['ok' => true]);
+        $data = $request->validate([
+            'seats' => 'required|array',
+            'seats.*.x' => 'required|numeric',
+            'seats.*.y' => 'required|numeric',
+            'seats.*.selected' => 'boolean',
+        ]);
+
+        // Borrá viejos y creá nuevos, o tu lógica de update
+        $evento->seats()->delete();
+        foreach ($data['seats'] as $s) {
+            $evento->seats()->create([
+                'x'        => $s['x'],
+                'y'        => $s['y'],
+                'row'      => 0,
+                'number'   => 0,
+                'entrada_id' => 1,  // ajustá según tu lógica
+            ]);
+        }
+
+        return response()->json(['status' => 'ok']);
     }
+
 
     //METODO PARA GUARDAR LA IMAGEN DE FONDO DEL MAPA DE ASIENTOS
     public function uploadBg(Request $request)
