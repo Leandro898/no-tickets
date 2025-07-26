@@ -53,3 +53,8 @@ Route::get('/eventos/{evento}/asientos', [SeatMapController::class, 'listSeats']
 
 //RUTA PARA GUARDAR EL MAPA DE ASIENTOS COMPLETO
 Route::post('/eventos/{evento}/mapa', [SeatMapController::class, 'saveMap']);
+
+// RUTA PARA OBTENER EL MAPA COMPLETO
+// (esto es lo que el frontend necesita para cargar el mapa de asientos)
+// Devuelve los asientos, la imagen de fondo y el mapa completo 
+Route::get('/eventos/{evento}/map', [SeatMapController::class, 'getMap']);

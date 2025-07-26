@@ -30,9 +30,10 @@ class SeatMapController extends Controller
             'seats'       => 'required|array',
             'seats.*.x'   => 'required|numeric',
             'seats.*.y'   => 'required|numeric',
-            'seats.*.row' => 'nullable|integer',
+            'seats.*.row'    => 'nullable|string|max:10',
             'seats.*.number'    => 'nullable|integer',
             'seats.*.entrada_id' => 'nullable|integer|exists:entradas,id',
+            'radius'     => $s['radius'],
         ]);
 
         // Reemplazamos todos los asientos de golpe
@@ -44,6 +45,7 @@ class SeatMapController extends Controller
                 'row'        => $s['row']       ?? 0,
                 'number'     => $s['number']    ?? 0,
                 'entrada_id' => $s['entrada_id'] ?? null,
+                'radius'     => $s['radius'],
             ]);
         }
 
@@ -87,9 +89,11 @@ class SeatMapController extends Controller
             'seats' => 'array',
             'seats.*.x'         => 'required|numeric',
             'seats.*.y'         => 'required|numeric',
-            'seats.*.row'       => 'nullable|integer',
+            'seats.*.row'       => 'nullable|string|max:10',
+            'seats.*.prefix'      => 'nullable|string',
             'seats.*.number'    => 'nullable|integer',
             'seats.*.entrada_id' => 'nullable|integer|exists:entradas,id',
+            'seats.*.radius'      => 'required|numeric',
 
             'bgUrl' => 'nullable|string',        // url de fondo
             'map'   => 'nullable|string',        // JSON del lienzo
@@ -108,8 +112,10 @@ class SeatMapController extends Controller
                 'x'          => $s['x'],
                 'y'          => $s['y'],
                 'row'        => $s['row']       ?? 0,
+                'prefix'     => $s['prefix']   ?? null,
                 'number'     => $s['number']    ?? 0,
                 'entrada_id' => $s['entrada_id'] ?? null,
+                'radius'     => $s['radius'],
             ]);
         }
 
@@ -133,5 +139,15 @@ class SeatMapController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
+    // FUNCION PARA QUE EL FRONT PUEDA OBTENER EL MAPA COMPLETO
+    public function getMap(Evento $evento)
+    {
+        return response()->json([
+            'seats' => $evento->seats()
+                ->get(['x', 'y', 'row', 'prefix', 'number', 'entrada_id']),
+            'bgUrl' => $evento->bg_image_url,
+            'map'   => $evento->map_data,
+        ]);
+    }
     
 }

@@ -187,9 +187,8 @@ function addSeat() {
 // — Guardar TODO por AJAX — //
 async function guardarTodo() {
     isLoading.value = true
-
     try {
-        // 1) Borrar fondo viejo
+        // 1️⃣ BORRAR fondo viejo si corresponde
         if (removedBg.value && bgImageUrl.value) {
             const del = await fetch(
                 `/api/eventos/${props.eventoId}/delete-bg`,
@@ -207,7 +206,7 @@ async function guardarTodo() {
             removedBg.value = false
         }
 
-        // 2) Subir nueva imagen
+        // 2️⃣ SUBIR nueva imagen si hay archivo seleccionado
         if (selectedFile.value) {
             const fd = new FormData()
             fd.append('image', selectedFile.value)
@@ -224,23 +223,25 @@ async function guardarTodo() {
             bgImageUrl.value = j.url
         }
 
-        // 3) Asegurar JSON del mapa
+        // 3️⃣ ASEGURAR que tenemos el JSON del mapa
         if (!mapJSON.value && canvasRef.value) {
             mapJSON.value = canvasRef.value.getStage().toJSON()
         }
 
-        // ————————————————
-        // 4) CORRECCIÓN: asegurarnos de que cada asiento tenga un entrada_id válido
-        // (e.g. tomamos el primer ticket de tickets.value si existe)
+        // 🟢4) Asegurarnos de que cada asiento tenga:
+        //    • entrada_id válido
+        //    • radius definido (por API ahora es obligatorio)
         const defaultEntradaId = tickets.value.length
             ? tickets.value[0].id
             : null
 
         const sanitizedSeats = toRaw(seats.value).map(s => ({
             ...s,
-            entrada_id: s.entrada_id ?? defaultEntradaId
+            // 🚩 entrada_id
+            entrada_id: s.entrada_id ?? defaultEntradaId,
+            // 🚩 radius por defecto si no lo tiene
+            radius: s.radius ?? 22
         }))
-        // ————————————————
 
         // 5) Preparar payload
         const payload = {
@@ -250,28 +251,27 @@ async function guardarTodo() {
         }
         console.log('📤 Payload /mapa:', payload)
 
-        // 6) Guardar todo junto
-        const res = await fetch(
-            `/api/eventos/${props.eventoId}/mapa`,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }
-        )
+        // 6) Llamada al servidor
+        const res = await fetch(`/api/eventos/${props.eventoId}/mapa`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        })
         if (!res.ok) {
             const txt = await res.text()
             console.error('Error save-map:', txt)
             throw new Error(`save-map ${res.status}`)
         }
         const data = await res.json()
-        if (data.status === 'ok') {
-            toast.value = { visible: true, message: 'Guardado correctamente', type: 'success' }
-        } else {
-            toast.value = { visible: true, message: 'Error al guardar', type: 'error' }
+        toast.value = {
+            visible: true,
+            message: data.status === 'ok'
+                ? 'Guardado correctamente'
+                : 'Error al guardar',
+            type: data.status === 'ok' ? 'success' : 'error'
         }
 
     } catch (err) {
@@ -282,6 +282,7 @@ async function guardarTodo() {
         setTimeout(() => (toast.value.visible = false), 2500)
     }
 }
+    
 
 </script>
 
