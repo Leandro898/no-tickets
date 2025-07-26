@@ -42,6 +42,11 @@ Route::post('/eventos/{evento}/asientos', [SeatMapController::class, 'saveSeats'
 
 // ahora la subida de imagen va al método uploadBg() que ya existe
 Route::post('/eventos/{evento}/upload-bg',   [SeatMapController::class, 'uploadBg']);
+// elimina la imagen de fondo del evento
+Route::post('/eventos/{evento}/delete-bg', [SeatMapController::class, 'deleteBg']);
 
 // (el delete-bg puedes dejarlo en EventoController si ya lo tienes probado,
 //  o bien delegarlo también en SeatMapController con un deleteBg() idéntico)
+
+//RUTA PARA GUARDAR EL MAPA DE ASIENTOS COMPLETO
+Route::post('/eventos/{evento}/mapa', [SeatMapController::class, 'saveMap']);

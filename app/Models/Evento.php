@@ -27,6 +27,8 @@ class Evento extends Model
         'edad_min_mujeres',
         'requerir_dni',
         'has_seats',
+        'bg_image_url',
+        'map_data',
     ];
 
     protected $casts = [

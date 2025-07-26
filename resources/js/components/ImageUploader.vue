@@ -13,7 +13,7 @@ const props = defineProps({
         required: true
     }
 })
-const emit = defineEmits(['imageLoaded', 'imageUploaded'])
+const emit = defineEmits(['imageLoaded', 'fileSelected', 'imageUploaded'])
 
 async function handleChange(e) {
     const file = e.target.files[0]
