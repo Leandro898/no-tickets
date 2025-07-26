@@ -3,6 +3,12 @@ import { createApp } from 'vue'
 import VueKonva from 'vue-konva'
 import SeatMap from './components/SeatMap.vue'
 
+// IMPORTAR TOAST
+import toastr from 'toastr';
+import 'toastr/build/toastr.min.css';
+
+window.toastr = toastr;
+
 const el = document.getElementById('seat-map-app')
 if (el) {
     const app = createApp(SeatMap, {

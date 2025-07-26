@@ -123,7 +123,7 @@ function removeBgImage() {
 
 // — GUARDAR TODO (1 delete-bg, 2 upload-bg, 3 asientos)
 async function guardarTodo() {
-    isLoading.value = true
+    isLoading.value = true;
 
     try {
         // 1️⃣ delete-bg
@@ -131,43 +131,50 @@ async function guardarTodo() {
             await fetch(`/api/eventos/${props.eventoId}/delete-bg`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: bgImageUrl.value })
-            })
-            bgImageUrl.value = ''
-            removedBg.value = false
+                body: JSON.stringify({ url: bgImageUrl.value }),
+            });
+            bgImageUrl.value = '';
+            removedBg.value = false;
         }
 
         // 2️⃣ upload-bg
         if (selectedFile.value) {
-            const fd = new FormData()
-            fd.append('image', selectedFile.value)
+            const fd = new FormData();
+            fd.append('image', selectedFile.value);
             const resImg = await fetch(`/api/eventos/${props.eventoId}/upload-bg`, {
-                method: 'POST', body: fd
-            })
-            const imgData = await resImg.json()
-            bgImageUrl.value = imgData.url
+                method: 'POST',
+                body: fd,
+            });
+            const imgData = await resImg.json();
+            bgImageUrl.value = imgData.url;
         }
 
         // 3️⃣ asientos
         const resSeats = await fetch(`/api/eventos/${props.eventoId}/asientos`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ seats: seats.value })
-        })
-        if (!resSeats.ok) throw new Error(`HTTP ${resSeats.status}`)
+            body: JSON.stringify({ seats: seats.value }),
+        });
 
-        // éxito
-        toast.value = { visible: true, message: '¡Todo guardado correctamente!' }
-    }
-    catch (err) {
-        console.error(err)
-        toast.value = { visible: true, message: 'Error al guardar. Revisá la consola.' }
-    }
-    finally {
-        isLoading.value = false
-        setTimeout(() => (toast.value.visible = false), 3000)
+        if (!resSeats.ok) {
+            throw new Error(`HTTP ${resSeats.status}`);
+        }
+        const data = await resSeats.json();
+
+        // Mostrar toast según resultado
+        if (data.status === 'ok') {
+            window.toastr.success('¡Asientos guardados correctamente!', 'Éxito');
+        } else {
+            window.toastr.error('Error al guardar asientos', 'Error');
+        }
+    } catch (err) {
+        console.error(err);
+        window.toastr.error('Error al guardar. Revisá la consola.', 'Error');
+    } finally {
+        isLoading.value = false;
     }
 }
+
 
 // — ASIENTOS: agregar / arrastrar / seleccionar
 function addSeat() {

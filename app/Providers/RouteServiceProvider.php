@@ -2,23 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Evento;               // ← importa tu modelo
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
-    /**
-     * The path to your application's "home" route.
-     *
-     * @var string
-     */
     public const HOME = '/dashboard';
 
-    /**
-     * Define your route model bindings, pattern filters, etc.
-     */
     public function boot(): void
     {
+        // **Binding de {evento} siempre por ID**
+        Route::bind('evento', fn($value) => Evento::findOrFail($value));
+
         $this->routes(function () {
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
