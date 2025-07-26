@@ -64,6 +64,7 @@ const props = defineProps({
 })
 
 // Estados y refs
+const tickets = ref([])
 const canvasW = 1000
 const canvasH = 800
 const bgImage = ref(null)
@@ -89,7 +90,24 @@ onMounted(async () => {
         bgImage.value = img
         bgImageUrl.value = props.initialBgImageUrl
     }
-    // 2) Listener para usar Space como pan mode
+
+    // 2) Fetch de ENTRADAS (tickets)
+    try {
+        const res = await fetch(`/api/eventos/${props.eventoId}/entradas`)
+        tickets.value = await res.json()
+    } catch (e) {
+        console.error('Error cargando tickets:', e)
+    }
+
+    // 3) Fetch de ASIENTOS guardados
+    try {
+        const res2 = await fetch(`/api/eventos/${props.eventoId}/asientos`)
+        seats.value = await res2.json()
+    } catch (e) {
+        console.error('Error cargando asientos:', e)
+    }
+
+    // 4) Listener para usar la barra SPACE como modo pan
     window.addEventListener('keydown', e => {
         if (e.code === 'Space') spacePressed.value = true
     })
@@ -97,6 +115,7 @@ onMounted(async () => {
         if (e.code === 'Space') spacePressed.value = false
     })
 })
+
 
 // — Imagen de fondo — //
 function onBgLoaded(img) {
@@ -114,11 +133,17 @@ function removeBg() {
 
 // — Agregar asiento centrado — //
 function addSeat() {
+    // 🔴 Antes: entrada_id: null
+    // 🟢 Ahora asigna siempre un ID válido (p.ej. el primero de tickets)
+    const defaultEntradaId = tickets.value.length
+        ? tickets.value[0].id
+        : null // o 1 si quieres forzar
+
     seats.value.push({
         x: canvasW / 2 - 20,
         y: canvasH / 2 - 20,
         selected: false,
-        entrada_id: null,
+        entrada_id: defaultEntradaId,  // 🔴 modificado aquí
         row: 0,
         number: 0
     })
@@ -132,14 +157,15 @@ async function guardarTodo() {
         // 1) Borrar fondo viejo
         if (removedBg.value && bgImageUrl.value) {
             const del = await fetch(
-                `/api/eventos/${props.eventoId}/delete-bg`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ url: bgImageUrl.value })
-            }
+                `/api/eventos/${props.eventoId}/delete-bg`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ url: bgImageUrl.value })
+                }
             )
             if (!del.ok) throw new Error(`delete-bg ${del.status}`)
             bgImageUrl.value = ''
@@ -151,11 +177,12 @@ async function guardarTodo() {
             const fd = new FormData()
             fd.append('image', selectedFile.value)
             const up = await fetch(
-                `/api/eventos/${props.eventoId}/upload-bg`, {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: fd
-            }
+                `/api/eventos/${props.eventoId}/upload-bg`,
+                {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json' },
+                    body: fd
+                }
             )
             if (!up.ok) throw new Error(`upload-bg ${up.status}`)
             const j = await up.json()
@@ -164,28 +191,41 @@ async function guardarTodo() {
 
         // 3) Asegurar JSON del mapa
         if (!mapJSON.value && canvasRef.value) {
-            // canvasRef expone getStage() en SeatCanvas.vue
             mapJSON.value = canvasRef.value.getStage().toJSON()
         }
 
-        // 4) Preparar payload
+        // ————————————————
+        // 4) CORRECCIÓN: asegurarnos de que cada asiento tenga un entrada_id válido
+        // (e.g. tomamos el primer ticket de tickets.value si existe)
+        const defaultEntradaId = tickets.value.length
+            ? tickets.value[0].id
+            : null
+
+        const sanitizedSeats = toRaw(seats.value).map(s => ({
+            ...s,
+            entrada_id: s.entrada_id ?? defaultEntradaId
+        }))
+        // ————————————————
+
+        // 5) Preparar payload
         const payload = {
-            seats: toRaw(seats.value),    // desproxificar
+            seats: sanitizedSeats,
             bgUrl: bgImageUrl.value,
             map: mapJSON.value
         }
         console.log('📤 Payload /mapa:', payload)
 
-        // 5) Guardar todo junto
+        // 6) Guardar todo junto
         const res = await fetch(
-            `/api/eventos/${props.eventoId}/mapa`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        }
+            `/api/eventos/${props.eventoId}/mapa`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            }
         )
         if (!res.ok) {
             const txt = await res.text()
@@ -207,6 +247,7 @@ async function guardarTodo() {
         setTimeout(() => (toast.value.visible = false), 2500)
     }
 }
+
 </script>
 
 <style scoped>

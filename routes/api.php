@@ -45,6 +45,9 @@ Route::post('/eventos/{evento}/upload-bg',   [SeatMapController::class, 'uploadB
 // elimina la imagen de fondo del evento
 Route::post('/eventos/{evento}/delete-bg', [SeatMapController::class, 'deleteBg']);
 
+// Listar asientos guardados para el mapa (GET /api/eventos/{evento}/asientos)
+Route::get('/eventos/{evento}/asientos', [SeatMapController::class, 'listSeats']);
+
 // (el delete-bg puedes dejarlo en EventoController si ya lo tienes probado,
 //  o bien delegarlo también en SeatMapController con un deleteBg() idéntico)
 

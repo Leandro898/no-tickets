@@ -65,6 +65,16 @@ class SeatMapController extends Controller
         return response()->json(['url' => $url]);
     }
 
+    // Bajo tu método uploadBg agrega:
+    public function listSeats(Evento $evento)
+    {
+        // Selecciona solo los campos que necesitas:
+        return $evento->seats()
+            ->select('x', 'y', 'row', 'number', 'entrada_id')
+            ->get();
+    }
+
+
     /**
      * Guarda el flujo completo:
      *  • borra/sube bg_image_url
@@ -122,4 +132,6 @@ class SeatMapController extends Controller
 
         return response()->json(['status' => 'ok']);
     }
+
+    
 }
