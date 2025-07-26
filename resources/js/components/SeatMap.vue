@@ -42,6 +42,14 @@
                     </svg>
                     {{ isLoading ? 'Guardando…' : 'Guardar todo' }}
                 </button>
+
+                <!-- //PRUEBA DE BOTONES -->
+                <button @click="openModal" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    Agregar fila de butacas
+                </button>
+
+                <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
+
             </div>
         </div>
     </div>
@@ -53,6 +61,10 @@ import ImageUploader from './ImageUploader.vue'
 import SidebarToolbar from './SidebarToolbar.vue'
 import SeatCanvas from './SeatCanvas.vue'
 import Toast from './Toast.vue'
+import AddRowModal from './AddRowModal.vue'
+
+const showAddRow = ref(false)
+const sectors = ref([])    // los obtienes del API /eventos/:id/sectores
 
 // unificamos el ref para el canvas
 const canvasRef = ref(null)
@@ -116,6 +128,29 @@ onMounted(async () => {
     })
 })
 
+// — Abrir modal para agregar fila de butacas — //
+function openModal() { showAddRow.value = true }
+
+// — Evento de agregar fila de butacas — //
+function onRowAdd({ sectorId, prefix, start, count }) {
+    showAddRow.value = false
+
+    // calculas posición inicial X/Y (por ejemplo, centrar o alinear abajo)
+    const baseX = 100
+    const baseY = 700
+
+    for (let i = 0; i < count; i++) {
+        const number = start + i
+        seats.value.push({
+            x: baseX + i * 50,       // separación horizontal 50px
+            y: baseY,                // misma Y
+            selected: false,
+            entrada_id: sectorId,    // asocio asiento al sector/tipo
+            row: prefix,
+            number,
+        })
+    }
+}
 
 // — Imagen de fondo — //
 function onBgLoaded(img) {
