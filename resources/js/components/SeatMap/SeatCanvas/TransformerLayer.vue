@@ -1,11 +1,10 @@
-<template>
-    <v-transformer v-if="nodes.length" ref="transRef" :config="config" @transformend="onTransformEnd"
-        @dragmove="onTransformerDrag" @dragend="onTransformerDragEnd" />
-</template>
 <script setup>
-import { watch, nextTick } from 'vue'
-defineProps(['selectedSeats'])
-defineEmits(['update:seats'])
-// ref a transformer, watcher para nodes (buscar en layer)
-// funciones onTransformEnd, onTransformerDrag, ...
+const props = defineProps({
+    selectedCircle: Object // Recibe el nodo real, no array
+})
 </script>
+
+<template>
+    <v-transformer v-if="selectedCircle" :node="selectedCircle" draggable="false"
+        :enabledAnchors="['top-left', 'top-right', 'bottom-left', 'bottom-right']" />
+</template>

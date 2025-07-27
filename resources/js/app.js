@@ -1,7 +1,8 @@
 import './bootstrap'
 import { createApp } from 'vue'
 import VueKonva from 'vue-konva'
-import SeatMap from './components/SeatMap.vue'
+import SeatMap from './components/SeatMap/index.vue'
+
 
 // IMPORTAR TOAST
 import toastr from 'toastr';

@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     plugins: [
@@ -18,8 +19,10 @@ export default defineConfig({
     ],
     resolve: {
         alias: {
-            // para que import { createApp } from 'vue' funcione bien
+            // Para que import { createApp } from 'vue' funcione bien
             vue: 'vue/dist/vue.esm-bundler.js',
+            // Alias “@” apunta a resources/js
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
         },
     },
 });
