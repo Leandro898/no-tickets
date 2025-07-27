@@ -22,17 +22,28 @@
                 </button>
             </div>
 
-            <!-- Canvas -->
-            <div class="relative border rounded overflow-hidden bg-white">
-                <SeatCanvas ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :seats="seats"
-                    :pan-mode="spacePressed" @update:seats="seats = $event" @update:mapJSON="mapJSON = $event" />
+            <!-- Canvas + Controls -->
+            <div class="relative flex border rounded overflow-hidden bg-white">
+                <!-- 1) El lienzo ocupa todo el espacio disponible -->
+                <div class="flex-1">
+                    <SeatCanvas ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :seats="seats"
+                        @update:seats="onSeatsUpdate" :pan-mode="spacePressed" @update:mapJSON="mapJSON = $event"
+                        class="w-full h-full" />
+                </div>
+
+                <!-- 2) Panel de labels posicionado por encima a la derecha -->
+                <SeatControls v-show="seats.some(s => s.selected)" :selected="seats.filter(s => s.selected)"
+                    @rename="onRename" class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
             </div>
+
+
 
             <!-- Botones -->
             <div class="mt-4 flex gap-2">
                 <button class="px-4 py-2 bg-purple-600 text-white rounded" @click="addSeat" :disabled="isLoading">
                     Agregar asiento
                 </button>
+
                 <button class="px-4 py-2 bg-green-600 text-white rounded flex items-center" @click="guardarTodo"
                     :disabled="isLoading">
                     <svg v-if="isLoading" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg"
@@ -43,39 +54,36 @@
                     {{ isLoading ? 'Guardando…' : 'Guardar todo' }}
                 </button>
 
-                <!-- //PRUEBA DE BOTONES -->
                 <button @click="openModal" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
                     Agregar fila de butacas
                 </button>
 
                 <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
-
             </div>
         </div>
     </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted, toRaw } from 'vue'
 import ImageUploader from './ImageUploader.vue'
 import SidebarToolbar from './SidebarToolbar.vue'
 import SeatCanvas from './SeatCanvas.vue'
+import SeatControls from './SeatControls.vue'
 import Toast from './Toast.vue'
 import AddRowModal from './AddRowModal.vue'
 
-const showAddRow = ref(false)
-const sectors = ref([])    // los obtienes del API /eventos/:id/sectores
-
-// unificamos el ref para el canvas
-const canvasRef = ref(null)
-
-// Props que vienen del blade
+// Props
 const props = defineProps({
     eventoId: { type: [Number, String], required: true },
     initialBgImageUrl: { type: String, default: '' }
 })
 
-// Estados y refs
+// Refs y estados
+const showAddRow = ref(false)
+const sectors = ref([])
+const canvasRef = ref(null)
 const tickets = ref([])
 const canvasW = 1000
 const canvasH = 800
@@ -83,18 +91,16 @@ const bgImage = ref(null)
 const selectedFile = ref(null)
 const bgImageUrl = ref('')
 const removedBg = ref(false)
-
 const seats = ref([])
 const mapJSON = ref(null)
-
 const currentTool = ref('select')
 const spacePressed = ref(false)
 const isLoading = ref(false)
 const toast = ref({ visible: false, message: '', type: 'success' })
 
-// Carga inicial
+// Montaje inicial
 onMounted(async () => {
-    // 1) Preload del fondo si ya existía
+    // Fondo previo
     if (props.initialBgImageUrl) {
         const img = new Image()
         img.src = props.initialBgImageUrl
@@ -103,7 +109,7 @@ onMounted(async () => {
         bgImageUrl.value = props.initialBgImageUrl
     }
 
-    // 2) Fetch de ENTRADAS (tickets)
+    // Traer tickets
     try {
         const res = await fetch(`/api/eventos/${props.eventoId}/entradas`)
         tickets.value = await res.json()
@@ -111,15 +117,21 @@ onMounted(async () => {
         console.error('Error cargando tickets:', e)
     }
 
-    // 3) Fetch de ASIENTOS guardados
+    // Traer asientos guardados
     try {
         const res2 = await fetch(`/api/eventos/${props.eventoId}/asientos`)
-        seats.value = await res2.json()
+        const raw = await res2.json()
+        seats.value = raw.map(s => ({
+            ...s,
+            selected: false,
+            radius: s.radius ?? 22,
+            label: s.label ?? `${s.row}${s.number}`
+        }))
     } catch (e) {
         console.error('Error cargando asientos:', e)
     }
 
-    // 4) Listener para usar la barra SPACE como modo pan
+    // SPACE para pan
     window.addEventListener('keydown', e => {
         if (e.code === 'Space') spacePressed.value = true
     })
@@ -128,34 +140,28 @@ onMounted(async () => {
     })
 })
 
-// — Abrir modal para agregar fila de butacas — //
+// — Modal fila de butacas —
 function openModal() { showAddRow.value = true }
 
-// — Evento de agregar fila de butacas — //
 function onRowAdd({ sectorId, prefix, start, count }) {
     showAddRow.value = false
-
-    // calculas posición inicial X/Y (por ejemplo, centrar o alinear abajo)
-    const baseX = 100
-    const baseY = 700
-
+    const baseX = 100, baseY = 700
     for (let i = 0; i < count; i++) {
-        const number = start + i
+        const num = start + i
         seats.value.push({
-            x: baseX + i * 50,       // separación horizontal 50px
-            y: baseY,                // misma Y
+            x: baseX + i * 50,
+            y: baseY,
             selected: false,
-            entrada_id: sectorId,    // asocio asiento al sector/tipo
+            entrada_id: sectorId,
             row: prefix,
-            number,
+            number: num,
+            label: `${prefix}${num}`
         })
     }
 }
 
-// — Imagen de fondo — //
-function onBgLoaded(img) {
-    bgImage.value = img
-}
+// — Fondo —
+function onBgLoaded(img) { bgImage.value = img }
 function onFileSelected(file) {
     selectedFile.value = file
     removedBg.value = false
@@ -166,105 +172,79 @@ function removeBg() {
     if (bgImageUrl.value) removedBg.value = true
 }
 
-// — Agregar asiento centrado — //
+// — Agregar asiento —
 function addSeat() {
-    // 🔴 Antes: entrada_id: null
-    // 🟢 Ahora asigna siempre un ID válido (p.ej. el primero de tickets)
     const defaultEntradaId = tickets.value.length
         ? tickets.value[0].id
-        : null // o 1 si quieres forzar
-
+        : null
     seats.value.push({
         x: canvasW / 2 - 20,
         y: canvasH / 2 - 20,
         selected: false,
-        entrada_id: defaultEntradaId,  // 🔴 modificado aquí
+        entrada_id: defaultEntradaId,
         row: 0,
-        number: 0
+        number: 0,
+        label: 'A1'
     })
 }
 
-// — Guardar TODO por AJAX — //
+// — Guardar todo —
 async function guardarTodo() {
     isLoading.value = true
     try {
-        // 1️⃣ BORRAR fondo viejo si corresponde
+        // (1) Borrar fondo viejo
         if (removedBg.value && bgImageUrl.value) {
-            const del = await fetch(
-                `/api/eventos/${props.eventoId}/delete-bg`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ url: bgImageUrl.value })
-                }
-            )
+            const del = await fetch(`/api/eventos/${props.eventoId}/delete-bg`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: bgImageUrl.value })
+            })
             if (!del.ok) throw new Error(`delete-bg ${del.status}`)
             bgImageUrl.value = ''
             removedBg.value = false
         }
 
-        // 2️⃣ SUBIR nueva imagen si hay archivo seleccionado
+        // (2) Subir nuevo
         if (selectedFile.value) {
             const fd = new FormData()
             fd.append('image', selectedFile.value)
-            const up = await fetch(
-                `/api/eventos/${props.eventoId}/upload-bg`,
-                {
-                    method: 'POST',
-                    headers: { 'Accept': 'application/json' },
-                    body: fd
-                }
-            )
+            const up = await fetch(`/api/eventos/${props.eventoId}/upload-bg`, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json' },
+                body: fd
+            })
             if (!up.ok) throw new Error(`upload-bg ${up.status}`)
             const j = await up.json()
             bgImageUrl.value = j.url
         }
 
-        // 3️⃣ ASEGURAR que tenemos el JSON del mapa
+        // (3) JSON mapa
         if (!mapJSON.value && canvasRef.value) {
             mapJSON.value = canvasRef.value.getStage().toJSON()
         }
 
-        // 🟢4) Asegurarnos de que cada asiento tenga:
-        //    • entrada_id válido
-        //    • radius definido (por API ahora es obligatorio)
+        // (4) Sanitizar asientos
         const defaultEntradaId = tickets.value.length
             ? tickets.value[0].id
             : null
-
         const sanitizedSeats = toRaw(seats.value).map(s => ({
             ...s,
-            // 🚩 entrada_id
             entrada_id: s.entrada_id ?? defaultEntradaId,
-            // 🚩 radius por defecto si no lo tiene
             radius: s.radius ?? 22
         }))
 
-        // 5) Preparar payload
+        // (5) Payload y envío
         const payload = {
             seats: sanitizedSeats,
             bgUrl: bgImageUrl.value,
             map: mapJSON.value
         }
-        console.log('📤 Payload /mapa:', payload)
-
-        // 6) Llamada al servidor
         const res = await fetch(`/api/eventos/${props.eventoId}/mapa`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         })
-        if (!res.ok) {
-            const txt = await res.text()
-            console.error('Error save-map:', txt)
-            throw new Error(`save-map ${res.status}`)
-        }
+        if (!res.ok) throw new Error(`save-map ${res.status}`)
         const data = await res.json()
         toast.value = {
             visible: true,
@@ -276,15 +256,38 @@ async function guardarTodo() {
 
     } catch (err) {
         console.error(err)
-        toast.value = { visible: true, message: 'Error de red, revisá consola', type: 'error' }
+        toast.value = {
+            visible: true,
+            message: 'Error de red, revisá consola',
+            type: 'error'
+        }
     } finally {
         isLoading.value = false
         setTimeout(() => (toast.value.visible = false), 2500)
     }
 }
-    
 
+// — Renombrar labels (SeatControls) —
+function onRename({ type, label, letter, start }) {
+    const sel = seats.value.filter(s => s.selected)
+    if (type === 'single') {
+        sel[0].label = label
+    } else {
+        sel
+            .sort((a, b) => a.x - b.x)
+            .forEach((s, i) => {
+                s.label = `${letter}${start + i}`
+            })
+    }
+}
+
+// — Actualizar asientos (SeatCanvas) —
+function onSeatsUpdate(newSeats) {
+    // console.log('🚀 seats.selected:', newSeats.map(s => s.selected))
+    seats.value = newSeats
+}
 </script>
+
 
 <style scoped>
 /* ajusta tu layout aquí si lo necesitas */

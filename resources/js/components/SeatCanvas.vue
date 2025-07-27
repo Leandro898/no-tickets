@@ -24,8 +24,20 @@
                 fill: seat.selected ? '#7c3aed' : '#e5e7eb',
                 stroke: '#7c3aed',
                 strokeWidth: 2,
-                draggable: true
-            }" @dragmove="e => onDragMove(i, e)" @click="() => onToggle(i)" />
+                draggable: true,
+                dragDistance: 4    // ya no arrastramos individualmente
+            }" @click="onToggleSeat(i)" @dragstart="e => onSeatDragStart(i, e)" @dragend="e => onSeatDragEnd(i, e)" />
+
+            <!-- Asientos (círculos) -->
+            <v-text v-for="(seat, i) in seats" :key="'label-' + i" :config="{
+                x: seats[i].x,
+                // colocamos el texto ligeramente por encima del círculo:
+                y: seats[i].y - (seats[i].radius ?? defaultRadius) - 6,
+                text: seats[i].label,        // el label que definiste en SeatMap.vue
+                fontSize: 14,
+                fontFamily: 'Arial',
+                align: 'center'
+            }" />
 
             <!-- 🟢 Transformer para resize de múltiples asientos y drag de grupo -->
             <v-transformer v-if="transformerNodes.length" ref="transformerRef" :config="{
@@ -33,7 +45,8 @@
                 draggable: false,
                 rotateEnabled: false,
                 enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-            }" @transformend="onTransformEnd" ></v-transformer>
+            }" @transformend="onTransformEnd" @dragmove="onTransformerDrag" @dragend="onTransformerDragEnd" />
+
         </v-layer>
     </v-stage>
 </template>
@@ -44,6 +57,7 @@ import { ref, watch, nextTick, defineExpose } from 'vue'
 /** 🚩 Flags para el drag de grupo */
 let isGroupDragging = false
 let lastGroupPointer = { x: 0, y: 0 }
+let isDragging = false;
 
 /** — Props — */
 const props = defineProps({
@@ -86,6 +100,58 @@ let selectionStart = { x: 0, y: 0 }
 
 /** — Estilo por defecto de los asientos — */
 const defaultRadius = 22
+
+/**  
+ * 1) Si arrastras un asiento (incluso no seleccionado), 
+ *    selecciona sólo ese asiento y arranca el drag  
+ */
+function onSeatDragStart(i, e) {
+    // selecciona únicamente este asiento
+    const updated = props.seats.map((s, idx) => ({
+        ...s,
+        selected: idx === i
+    }))
+    emit('update:seats', updated)
+
+    // marcamos que estamos arrastrando
+    isDragging = true
+}
+
+function onSeatDragEnd(i, e) {
+    const { x, y } = e.target.position();
+    const updated = props.seats.map((s, idx) =>
+        idx === i ? { ...s, x, y } : s
+    );
+    isDragging = false;
+    emit('update:seats', updated);
+}
+function onToggleSeat(i) {
+    if (isDragging) return;
+    const updated = props.seats.map((s, idx) =>
+        idx === i ? { ...s, selected: !s.selected } : s
+    );
+    emit('update:seats', updated);
+}
+
+// 1) Helper para saber si el click cayó dentro del transformer
+function isInsideTransformer(e) {
+    if (!transformerRef.value) return false
+    const tf = transformerRef.value.getNode()
+    const box = tf.getClientRect()
+    const pos = e.target.getStage().getPointerPosition()
+    return (
+        pos.x >= box.x &&
+        pos.x <= box.x + box.width &&
+        pos.y >= box.y &&
+        pos.y <= box.y + box.height
+    )
+}
+
+// 2) Handler para cuando termines de arrastrar el transformer
+function onTransformerDragEnd() {
+    isGroupDragging = false
+}
+
 
 /** — Watchers — */
 // Actualiza los nodos del transformer cuando cambian los seats seleccionados
@@ -131,48 +197,71 @@ function onWheel(e) {
 }
 
 function onMouseDown(e) {
-    const stage = e.target.getStage()
-    const pointer = stage.getPointerPosition()
+    const stage = e.target.getStage();
+    const pointer = stage.getPointerPosition();
 
-    // ── 1) Si hay un transformer y el clic cae dentro de su bounding box…
+    // ── 1) Si clic dentro del transformer → arranque de drag grupo
     if (transformerRef.value) {
-        const tf = transformerRef.value.getNode()
-        const box = tf.getClientRect()              // { x, y, width, height }
+        const tf = transformerRef.value.getNode();
+        const box = tf.getClientRect();
         if (
             pointer.x >= box.x &&
             pointer.x <= box.x + box.width &&
             pointer.y >= box.y &&
             pointer.y <= box.y + box.height
         ) {
-            isGroupDragging = true
-            lastGroupPointer = pointer
-            return
+            isGroupDragging = true;
+            lastGroupPointer = pointer;
+            return;
         }
     }
 
     // ── 2) Pan con Space
     if (props.panMode) {
-        isPanning = true
-        lastPointer = pointer
-        return
+        isPanning = true;
+        lastPointer = pointer;
+        return;
     }
 
-    // ── 3) Si clic en asiento individual, no iniciar caja
-    const className = e.target.getClassName()
-    if (className === 'Circle' && e.target.id().startsWith('seat-')) {
-        return
+    // ── 3) Determinar si clic en asiento
+    const className = e.target.getClassName();
+    const isSeat =
+        className === 'Circle' &&
+        e.target.id().startsWith('seat-');
+
+    // ☑️ Deseleccionar todo si NO clickeaste un asiento
+    if (!isSeat) {
+        const cleared = props.seats.map(s => ({
+            ...s,
+            selected: false
+        }));
+        emit('update:seats', cleared);
     }
 
-    // ── 4) Clic en fondo/capa → iniciar selección de caja
+    // ── 4) Si clic en asiento, salgo para permitir click/drag individual
+    if (isSeat) {
+        return;
+    }
+
+    // ── 5) Clic en fondo o capa → iniciar selección de caja
     if (
         e.target === stage ||
         ['Layer', 'Image'].includes(className)
     ) {
-        const p = stage.getRelativePointerPosition()
-        selectionStart = { x: p.x, y: p.y }
-        selection.value = { visible: true, x: p.x, y: p.y, width: 0, height: 0 }
+        const p = stage.getRelativePointerPosition();
+        selectionStart = { x: p.x, y: p.y };
+        selection.value = {
+            visible: true,
+            x: p.x,
+            y: p.y,
+            width: 0,
+            height: 0
+        };
     }
 }
+
+
+
 
 
 function onMouseMove(e) {
@@ -219,32 +308,57 @@ function onMouseMove(e) {
     }
 }
 
+// — Finalizar selección de caja —
 function onMouseUp() {
-    // 🚩 Finalizar drag de grupo
+    // 🚩 Si veníamos arrastrando en grupo, cancelamos ese drag
     if (isGroupDragging) {
         isGroupDragging = false
         return
     }
-
-    // Fin de pan
+    // 🚩 Si veníamos haciendo pan con Space, cancelamos el pan
     if (isPanning) {
         isPanning = false
         return
     }
-
-    // Finalizar selección de caja
+    // 🚩 Si no hay caja activa, nada que hacer
     if (!selection.value.visible) return
+
+    // Procesamos la selección de caja
     const sel = selection.value
-    props.seats.forEach(s => {
-        s.selected =
+    const updated = props.seats.map(s => {
+        const inside =
             s.x >= sel.x &&
             s.x <= sel.x + sel.width &&
             s.y >= sel.y &&
             s.y <= sel.y + sel.height
+        return inside
+            ? { ...s, selected: true }
+            : s
     })
-    emit('update:seats', props.seats)
+
+    // Emitimos el nuevo array con los selected actualizados
+    emit('update:seats', updated)
+    // Ocultamos la caja
     selection.value.visible = false
 }
+
+
+// También soportamos drag directo sobre el transformer
+function onTransformerDrag(e) {
+    const node = e.target
+    const p = node.position()
+    const dx = p.x - lastGroupPointer.x
+    const dy = p.y - lastGroupPointer.y
+
+    const updated = props.seats.map(s =>
+        s.selected
+            ? { ...s, x: s.x + dx, y: s.y + dy }
+            : s
+    )
+    lastGroupPointer = { x: p.x, y: p.y }
+    emit('update:seats', updated)
+}
+
 
 function onDragMove(i, e) {
     const node = e.target
@@ -267,31 +381,41 @@ function onDragMove(i, e) {
     }
     emit('update:seats', props.seats)
 }
-
+//// Alternar selección de un asiento
+// — Alternar selección individual —
 function onToggle(i) {
-    props.seats[i].selected = !props.seats[i].selected
-    emit('update:seats', props.seats)
+    console.log('click en asiento', i)
+    const updated = props.seats.map((s, idx) =>
+        idx === i
+            ? { ...s, selected: !s.selected }
+            : s
+    )
+    emit('update:seats', updated)
 }
 
 function onTransformEnd() {
-    // 🟢 Tras redimensionar: actualizar radius en el estado
     const tf = transformerRef.value.getNode()
-    tf.nodes().forEach(node => {
-        const idx = Number(node.id().split('-')[1])
-        const scaleX = node.scaleX()
-        props.seats[idx].radius = (props.seats[idx].radius ?? defaultRadius) * scaleX
+    const updated = props.seats.map((seat, i) => {
+        const node = tf.nodes().find(n => Number(n.id().split('-')[1]) === i)
+        if (!node) return seat
+        const newRadius = (seat.radius ?? defaultRadius) * node.scaleX()
         node.scaleX(1)
         node.scaleY(1)
+        return { ...seat, radius: newRadius }
     })
-    emit('update:seats', props.seats)
+
+    emit('update:seats', updated)
 }
-
-
 
 function exportMapJSON() {
     const json = stageRef.value.getStage().toJSON()
     emit('update:mapJSON', json)
 }
+
+
+
+
+
 </script>
 
 <style scoped>
