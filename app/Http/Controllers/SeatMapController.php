@@ -70,11 +70,21 @@ class SeatMapController extends Controller
     // Bajo tu método uploadBg agrega:
     public function listSeats(Evento $evento)
     {
-        // Selecciona solo los campos que necesitas:
         return $evento->seats()
-            ->select('x', 'y', 'row', 'number', 'entrada_id')
+            ->select(
+                'id',
+                'x',
+                'y',
+                'row',
+                'prefix',
+                'number',
+                'entrada_id',
+                'label',    // ← lo agregas
+                'radius'    // ← lo agregas
+            )
             ->get();
     }
+
 
 
     /**
@@ -93,6 +103,7 @@ class SeatMapController extends Controller
             'seats.*.prefix'      => 'nullable|string',
             'seats.*.number'    => 'nullable|integer',
             'seats.*.entrada_id' => 'nullable|integer|exists:entradas,id',
+            'seats.*.label'    => 'nullable|string|max:20',
             'seats.*.radius'      => 'required|numeric',
 
             'bgUrl' => 'nullable|string',        // url de fondo
@@ -115,6 +126,7 @@ class SeatMapController extends Controller
                 'prefix'     => $s['prefix']   ?? null,
                 'number'     => $s['number']    ?? 0,
                 'entrada_id' => $s['entrada_id'] ?? null,
+                'label'      => $s['label'],
                 'radius'     => $s['radius'],
             ]);
         }
@@ -140,14 +152,23 @@ class SeatMapController extends Controller
     }
 
     // FUNCION PARA QUE EL FRONT PUEDA OBTENER EL MAPA COMPLETO
+    // (si usas getMap)
     public function getMap(Evento $evento)
     {
         return response()->json([
             'seats' => $evento->seats()
-                ->get(['x', 'y', 'row', 'prefix', 'number', 'entrada_id']),
+                ->get([
+                    'x',
+                    'y',
+                    'row',
+                    'prefix',
+                    'number',
+                    'entrada_id',
+                    'label',
+                    'radius'   // ← idem aquí
+                ]),
             'bgUrl' => $evento->bg_image_url,
             'map'   => $evento->map_data,
         ]);
     }
-    
 }

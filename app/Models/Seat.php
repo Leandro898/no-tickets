@@ -13,6 +13,8 @@ class Seat extends Model
         'prefix',
         'number',
         'entrada_id',
-        'evento_id'
+        'evento_id',
+        'label',
+        'radius'
     ];
 }

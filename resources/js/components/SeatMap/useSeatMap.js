@@ -3,9 +3,9 @@ import { ref, onMounted, toRaw, watch } from 'vue'
 export function useSeatMap(props) {
     // Toolbar tools
     const tools = [
-        { name: 'select', label: 'Seleccionar zona', icon: '<svg>…</svg>' },
-        { name: 'seat', label: 'Agregar asiento', icon: '<svg>…</svg>' },
-        { name: 'text', label: 'Texto', icon: '<svg>…</svg>' }
+        { name: 'rect', label: 'Agregar cuadrado', icon: '…' },
+        { name: 'circle', label: 'Agregar círculo', icon: '…' },
+        { name: 'text', label: 'Agregar texto', icon: '…' },
     ];
 
     // Props desestructuradas
@@ -26,14 +26,18 @@ export function useSeatMap(props) {
     const removedBg = ref(false);
     const seats = ref([]);
     const mapJSON = ref(null);
-    const currentTool = ref('select');
+    const currentTool = ref('rect');
+    // const currentTool = ref('select');
     const spacePressed = ref(false);
     const isLoading = ref(false);
     const toast = ref({ visible: false, message: '', type: 'success' });
 
     // Selección de tool en sidebar
-    function onToolSelect(name) {
-        currentTool.value = name;
+    function onToolSelect(tool) {
+        currentTool.value = tool;
+        if (tool === 'rect') addRectangle();
+        if (tool === 'circle') addCircle();
+        if (tool === 'text') addText();
     }
 
     // Montaje inicial
@@ -215,11 +219,11 @@ export function useSeatMap(props) {
             }
 
             // (4) sanitizar asientos
-            const defaultEntradaId = tickets.value.length ? tickets.value[0].id : null;
             const sanitizedSeats = toRaw(seats.value).map(s => ({
                 ...s,
                 entrada_id: s.entrada_id ?? defaultEntradaId,
-                radius: s.radius ?? 22,
+                label: s.label ?? `${s.row}${s.number}`,            // ← asegurarse que label esta configurado y no vacio
+                radius: s.radius ?? 22,     // ← radius ya estaba
             }));
 
             // (5) payload y envío
@@ -354,6 +358,56 @@ export function useSeatMap(props) {
     function showHelp() {
         // puede ser un modal más bonito
         alert(`Usa rueda de ratón para zoom\nMantén espaciadora para pan…`)
+    }
+
+    // ELEMENTOS DE DIBUJO
+    // 2) Funciones de dibujo
+    function addRectangle() {
+        seats.value.push({
+            type: 'rect',
+            x: canvasW / 2 - 25,
+            y: canvasH / 2 - 15,
+            width: 50,
+            height: 30,
+            stroke: 'gray',
+            strokeWidth: 2,
+            selected: false,
+        });
+    }
+
+    // CREA UN CÍRCULO “libre”
+    function addCircle() {
+        seats.value.push({
+            type: 'circle',
+            x: canvasW / 2,
+            y: canvasH / 2,
+            radius: 30,
+            stroke: 'gray',
+            strokeWidth: 2,
+            selected: false,
+        });
+    }
+
+    // CREA UN TEXTO PEDIDO POR PROMPT
+    function addText() {
+        const txt = window.prompt('Ingresa el texto:', 'Nuevo texto')
+        if (!txt) return;
+        seats.value.push({
+            type: 'text',
+            x: canvasW / 2,
+            y: canvasH / 2,
+            label: txt,
+            fontSize: 18,
+            draggable: true,
+            selected: false,
+        });
+    }
+
+    function onToolSelect(name) {
+        currentTool.value = name;
+        if (name === 'rect') addRectangle();
+        if (name === 'circle') addCircle();
+        if (name === 'text') addText();
     }
 
     return {
