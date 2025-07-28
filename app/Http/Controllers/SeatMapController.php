@@ -9,45 +9,41 @@ use Illuminate\Support\Facades\Storage;
 class SeatMapController extends Controller
 {
     /**
-     * Devuelve las entradas (tickets) para este evento.
+     * Devuelve las entradas (tickets) para este evento,
+     * con un count de los asientos ya asignados y el remaining.
      */
     public function listTickets(Evento $evento)
     {
-        return $evento
+        // Usamos withCount para contar cuántos seats apuntan a cada entrada
+        $entradas = $evento
             ->entradas()
             ->select('id', 'nombre', 'stock_inicial')
-            ->get();
+            ->withCount(['seats as assigned'])
+            ->get()
+            // Mapeamos para añadir remaining
+            ->map(function ($e) {
+                return [
+                    'id'             => $e->id,
+                    'nombre'         => $e->nombre,
+                    'stock_inicial'  => $e->stock_inicial,
+                    'assigned'       => $e->assigned,  // count generado por withCount
+                    'remaining'      => max(0, $e->stock_inicial - $e->assigned),
+                ];
+            });
+
+        return response()->json($entradas);
     }
 
-    /**
-     * Devuelve todos los elementos (asientos y shapes) para este evento.
-     */
-    public function listSeats(Evento $evento)
-    {
-        return $evento->seats()
-            ->select(
-                'id',
-                'type',
-                'x',
-                'y',
-                'row',
-                'prefix',
-                'number',
-                'entrada_id',
-                'width',
-                'height',
-                'radius',
-                'label',
-                'font_size'
-            )
-            ->get();
-    }
+
+    
+
 
     /**
      * Guarda únicamente los asientos (legacy).
      */
     public function saveSeats(Request $request, Evento $evento)
     {
+        // 1️⃣ Validación de esquema básico
         $data = $request->validate([
             'seats'               => 'required|array',
             'seats.*.type'        => 'nullable|string|in:seat,rect,circle,text',
@@ -64,7 +60,34 @@ class SeatMapController extends Controller
             'seats.*.fontSize'    => 'nullable|numeric',
         ]);
 
-        // Borramos todo y creamos de nuevo
+        // 2️⃣ Contar cuántos asientos quieren asignar por cada entrada_id
+        $requestedCounts = [];
+        foreach ($data['seats'] as $seat) {
+            if (! empty($seat['entrada_id'])) {
+                $requestedCounts[$seat['entrada_id']] = ($requestedCounts[$seat['entrada_id']] ?? 0) + 1;
+            }
+        }
+
+        // 3️⃣ Obtener el stock_inicial de cada entrada involucrada
+        if (! empty($requestedCounts)) {
+            $stocks = $evento->entradas()
+                ->whereIn('id', array_keys($requestedCounts))
+                ->pluck('stock_inicial', 'id')  // [ entrada_id => stock_inicial ]
+                ->toArray();
+
+            // 4️⃣ Validar que no excedan el stock
+            foreach ($requestedCounts as $entradaId => $qty) {
+                $available = $stocks[$entradaId] ?? 0;
+                if ($qty > $available) {
+                    return response()->json([
+                        'error' => "Has intentado asignar {$qty} asientos para la entrada ID {$entradaId}, 
+                                pero solo hay {$available} disponibles."
+                    ], 422);
+                }
+            }
+        }
+
+        // 5️⃣ Si todo está OK, borramos y recreamos los asientos
         $evento->seats()->delete();
         foreach ($data['seats'] as $s) {
             $evento->seats()->create([
@@ -85,6 +108,7 @@ class SeatMapController extends Controller
 
         return response()->json(['status' => 'ok']);
     }
+
 
     /**
      * Sube la imagen de fondo al storage y devuelve su URL pública.

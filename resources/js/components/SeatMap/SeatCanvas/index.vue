@@ -306,10 +306,10 @@ function onStageClick(e) {
     // Sólo deseleccionar si el click fue en el Stage o en la Layer (fondo),
     // no en ningún Circle, Rect, Text, etc.
     const cls = e.target.getClassName?.()
-    console.log('Click detectado en:', cls) // 👈🏼 LOG acá
+    //console.log('Click detectado en:', cls) // 👈🏼 LOG acá
 
     if (cls === 'Stage' || cls === 'Layer' || cls === 'Image') {
-        console.log('Deseleccionando todos')
+        //console.log('Deseleccionando todos')
         emit('update:seats', props.seats.map(s => s ? { ...s, selected: false } : s))
     }
 
