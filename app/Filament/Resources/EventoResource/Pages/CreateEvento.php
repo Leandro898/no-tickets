@@ -19,8 +19,13 @@ class CreateEvento extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return EntradaResource::getUrl('create', ['evento_id' => $this->record->id]);
+        return EntradaResource::getUrl('manage-entradas', [
+            'evento_id' => $this->record->id,
+            'has_seats' => $this->record->has_seats ? 1 : 0,
+        ]);
     }
+
+
 
     public function getBreadcrumbs(): array
     {

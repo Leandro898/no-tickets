@@ -154,6 +154,7 @@ class EntradaResource extends Resource
             'index' => Pages\ListEntradas::route('/'),
             'create' => Pages\CreateEntrada::route('/create'),
             'edit' => Pages\EditEntrada::route('/{record}/edit'),
+            'manage-entradas' => Pages\ManageEntradas::route('/manage-entradas'),
         ];
     }
 
