@@ -22,4 +22,16 @@ class ManageEntradas extends Page
         $this->evento = Evento::findOrFail($this->evento_id);
         $this->entradas = Entrada::where('evento_id', $this->evento_id)->get();
     }
+
+    // QUITAR MIGAS DE PAN
+    public function getBreadcrumbs(): array
+    {
+        return [];
+    }
+
+    // Quitar titulo de la vista
+    public function getTitle(): string
+    {
+        return 'Crear Entrada / Ticket';
+    }
 }
