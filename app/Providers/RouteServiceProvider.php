@@ -9,19 +9,23 @@ use Illuminate\Support\Facades\Route;
 class RouteServiceProvider extends ServiceProvider
 {
     public const HOME = '/dashboard';
+    
+    /**
+     * Esto tenia antes pero me rompe la navegacion por id en filamet y por slug en el frontend.
+     *
+     */
+    // public function boot(): void
+    // {
+    //     // **Binding de {evento} siempre por ID**
+    //     Route::bind('evento', fn($value) => Evento::findOrFail($value));
 
-    public function boot(): void
-    {
-        // **Binding de {evento} siempre por ID**
-        Route::bind('evento', fn($value) => Evento::findOrFail($value));
+    //     $this->routes(function () {
+    //         Route::middleware('web')
+    //             ->group(base_path('routes/web.php'));
 
-        $this->routes(function () {
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
-
-            Route::prefix('api')
-                ->middleware('api')
-                ->group(base_path('routes/api.php'));
-        });
-    }
+    //         Route::prefix('api')
+    //             ->middleware('api')
+    //             ->group(base_path('routes/api.php'));
+    //     });
+    // }
 }

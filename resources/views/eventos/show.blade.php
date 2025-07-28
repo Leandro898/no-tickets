@@ -1,10 +1,7 @@
 {{-- resources/views/eventos/show.blade.php --}}
 @extends('layouts.app')
 
-{{-- Meta título --}}
 @section('title', $evento->nombre.' – Detalles del Evento')
-
-{{-- Forzamos scroll vertical y degradado de fondo --}}
 @section('body-class', 'bg-gradient-to-br from-purple-50 min-h-screen overflow-y-scroll')
 
 @push('styles')
@@ -23,7 +20,6 @@
 
 @section('content')
   <div class="max-w-7xl mx-auto px-4 pt-6 pb-8">
-
     {{-- Botón "Volver a Eventos" --}}
     <div class="flex justify-end mb-4">
       <a href="/"
@@ -68,8 +64,8 @@
         </div>
       </div>
 
-      {{-- Columna derecha: contador + entradas --}}
-      <div class="w-full lg:w-1/2 space-y-6" x-data>
+      {{-- Columna derecha --}}
+      <div class="w-full lg:w-1/2 space-y-6">
         {{-- Contador dinámico --}}
         <div class="text-center">
           <span id="countdown"
@@ -88,67 +84,74 @@
           </div>
         </div>
 
-        {{-- Formulario de compra / Mensaje agotado --}}
-        @foreach($evento->entradas as $entrada)
-          @if($entrada->stock_actual > 0)
-            <form action="{{ route('eventos.comprar.split.store', $evento) }}"
-                  method="POST" x-data="{ qty: 1 }"
-                  class="bg-white rounded-xl p-5 shadow border border-purple-100">
-              @csrf
-              <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
-
-              {{-- Fecha y hora --}}
-              <div class="text-sm font-bold text-gray-700 mb-2">
-                {{ \Carbon\Carbon::parse($evento->fecha_inicio)
-                     ->locale('es')
-                     ->translatedFormat('l d \\d\\e F, H:i') }} hs
-              </div>
-
-              {{-- Nombre y precio --}}
-              <div class="flex justify-between items-center mb-4">
-                <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
-                <div class="text-lg font-bold text-gray-900">
-                  ${{ number_format($entrada->precio, 0, ',', '.') }}
-                </div>
-              </div>
-
-              {{-- Stepper --}}
-              <div class="flex justify-center items-center space-x-4 mb-4">
-                <button type="button" @click="qty = Math.max(1, qty - 1)"
-                        class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
-                  −
-                </button>
-                <input type="number" name="cantidad" x-model.number="qty"
-                       min="1" max="{{ $entrada->stock_actual }}"
-                       class="w-16 h-10 text-center border border-gray-300 rounded-lg" />
-                <button type="button"
-                        @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
-                        class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
-                  +
-                </button>
-              </div>
-
-              {{-- Total y botón Comprar --}}
-              <div class="flex justify-between items-center">
-                <div class="text-gray-700 font-medium">
-                  Total:
-                  <span class="font-bold"
-                        x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
-                  </span>
-                </div>
-                <button type="submit"
-                        class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full">
-                  Comprar
-                </button>
-              </div>
-            </form>
-          @else
-            {{-- Mensaje si está agotado --}}
-            <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center">
-              Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
+        {{-- Si el evento tiene asientos, mostrar mapa --}}
+        @if ($evento->has_seats)
+          <div class="mt-6">
+            <div id="seat-map-app"
+                 data-evento-id="{{ $evento->id }}"
+                 class="w-full h-[600px] bg-white border rounded-lg shadow-xl flex items-center justify-center"></div>
+            <div class="mt-4 text-center text-purple-700">
+              Seleccioná tus asientos haciendo click en el mapa.
             </div>
-          @endif
-        @endforeach
+          </div>
+        @else
+          {{-- Muestra el sistema tradicional de entradas --}}
+          @foreach($evento->entradas as $entrada)
+            @if($entrada->stock_actual > 0)
+              <form action="{{ route('eventos.comprar.split.store', $evento) }}"
+                    method="POST" x-data="{ qty: 1 }"
+                    class="bg-white rounded-xl p-5 shadow border border-purple-100 mb-4">
+                @csrf
+                <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
+                {{-- Fecha y hora --}}
+                <div class="text-sm font-bold text-gray-700 mb-2">
+                  {{ \Carbon\Carbon::parse($evento->fecha_inicio)
+                        ->locale('es')
+                        ->translatedFormat('l d \d\e F, H:i') }} hs
+                </div>
+                {{-- Nombre y precio --}}
+                <div class="flex justify-between items-center mb-4">
+                  <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
+                  <div class="text-lg font-bold text-gray-900">
+                    ${{ number_format($entrada->precio, 0, ',', '.') }}
+                  </div>
+                </div>
+                {{-- Stepper --}}
+                <div class="flex justify-center items-center space-x-4 mb-4">
+                  <button type="button" @click="qty = Math.max(1, qty - 1)"
+                          class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+                    −
+                  </button>
+                  <input type="number" name="cantidad" x-model.number="qty"
+                         min="1" max="{{ $entrada->stock_actual }}"
+                         class="w-16 h-10 text-center border border-gray-300 rounded-lg" />
+                  <button type="button"
+                          @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
+                          class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+                    +
+                  </button>
+                </div>
+                {{-- Total y botón Comprar --}}
+                <div class="flex justify-between items-center">
+                  <div class="text-gray-700 font-medium">
+                    Total:
+                    <span class="font-bold"
+                          x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
+                    </span>
+                  </div>
+                  <button type="submit"
+                          class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full">
+                    Comprar
+                  </button>
+                </div>
+              </form>
+            @else
+              <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center mb-4">
+                Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
+              </div>
+            @endif
+          @endforeach
+        @endif
 
       </div>
     </div>
@@ -158,7 +161,6 @@
 @push('scripts')
   {{-- Alpine.js para stepper y contador --}}
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
   {{-- Contador dinámico --}}
   <script>
     (function(){
@@ -182,4 +184,17 @@
       const timer = setInterval(update, 1000);
     })();
   </script>
+  {{-- Script para montar el componente Vue SOLO si hay asientos --}}
+  @if ($evento->has_seats)
+    <script type="module">
+      import { createApp } from 'vue';
+      import SeatMapView from '/resources/js/components/SeatMapView.vue'; // Ajustá el path según tu estructura real
+
+      const el = document.getElementById('seat-map-app');
+      if (el) {
+        const eventoId = el.dataset.eventoId;
+        createApp(SeatMapView, { eventoId }).mount(el);
+      }
+    </script>
+  @endif
 @endpush

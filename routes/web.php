@@ -33,7 +33,9 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // --------------------------- EVENTOS ---------------------------
 Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
-Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+
+//RUTA REPETIDA???
+//Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
 
 // ---------------------- COMPRA CON SPLIT ----------------------
 Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');

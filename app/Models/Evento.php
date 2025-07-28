@@ -39,11 +39,13 @@ class Evento extends Model
     // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'
     public function getRouteKeyName(): string
     {
-        // si es admin/* o api/*, binding por ID; si no, por slug
-        return request()->is('admin/*') || request()->is('api/*')
-            ? 'id'
-            : 'slug';
+        if (request()->is('admin/*') || request()->is('filament/*') || request()->is('api/*')) {
+            return 'id';
+        }
+        return 'slug';
     }
+
+
 
     // Relaciones
     public function seats()

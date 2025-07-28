@@ -45,6 +45,7 @@ class EventoController extends Controller
      */
     public function show(Evento $evento)
     {
+        //dd($evento);
         // El Route Model Binding de Laravel inyecta automáticamente el objeto Evento
         // Carga la relación 'entradas' para evitar el problema N+1 al acceder a $evento->entradas
         // Esto asegura que todas las entradas del evento se carguen en una sola consulta.
