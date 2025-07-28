@@ -12,8 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('seats', function (Blueprint $table) {
-            $table->string('label')->after('number')->nullable();
-            $table->float('radius')->after('label')->default(22);
+            $table->float('rotation')->nullable()->default(0)->after('font_size');
         });
     }
 
@@ -23,7 +22,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('seats', function (Blueprint $table) {
-            $table->dropColumn(['label', 'radius']);
+            $table->dropColumn('rotation');
         });
     }
 };

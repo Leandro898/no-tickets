@@ -1,70 +1,78 @@
 <template>
-    <v-stage ref="stageRef" :config="{ width, height }" @mousedown="onMouseDown" @mousemove="onMouseMove"
-        @mouseup="onMouseUp" @click="onStageClick">
-        <v-layer ref="layerRef">
-            <!-- 1) Fondo -->
-            <BackgroundImage :bgImage="bgImage" :width="width" :height="height" />
+    <div v-bind="$attrs">
+        <v-stage ref="stageRef" :config="{ width, height }" @mousedown="onMouseDown" @mousemove="onMouseMove"
+            @mouseup="onMouseUp" @click="onStageClick">
+            <v-layer ref="layerRef">
+                <!-- 1) Fondo -->
+                <BackgroundImage :bgImage="bgImage" :width="width" :height="height" />
 
-            <!-- 2) Selector por recuadro de asientos -->
-            <SelectionBox v-model="selection" />
+                <!-- 2) Selector por recuadro de asientos -->
+                <SelectionBox v-model="selection" />
 
-            <!-- 3) Shapes: rect, circle, text -->
-            <template v-for="(shape, i) in shapes">
-                <!-- Rectángulo -->
-                <v-rect v-if="shape.type === 'rect'" :key="'rect-' + i" :ref="el => shapeRefs[i] = el" :config="{
-                    x: shape.x,
-                    y: shape.y,
-                    width: shape.width,
-                    height: shape.height,
-                    stroke: shape.stroke || 'gray',
-                    strokeWidth: shape.strokeWidth || 2,
-                    draggable: true
-                }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
-                <!-- Círculo -->
-                <v-circle v-else-if="shape.type === 'circle'" :key="'circle-' + i" :ref="el => shapeRefs[i] = el" :config="{
-                    x: shape.x,
-                    y: shape.y,
-                    radius: shape.radius,
-                    stroke: shape.stroke || 'gray',
-                    strokeWidth: shape.strokeWidth || 2,
-                    draggable: true
-                }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
-                <!-- Texto editable -->
-                <v-text v-else-if="shape.type === 'text'" :key="'text-' + i" :ref="el => shapeRefs[i] = el" :config="{
-                    x: shape.x,
-                    y: shape.y,
-                    text: shape.label,
-                    fontSize: shape.fontSize || 18,
-                    draggable: true
-                }" @dragend="onShapeDragEnd(i, $event)" @dblclick="onShapeTextEdit(i)" @click="onShapeClick(i, $event)" />
-            </template>
+                <!-- 3) Shapes: rect, circle, text -->
+                <template v-for="(shape, i) in shapes" :key="i">
+                    <!-- Rectángulo -->
+                    <v-rect v-if="shape.type === 'rect'" :key="'rect-' + i" :ref="el => shapeRefs[i] = el" :config="{
+                        x: shape.x,
+                        y: shape.y,
+                        width: shape.width,
+                        height: shape.height,
+                        stroke: shape.stroke || 'gray',
+                        strokeWidth: shape.strokeWidth || 2,
+                        draggable: true,
+                        rotation: shape.rotation || 0
+                    }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
+                    <!-- Círculo -->
+                    <v-circle v-else-if="shape.type === 'circle'" :key="'circle-' + i" :ref="el => shapeRefs[i] = el"
+                        :config="{
+                            x: shape.x,
+                            y: shape.y,
+                            radius: shape.radius,
+                            stroke: shape.stroke || 'gray',
+                            strokeWidth: shape.strokeWidth || 2,
+                            draggable: true,
+                            rotation: shape.rotation || 0
+                        }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
+                    <!-- Texto editable -->
+                    <v-text v-else-if="shape.type === 'text'" :key="'text-' + i" :ref="el => shapeRefs[i] = el" :config="{
+                        x: shape.x,
+                        y: shape.y,
+                        text: shape.label,
+                        fontSize: shape.fontSize || 18,
+                        draggable: true,
+                        rotation: shape.rotation || 0
+                    }" @dragend="onShapeDragEnd(i, $event)" @dblclick="onShapeTextEdit(i)" @click="onShapeClick(i, $event)" />
+                </template>
 
-            <!-- 4) Transformer para shapes -->
-            <v-transformer v-if="shapeTransformerNodes.length" ref="shapeTransformerRef" :nodes="shapeTransformerNodes"
-                :config="{
-                    enabledAnchors: [
-                        'top-left', 'top-right',
-                        'bottom-left', 'bottom-right',
-                        'middle-left', 'middle-right',
-                        'top-center', 'bottom-center'
-                    ]
-                }" @transformend="onShapeTransformEnd" />
+                <!-- 4) Transformer para shapes -->
+                <v-transformer v-if="shapeTransformerNodes.length" ref="shapeTransformerRef"
+                    :nodes="shapeTransformerNodes" :config="{
+                        enabledAnchors: [
+                            'top-left', 'top-right',
+                            'bottom-left', 'bottom-right',
+                            'middle-left', 'middle-right',
+                            'top-center', 'bottom-center'
+                        ]
+                    }" @transformend="onShapeTransformEnd" />
 
-            <!-- 5) Tus asientos “reales” -->
-            <SeatsLayer ref="seatsLayerRef" :seats="seatItems" :defaultRadius="defaultRadius"
-                @update:seats="onSeatsLayerUpdate" />
-            <LabelsLayer :seats="seatItems" :defaultRadius="defaultRadius" />
+                <!-- 5) Tus asientos “reales” -->
+                <SeatsLayer ref="seatsLayerRef" :seats="seatItems" :defaultRadius="defaultRadius"
+                    @update:seats="onSeatsLayerUpdate"  />
 
-            <!-- 6) Transformer de grupo de asientos -->
-            <v-rect v-if="transformerNodes.length" :x="bbox.x" :y="bbox.y" :width="bbox.width" :height="bbox.height"
-                fill="#ffffff" :opacity="0.001" :draggable="true" :listening="true" :strokeWidth="0"
-                @mouseover="onGroupMouseOver" @mouseout="onGroupMouseOut" @dragstart="handleGroupDragStart"
-                @dragmove="onGroupDragMove" @dragend="handleGroupDragEnd" />
-            <v-transformer v-if="transformerNodes.length" ref="transformerRef" :nodes="transformerNodes"
-                :config="{ enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] }" />
-        </v-layer>
-    </v-stage>
+                <LabelsLayer :seats="seatItems" :defaultRadius="defaultRadius" />
+
+                <!-- 6) Transformer de grupo de asientos -->
+                <v-rect v-if="transformerNodes.length" :x="bbox.x" :y="bbox.y" :width="bbox.width" :height="bbox.height"
+                    fill="#ffffff" :opacity="0.001" :draggable="true" :listening="true" :strokeWidth="0"
+                    @mouseover="onGroupMouseOver" @mouseout="onGroupMouseOut" @dragstart="handleGroupDragStart"
+                    @dragmove="onGroupDragMove" @dragend="handleGroupDragEnd" />
+                <v-transformer v-if="transformerNodes.length" ref="transformerRef" :nodes="transformerNodes"
+                    :config="{ enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] }" />
+            </v-layer>
+        </v-stage>
+    </div>
 </template>
+
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
@@ -73,7 +81,19 @@ import BackgroundImage from './BackgroundImage.vue'
 import SelectionBox from './SelectionBox.vue'
 import SeatsLayer from './SeatsLayer.vue'
 import LabelsLayer from './LabelsLayer.vue'
+import SeatControls from '../SeatControls.vue'
 
+// Para manejar la seleccion con tecla shift
+//Esto detecta si se está presionando Shift para seleccionar múltiples asientos
+const isShiftPressed = ref(false)
+if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Shift') isShiftPressed.value = true
+    })
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'Shift') isShiftPressed.value = false
+    })
+}
 // — Props y emits —
 const props = defineProps({
     width: { type: Number, required: true },
@@ -107,12 +127,10 @@ defineExpose({ getStage: () => stageRef.value?.getStage() })
 
 // — Separar asientos (“seat”) de shapes (“rect”|“circle”|“text”) —
 const seatItems = computed(() =>
-    props.seats.filter(s => !s.type || s.type === 'seat')
+    props.seats.filter(s => s && (!s.type || s.type === 'seat'))
 )
 const shapes = computed(() =>
-    props.seats.filter(s =>
-        s.type === 'rect' || s.type === 'circle' || s.type === 'text'
-    )
+    props.seats.filter(s => s && (s.type === 'rect' || s.type === 'circle' || s.type === 'text'))
 )
 
 // — Cuando SeatsLayer emite update, preservamos shapes intactos —
@@ -123,11 +141,31 @@ function onSeatsLayerUpdate(newSeats) {
 // — Click en shape para togglear selección —
 function onShapeClick(idx, e) {
     e.cancelBubble = true
-    const updated = shapes.value.map((sh, i) =>
-        i === idx ? { ...sh, selected: !sh.selected } : sh
-    )
+
+    let updated
+
+    if (isShiftPressed.value) {
+        // Selección múltiple con Shift
+        updated = shapes.value.map((sh, i) =>
+            i === idx ? { ...sh, selected: !sh.selected } : sh
+        )
+    } else {
+        // Selección simple, deselecciona todos los demás
+        updated = shapes.value.map((sh, i) =>
+            i === idx ? { ...sh, selected: true } : { ...sh, selected: false }
+        )
+        // Además, deselecciona todos los asientos
+        emit('update:seats', [
+            ...seatItems.value.map(s => ({ ...s, selected: false })),
+            ...updated
+        ])
+        return
+    }
+
     emit('update:seats', [...seatItems.value, ...updated])
 }
+
+
 
 // — Drag de shapes: actualizar x,y —
 function onShapeDragEnd(idx, e) {
@@ -152,8 +190,8 @@ function onShapeTextEdit(idx) {
 // — Transformer para shapes: nodos seleccionados —
 const shapeTransformerNodes = computed(() =>
     shapeRefs.value
-        .map(c => c.getNode())
-        .filter((node, i) => shapes.value[i].selected)
+        .map((c, i) => (c && shapes.value[i] && shapes.value[i].selected ? c.getNode() : null))
+        .filter(Boolean)
 )
 
 // — Enganchar transformer de shapes al cambiar selección —
@@ -185,6 +223,9 @@ function onShapeTransformEnd() {
         shape.fontSize = shape.fontSize * node.scaleX()
     }
 
+    // 🔥 Agregar siempre la rotación para todos los tipos
+    shape.rotation = node.rotation()
+
     // reset del scale para no acumular
     node.scale({ x: 1, y: 1 })
 
@@ -192,13 +233,14 @@ function onShapeTransformEnd() {
     emit('update:seats', [...seatItems.value, ...updated])
 }
 
+
 // — Lógica Transformer + drag grupal para seats (igual que antes) —
 const transformerNodes = computed(
     () => seatsLayerRef.value?.selectedCircleRefs || []
 )
 
 const bbox = computed(() => {
-    const sel = seatItems.value.filter(s => s.selected)
+    const sel = seatItems.value.filter(s => s && s.selected)
     if (!sel.length) return { x: 0, y: 0, width: 0, height: 0 }
     const rs = sel.map(s => s.radius ?? defaultRadius)
     const xs = sel.map((s, i) => [s.x - rs[i], s.x + rs[i]]).flat()
@@ -224,7 +266,7 @@ let groupStartPos = null
 let groupStartSeats = []
 function handleGroupDragStart(e) {
     groupStartPos = { x: e.target.x(), y: e.target.y() }
-    groupStartSeats = seatItems.value.map(s => ({ x: s.x, y: s.y, selected: s.selected }))
+    groupStartSeats = seatItems.value.map(s => s ? { x: s.x, y: s.y, selected: s.selected } : { x: 0, y: 0, selected: false })
     onGroupMouseOver()
 }
 function onGroupDragMove(e) {
@@ -232,7 +274,7 @@ function onGroupDragMove(e) {
     const dx = x - groupStartPos.x
     const dy = y - groupStartPos.y
     const moved = seatItems.value.map((s, i) =>
-        s.selected
+        s && s.selected
             ? { ...s, x: groupStartSeats[i].x + dx, y: groupStartSeats[i].y + dy, selected: true }
             : s
     )
@@ -264,10 +306,15 @@ function onStageClick(e) {
     // Sólo deseleccionar si el click fue en el Stage o en la Layer (fondo),
     // no en ningún Circle, Rect, Text, etc.
     const cls = e.target.getClassName?.()
-    if (cls === 'Stage' || cls === 'Layer') {
-        emit('update:seats', props.seats.map(s => ({ ...s, selected: false })))
+    console.log('Click detectado en:', cls) // 👈🏼 LOG acá
+
+    if (cls === 'Stage' || cls === 'Layer' || cls === 'Image') {
+        console.log('Deseleccionando todos')
+        emit('update:seats', props.seats.map(s => s ? { ...s, selected: false } : s))
     }
+
 }
+
 </script>
 
 <style scoped>

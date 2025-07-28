@@ -42,7 +42,7 @@ export function useSeatMap(props) {
 
     // Montaje inicial
     onMounted(async () => {
-        // cargar imagen inicial
+        // (1) cargar imagen inicial
         if (initialBgImageUrl) {
             const img = new window.Image();
             img.src = initialBgImageUrl;
@@ -51,7 +51,7 @@ export function useSeatMap(props) {
             bgImageUrl.value = initialBgImageUrl;
         }
 
-        // traer tickets
+        // (2) traer tickets
         try {
             const res = await fetch(`/api/eventos/${eventoId}/entradas`);
             tickets.value = await res.json();
@@ -59,28 +59,46 @@ export function useSeatMap(props) {
             console.error('Error cargando tickets:', e);
         }
 
-        // traer asientos guardados
-        // traer asientos guardados
+        // (3) traer mapa completo (asientos + shapes + bg + map JSON)
         try {
-            const res2 = await fetch(`/api/eventos/${eventoId}/asientos`);
-            const raw = await res2.json();
-            seats.value = raw
-                .filter(s =>
-                    typeof s.x === 'number' && !isNaN(s.x) &&
-                    typeof s.y === 'number' && !isNaN(s.y)
-                )
+            const resMap = await fetch(`/api/eventos/${eventoId}/map`);
+            const { seats: rawSeats, bgUrl, map } = await resMap.json();
+
+            // actualizar fondo si viene
+            if (bgUrl) {
+                const img = new window.Image();
+                img.src = bgUrl;
+                await new Promise(r => (img.onload = r));
+                bgImage.value = img;
+                bgImageUrl.value = bgUrl;
+            }
+
+            // guardar JSON del canvas
+            mapJSON.value = map;
+
+            // normalizar y asignar a seats.value
+            seats.value = rawSeats
+                .filter(s => typeof s.x === 'number' && !isNaN(s.x) && typeof s.y === 'number' && !isNaN(s.y))
                 .map(s => ({
                     ...s,
                     selected: false,
                     radius: s.radius ?? 22,
-                    label: s.label ?? `${s.row}${s.number}`,
+                    label: s.label !== null && s.label !== undefined ? s.label : '',
+                    fontSize: s.font_size ?? s.fontSize ?? 18,
+                    type: s.type ?? 'seat',
+                    width: s.width ?? null,
+                    height: s.height ?? null,
+                    draggable: s.draggable ?? true,
+                    rotation: s.rotation ?? 0, // 👈 ESTA LÍNEA
                 }));
+
+
+
         } catch (e) {
-            console.error('Error cargando asientos:', e);
+            console.error('Error cargando mapa:', e);
         }
 
-
-        // SPACE para pan
+        // (4) SPACE para pan
         window.addEventListener('keydown', e => {
             if (e.code === 'Space') spacePressed.value = true;
         });
@@ -88,6 +106,8 @@ export function useSeatMap(props) {
             if (e.code === 'Space') spacePressed.value = false;
         });
     });
+
+
 
     // Modal fila de butacas
     function openModal() {
@@ -180,7 +200,7 @@ export function useSeatMap(props) {
         });
     }
 
-    
+
 
 
     // Guardar todo
@@ -218,20 +238,34 @@ export function useSeatMap(props) {
                 mapJSON.value = canvasRef.value.getStage().toJSON();
             }
 
-            // (4) sanitizar asientos
+            // (4) definir defaultEntradaId antes de usarlo
+            const defaultEntradaId = tickets.value.length
+                ? tickets.value[0].id
+                : null;
+
+            // (5) sanitizar asientos y shapes
             const sanitizedSeats = toRaw(seats.value).map(s => ({
                 ...s,
+                type: s.type ?? 'seat',
                 entrada_id: s.entrada_id ?? defaultEntradaId,
-                label: s.label ?? `${s.row}${s.number}`,            // ← asegurarse que label esta configurado y no vacio
-                radius: s.radius ?? 22,     // ← radius ya estaba
+                label: s.label ?? `${s.row}${s.number}`,
+                radius: s.radius ?? 22,
+                rotation: s.rotation ?? 0, // 👈 ESTA LÍNEA
             }));
 
-            // (5) payload y envío
+            // 👇 LOG para ver que rotation está OK
+            //console.log('Sanitized seats antes de guardar:', sanitizedSeats);
+
+
+
+            // (6) payload y envío
             const payload = {
                 seats: sanitizedSeats,
                 bgUrl: bgImageUrl.value,
                 map: mapJSON.value,
             };
+            //console.log('Guardando estos datos:', JSON.stringify(payload, null, 2)); // ← AQUÍ
+
             const res = await fetch(`/api/eventos/${eventoId}/mapa`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -260,6 +294,7 @@ export function useSeatMap(props) {
         }
     }
 
+
     // Renombrar labels (SeatControls)
     function onRename({ type, label, letter, start }) {
         const sel = seats.value.filter(s => s.selected);
@@ -285,17 +320,17 @@ export function useSeatMap(props) {
     //     );
     // }
 
+    // 1) Cuando el canvas emite una actualización manual de seats/shapes:
     function onSeatsUpdate(newSeats) {
-        seats.value = newSeats
-            .filter(s =>
-                typeof s.x === 'number' && !isNaN(s.x) &&
-                typeof s.y === 'number' && !isNaN(s.y)
-            )
+        seats.value = (newSeats || [])
+            .filter(s => s && typeof s.x === 'number' && typeof s.y === 'number')
             .map(s => ({
                 ...s,
-                selected: s.selected ?? false,
+                selected: Boolean(s.selected),
                 radius: s.radius ?? 22,
-            }))
+                label: s.label ?? '',
+                fontSize: s.fontSize ?? 18,
+            }));
     }
 
     // Metodos para Toolbar
@@ -331,8 +366,11 @@ export function useSeatMap(props) {
     }
 
     // 4) Delete Selected
+    // 2) Al borrar los seleccionados desde tu toolbar:
     function deleteSelected() {
-        seats.value = seats.value.filter(s => !s.selected)
+        seats.value = seats.value
+            .filter(s => s && !s.selected)
+            .map(s => ({ ...s, selected: false }));
     }
 
     // 5) Zoom & Reset View

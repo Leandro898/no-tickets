@@ -36,11 +36,11 @@ const props = defineProps({
 
 // ¿Están TODOS seleccionados?
 const allSelected = computed(
-    () => props.seats.length > 0 && props.seats.every(s => s.selected)
+    () => props.seats.length > 0 && props.seats.every(s => s && s.selected)
 )
 // ¿Hay al menos uno seleccionado?
 const anySelected = computed(
-    () => props.seats.some(s => s.selected)
+    () => props.seats.some(s => s && s.selected)
 )
 // ¿Podemos deshacer?
 const canUndo = computed(

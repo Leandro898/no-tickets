@@ -7,14 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 class Seat extends Model
 {
     protected $fillable = [
-        'x',
-        'y',
+        'evento_id',
+        'entrada_id',
         'row',
         'prefix',
         'number',
-        'entrada_id',
-        'evento_id',
+        'type',
+        'width',
+        'height',
+        'radius',
         'label',
-        'radius'
+        'font_size',
+        'x',
+        'y',
+        'rotation',
     ];
 }

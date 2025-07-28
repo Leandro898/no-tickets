@@ -31,8 +31,10 @@
                         class="w-full h-full" />
                 </div>
 
-                <SeatControls v-show="seats.some(s => s.selected)" :selected="seats.filter(s => s.selected)"
-                    @rename="onRename" class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
+                <SeatControls v-show="seats.some(s => (!s.type || s.type === 'seat') && s.selected)"
+                    :selected="seats.filter(s => (!s.type || s.type === 'seat') && s.selected)" @rename="onRename"
+                    class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
+
             </div>
 
             <!-- Botones de acción -->
@@ -62,6 +64,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import SidebarToolbar from './SidebarToolbar.vue'
 import Toolbar from './Toolbar.vue'
 import SeatCanvas from './SeatCanvas/index.vue'
@@ -77,6 +80,29 @@ const props = defineProps({
     eventoId: { type: [Number, String], required: true },
     initialBgImageUrl: { type: String, default: '' },
 })
+
+// 1) Filtrar sólo los asientos “reales”
+const seatItems = computed(() =>
+    seats.value.filter(s => s && (!s.type || s.type === 'seat'))
+);
+
+// 2) Filtrar sólo los shapes (rect, circle, text)
+const shapes = computed(() =>
+    seats.value.filter(s => s && ['rect', 'circle', 'text'].includes(s.type))
+);
+
+// 3) Transformer para los asientos (usa los refs que expone SeatsLayer.vue)
+const transformerNodes = computed(() =>
+    seatsLayerRef.value?.selectedCircleRefs
+        .filter(node => node && node.attrs && node.attrs.selected)
+);
+
+// 4) Transformer para los shapes (usa los refs en shapeRefs)
+const shapeTransformerNodes = computed(() =>
+    shapeRefs.value
+        .map((ref, i) => (shapes.value[i] && shapes.value[i].selected) ? ref.getNode() : null)
+        .filter(Boolean)
+);
 
 // Extraemos TODO de nuestro composable, incluyendo toolbar
 const {
