@@ -45,14 +45,23 @@ class Evento extends Model
         return 'slug';
     }
 
+    /**
+     * Relación con el modelo Shape.
+     * Un evento puede tener múltiples shapes.
+     */ 
+    public function shapes()
+    {
+        return $this->hasMany(Shape::class);
+    }
 
 
-    // Relaciones
+    // Relacion con asientos
     public function seats()
     {
         return $this->hasMany(Seat::class);
     }
 
+    // Relacion con entradas
     public function entradas()
     {
         return $this->hasMany(Entrada::class);

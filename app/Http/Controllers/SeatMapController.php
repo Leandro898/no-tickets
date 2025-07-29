@@ -133,64 +133,75 @@ class SeatMapController extends Controller
      */
     public function saveMap(Request $request, Evento $evento)
     {
-        $validated = $request->validate([
-            'seats'               => 'array',
+        // 1️⃣ Validación
+        $v = $request->validate([
+            'seats'               => 'required|array',
             'seats.*.type'        => 'required|string|in:seat,rect,circle,text',
             'seats.*.x'           => 'required|numeric',
             'seats.*.y'           => 'required|numeric',
+            // obligamos entrada_id sólo si es un asiento
+            'seats.*.entrada_id'  => 'required_if:seats.*.type,seat|integer|exists:entradas,id',
             'seats.*.row'         => 'nullable|string|max:10',
             'seats.*.prefix'      => 'nullable|string',
             'seats.*.number'      => 'nullable|integer',
-            'seats.*.entrada_id'  => 'nullable|integer|exists:entradas,id',
             'seats.*.width'       => 'nullable|numeric',
             'seats.*.height'      => 'nullable|numeric',
             'seats.*.radius'      => 'nullable|numeric',
             'seats.*.label'       => 'nullable|string|max:255',
             'seats.*.fontSize'    => 'nullable|numeric',
-            'seats.*.rotation' => 'nullable|numeric',
-
+            'seats.*.rotation'    => 'nullable|numeric',
             'bgUrl'               => 'nullable|string',
             'map'                 => 'nullable|string',
         ]);
 
-        // 1️⃣ Borrar fondo antiguo si corresponde
-        if (!empty($validated['bgUrl']) && $evento->bg_image_url && $validated['bgUrl'] !== $evento->bg_image_url) {
-            $relative = str_replace(asset('storage/'), '', $evento->bg_image_url);
-            Storage::disk('public')->delete($relative);
+        // 2️⃣ Fondo y JSON
+        if (!empty($v['bgUrl']) && $v['bgUrl'] !== $evento->bg_image_url) {
+            // elimina viejo si hace falta…
+            $evento->update(['bg_image_url' => $v['bgUrl']]);
+        }
+        if (isset($v['map'])) {
+            $evento->update(['map_data' => $v['map']]);
         }
 
-        // 2️⃣ Subir nuevo fondo si viene
-        if (!empty($validated['bgUrl']) && $validated['bgUrl'] !== $evento->bg_image_url) {
-            $evento->update(['bg_image_url' => $validated['bgUrl']]);
-        }
-
-        // 3️⃣ Guardar JSON del canvas
-        if (isset($validated['map'])) {
-            $evento->update(['map_data' => $validated['map']]);
-        }
-
-        // 4️⃣ Reemplazar todos los elementos (asientos y shapes)
+        // 3️⃣ Borrar anteriores
         $evento->seats()->delete();
-        foreach ($validated['seats'] as $s) {
-            $evento->seats()->create([
-                'type'        => $s['type'],
-                'x'           => $s['x'],
-                'y'           => $s['y'],
-                'row'         => $s['row']        ?? null,
-                'prefix'      => $s['prefix']     ?? null,
-                'number'      => $s['number']     ?? 0,
-                'entrada_id'  => $s['entrada_id'] ?? null,
-                'width'       => $s['width']      ?? null,
-                'height'      => $s['height']     ?? null,
-                'radius'      => $s['radius']     ?? null,
-                'label'       => $s['label']      ?? null,
-                'font_size'   => $s['fontSize']   ?? null,
-                'rotation' => $s['rotation'] ?? 0,
-            ]);
+        $evento->shapes()->delete();    // 🔥 aquí borras también los shapes
+
+        // 4️⃣ Volver a crear
+        foreach ($v['seats'] as $el) {
+            if ($el['type'] === 'seat') {
+                // asiento real en la tabla seats
+                $evento->seats()->create([
+                    'type'       => $el['type'],
+                    'x'          => $el['x'],
+                    'y'          => $el['y'],
+                    'row'        => $el['row']      ?? null,
+                    'prefix'     => $el['prefix']   ?? null,
+                    'number'     => $el['number']   ?? 0,
+                    'entrada_id' => $el['entrada_id'],
+                    'radius'     => $el['radius']   ?? null,
+                    'label'      => $el['label']    ?? null,
+                    'font_size'  => $el['fontSize'] ?? null,
+                    'rotation'   => $el['rotation'] ?? 0,
+                ]);
+            } else {
+                // cualquier rect, circle o text en shapes
+                $evento->shapes()->create([
+                    'type'      => $el['type'],
+                    'x'         => $el['x'],
+                    'y'         => $el['y'],
+                    'width'     => $el['width']    ?? null,
+                    'height'    => $el['height']   ?? null,
+                    'rotation'  => $el['rotation'] ?? 0,
+                    'label'     => $el['label']    ?? null,
+                    'font_size' => $el['fontSize'] ?? null,
+                ]);
+            }
         }
 
         return response()->json(['status' => 'ok']);
     }
+
 
     /**
      * Elimina la imagen de fondo del disco y de la BBDD.
@@ -212,24 +223,33 @@ class SeatMapController extends Controller
     public function getMap(Evento $evento)
     {
         return response()->json([
-            'seats' => $evento->seats()
-                ->get([
-                    'type',
-                    'x',
-                    'y',
-                    'row',
-                    'prefix',
-                    'number',
-                    'entrada_id',
-                    'width',
-                    'height',
-                    'radius',
-                    'label',
-                    'font_size',
-                    'rotation',
-                ]),
-            'bgUrl' => $evento->bg_image_url,
-            'map'   => $evento->map_data,
+            'seats'  => $evento->seats()->get([
+                'type',
+                'x',
+                'y',
+                'row',
+                'prefix',
+                'number',
+                'entrada_id',
+                'width',
+                'height',
+                'radius',
+                'label',
+                'font_size',
+                'rotation',
+            ]),
+            'shapes' => $evento->shapes()->get([
+                'type',
+                'x',
+                'y',
+                'width',
+                'height',
+                'rotation',
+                'label',
+                'font_size',
+            ]),
+            'bgUrl'  => $evento->bg_image_url,
+            'map'    => $evento->map_data,
         ]);
     }
 }

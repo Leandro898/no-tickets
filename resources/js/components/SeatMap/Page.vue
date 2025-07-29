@@ -1,12 +1,12 @@
 <template>
     <div class="flex h-full">
-        <!-- 2) Sidebar de herramientas -->
-        <SidebarToolbar :tools="tools" :active="currentTool" @select="onToolSelect" class="shrink-0" />
+        <!-- 1) Sidebar de herramientas -->
+        <SidebarToolbar :tools="tools" :active="currentTool" @select="onToolSelect" class="shrink-0 border-r" />
 
-        <!-- 3) Área principal de canvas y controles -->
+        <!-- 2) Área principal -->
         <div class="flex-1 p-4 bg-gray-50 overflow-auto">
             <h2 class="text-2xl font-bold mb-4">Configurar Mapa de Asientos</h2>
-            <p class="mb-6 text-sm text-gray-600">Entradas a × : {{ totalTickets }}</p>
+            <p class="mb-6 text-sm text-gray-600">Entradas disponibles: {{ totalTickets }}</p>
 
             <Toast :visible="toast.visible" :message="toast.message" :type="toast.type"
                 @close="toast.visible = false" />
@@ -20,33 +20,32 @@
                 </button>
             </div>
 
-            <!-- Toolbar principal (undo/redo/zoom/…) -->
+            <!-- Toolbar de acciones -->
             <Toolbar class="mb-4" :seats="seats" :history="history" :future="future"
                 @toggle-select-all="toggleSelectAll" @undo="undo" @redo="redo" @zoom-in="zoomIn" @zoom-out="zoomOut"
                 @reset-view="resetView" @delete-selected="deleteSelected" @show-help="showHelp" />
 
-            <!-- Canvas + SeatControls -->
+            <!-- Canvas + controles -->
             <div class="relative flex border rounded overflow-hidden bg-white">
                 <div class="flex-1">
-                    <SeatCanvas ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :seats="seats"
-                        @update:seats="onSeatsUpdate" :pan-mode="spacePressed" @update:mapJSON="mapJSON = $event"
-                        class="w-full h-full" />
+                    <SeatMapView ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :shapes="shapes"
+                        :seats="seats" :pan-mode="spacePressed" @update:seats="onSeatsUpdate"
+                        @update:shapes="onShapesUpdate" @update:mapJSON="mapJSON = $event" class="w-full h-full" />
                 </div>
 
-                <SeatControls v-show="seats.some(s => (!s.type || s.type === 'seat') && s.selected)"
-                    :selected="seats.filter(s => (!s.type || s.type === 'seat') && s.selected)" @rename="onRename"
-                    class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
+                <SeatControls v-show="seats.some(s => s.selected)" :selected="seats.filter(s => s.selected)"
+                    @rename="onRename" class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
             </div>
 
-            <!-- Botones de acción abajo -->
+            <!-- Botones inferiores -->
             <div class="mt-4 flex gap-2">
                 <button @click="openAddRowModal"
                     class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
                     Agregar fila de butacas
                 </button>
                 <button @click="openGenerateModal"
-                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-indigo-700 transition">
-                    Generar s
+                    class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
+                    Generar entradas
                 </button>
                 <button @click="guardarTodo"
                     class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
@@ -64,52 +63,76 @@
         <!-- Modales -->
         <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
         <GenerateSeatsModal v-if="showGenerateModal" :tickets="tickets" v-model:count="generateCount"
-            :selectedTicket="selectedTicket" @selectTicket="selectTicket" @generate="generateSeats"
+            :selectedTicket="selectedTicket?.id" @selectTicket="selectTicket" @generate="generateSeats"
             @cancel="showGenerateModal = false" />
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useSeatMap } from '@/composables/useSeatMap'
 import { useTickets } from '@/composables/useTickets'
 import { useGenerateSeats } from '@/composables/useGenerateSeats'
 
 import SidebarToolbar from './SidebarToolbar.vue'
 import Toolbar from './Toolbar.vue'
-import SeatCanvas from './SeatCanvas/index.vue'
+import SeatMapView from './SeatMapView.vue'
 import SeatControls from './SeatControls.vue'
 import AddRowModal from './AddRowModal.vue'
+import GenerateSeatsModal from './GenerateSeatsModal.vue'
 import ImageUploader from '../ui/ImageUploader.vue'
 import Toast from '../ui/Toast.vue'
-import GenerateSeatsModal from './GenerateSeatsModal.vue'
 
 const props = defineProps({
     eventoId: { type: [Number, String], required: true },
     initialBgImageUrl: { type: String, default: '' },
 })
 
-// 1) Lógica del canvas, background, undo/redo…  
-// Ahora extraemos también tools y onRename
+// Desestructuramos TODO desde el hook, incluyendo shapes y tools
 const {
-    canvasRef, seats, canvasW, canvasH, bgImage,
-    mapJSON, currentTool, spacePressed, isLoading, toast,
-    onToolSelect, onBgLoaded, onFileSelected, removeBg,
-    addSeat, guardarTodo, onSeatsUpdate,
-    history, future, toggleSelectAll, undo, redo,
-    zoomIn, zoomOut, resetView, deleteSelected, showHelp,
-    showAddRow, openAddRowModal, sectors, onRowAdd,
-    tools,       // <–– aquí
-    onRename     // <–– y aquí
+    tools,
+    shapes,
+    seats,
+    canvasRef,
+    canvasW,
+    canvasH,
+    bgImage,
+    mapJSON,
+    currentTool,
+    spacePressed,
+    isLoading,
+    toast,
+    onToolSelect,
+    onBgLoaded,
+    onFileSelected,
+    removeBg,
+    guardarTodo,
+    onSeatsUpdate,
+    history,
+    future,
+    toggleSelectAll,
+    undo,
+    redo,
+    zoomIn,
+    zoomOut,
+    resetView,
+    deleteSelected,
+    showHelp,
+    showAddRow,
+    openAddRowModal,
+    sectors,
+    onRowAdd,
+    onRename,
+    onShapesUpdate  // ← manejador de shapes
 } = useSeatMap(props.eventoId, props.initialBgImageUrl)
 
-// 2) Tickets (stock y remaining) - Trae los datos de tickets DISPONIBLES del evento
 const { tickets, totalTickets } = useTickets(props.eventoId)
 
-// 3) Generar N asientos
 const {
-    showGenerateModal, generateCount,
-    selectedTicket, openGenerateModal,
-    selectTicket, generateSeats
+    showGenerateModal,
+    generateCount,
+    selectedTicket,
+    openGenerateModal,
+    selectTicket,
+    generateSeats
 } = useGenerateSeats(seats, tickets, canvasW, canvasH)
 </script>
