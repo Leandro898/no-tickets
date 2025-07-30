@@ -21,7 +21,7 @@
             </div>
 
             <!-- Toolbar de acciones -->
-            <Toolbar class="mb-4" :seats="seats" :history="history" :future="future"
+            <Toolbar class="mb-4" :seats="seats" :shapes="shapes" :history="history" :future="future"
                 @toggle-select-all="toggleSelectAll" @undo="undo" @redo="redo" @zoom-in="zoomIn" @zoom-out="zoomOut"
                 @reset-view="resetView" @delete-selected="deleteSelected" @show-help="showHelp" />
 
@@ -31,6 +31,9 @@
                     <SeatMapView ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :shapes="shapes"
                         :seats="seats" :pan-mode="spacePressed" @update:seats="onSeatsUpdate"
                         @update:shapes="onShapesUpdate" @update:mapJSON="mapJSON = $event" class="w-full h-full" />
+                    <!-- <button @click="probarRef" class="bg-red-600 text-white px-4 py-2 rounded mt-2">
+                        ¡Probar REF AHORA!
+                    </button> -->
                 </div>
 
                 <SeatControls v-show="seats.some(s => s.selected)" :selected="seats.filter(s => s.selected)"
@@ -81,6 +84,10 @@ import AddRowModal from './AddRowModal.vue'
 import GenerateSeatsModal from './GenerateSeatsModal.vue'
 import ImageUploader from '../ui/ImageUploader.vue'
 import Toast from '../ui/Toast.vue'
+
+import { nextTick } from 'vue'
+
+import { watch } from 'vue'
 
 const props = defineProps({
     eventoId: { type: [Number, String], required: true },
@@ -135,4 +142,25 @@ const {
     selectTicket,
     generateSeats
 } = useGenerateSeats(seats, tickets, canvasW, canvasH)
+
+
+
+
+function probarRef() {
+    nextTick(() => {
+        const seatsLayerRef = canvasRef.value?.seatsLayerRef
+        const selectedCircleRefs = seatsLayerRef?.selectedCircleRefs?.value
+        console.log('selectedCircleRefs:', selectedCircleRefs)
+    })
+}
+
+watch(
+    () => canvasRef.value?.seatsLayerRef?.selectedCircleRefs?.value,
+    (nuevoValor) => {
+        console.log('El padre detecta el cambio de selectedCircleRefs:', nuevoValor)
+    }
+)
+
+
+
 </script>

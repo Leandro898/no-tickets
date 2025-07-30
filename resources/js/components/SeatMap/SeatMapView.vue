@@ -2,219 +2,258 @@
     <v-stage :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
         @mouseup="onStageMouseUp">
         <v-layer ref="layerRef">
-            <!-- Fondo -->
+            <!-- 1) Fondo -->
             <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
 
-            <!-- SelectionBox -->
+            <!-- 2) SelectionBox para drag‑select -->
             <SelectionBox v-model="selectionBox" />
 
-            <!-- Shapes -->
-            <template v-for="(s, i) in shapes" :key="'shape-' + i">
-                <component :is="s.type === 'rect' ? 'v-rect' : s.type === 'circle' ? 'v-circle' : 'v-text'"
-                    :config="getShapeConfig(s, i)" :id="'shape-' + i" :draggable="true" @mousedown="selectShape(i)"
-                    @dragend="onShapeDragEnd(i, $event)" />
+            <!-- 3) Shapes -->
+            <template v-for="(s, i) in shapes" :key="i">
+                <component :is="shapeTag(s)" :config="shapeConfig(s, i)" :id="'shape-' + i"
+                    :ref="el => shapeRefs[i] = el" @mousedown="onShapeMouseDown(i, $event)"
+                    @dragend="onShapeDragEnd(i, $event)" @transformend.native="onShapeTransformEnd(i, $event)" />
             </template>
 
-            <!-- Asientos -->
-            <template v-for="(seat, i) in seats" :key="'seat-' + i">
-                <v-circle :config="getSeatConfig(seat, i)" :id="'seat-' + i" :draggable="true"
-                    @mousedown="selectSeat(i)" @dragend="onSeatDragEnd(i, $event)" />
-                <v-text :config="getLabelConfig(seat)" />
-            </template>
+            <!-- 4) Capa de asientos -->
+            <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
+                @update:selection="onSeatSelection" />
 
-            <!-- Transformer -->
+            <!-- 5) Transformer único -->
             <v-transformer ref="transformerRef" />
         </v-layer>
     </v-stage>
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
-import SelectionBox from './SeatCanvas/SelectionBox.vue' // Ajusta la ruta si hace falta
+import { ref, nextTick, watch } from 'vue'
+import SelectionBox from './SeatCanvas/SelectionBox.vue'
+import SeatsLayer from './SeatCanvas/SeatsLayer.vue'
 
 const props = defineProps({
-    width: { type: Number, default: 1000 },
-    height: { type: Number, default: 800 },
-    bgImage: { type: Object, default: null },
-    shapes: { type: Array, default: () => [] },
-    seats: { type: Array, default: () => [] },
+    width: Number,
+    height: Number,
+    bgImage: Object,
+    seats: Array,
+    shapes: Array
 })
+const emit = defineEmits(['update:seats', 'update:shapes'])
 
-// Selección individual
-const selected = ref([])
+// refs a Stage/Layer/Transformer y SeatsLayer
 const layerRef = ref(null)
 const transformerRef = ref(null)
+const seatsLayerRef = ref(null)
 
-// ---- SELECTION BOX MULTIPLE ----
-const selectionBox = ref({
-    visible: false,
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-})
-let isSelecting = false
+// refs para cada shape
+const shapeRefs = ref([])
+
+// selección por drag
+const selectionBox = ref({ visible: false, x: 0, y: 0, width: 0, height: 0 })
 let startPos = { x: 0, y: 0 }
+const isDragging = ref(false)
 
-// --- Eventos para el SelectionBox ---
+// ——————————————
+// 1) Helpers Stage: selección en recuadro
+// ——————————————
 function onStageMouseDown(e) {
-    // Solo activar selection box si se clickea el fondo (no sobre asiento/shape)
     if (e.target === e.target.getStage()) {
-        selected.value = []
-        isSelecting = true
-        const pos = e.target.getStage().getPointerPosition()
-        startPos = { ...pos }
-        selectionBox.value = {
-            visible: true,
-            x: pos.x,
-            y: pos.y,
-            width: 0,
-            height: 0,
-        }
+        isDragging.value = true
+        clearTransformer()
+        const p = e.target.getStage().getPointerPosition()
+        startPos = { ...p }
+        selectionBox.value = { visible: true, x: p.x, y: p.y, width: 0, height: 0 }
     }
 }
 function onStageMouseMove(e) {
-    if (!isSelecting) return
-    const pos = e.target.getStage().getPointerPosition()
-    selectionBox.value.width = pos.x - startPos.x
-    selectionBox.value.height = pos.y - startPos.y
+    if (!isDragging.value) return
+    const p = e.target.getStage().getPointerPosition()
+    selectionBox.value.width = p.x - startPos.x
+    selectionBox.value.height = p.y - startPos.y
 }
 function onStageMouseUp(e) {
-    if (!isSelecting) return
-    isSelecting = false
+    if (!isDragging.value) return
+    isDragging.value = false
     selectionBox.value.visible = false
-
-    selectElementsInRect(selectionBox.value) // <- Ahora selecciona ambos
+    selectInBox(selectionBox.value)
 }
 
-// ---- Selección múltiple tanto de asientos como shapes ----
-function selectElementsInRect(rect) {
-    const minX = Math.min(rect.x, rect.x + rect.width)
-    const maxX = Math.max(rect.x, rect.x + rect.width)
-    const minY = Math.min(rect.y, rect.y + rect.height)
-    const maxY = Math.max(rect.y, rect.y + rect.height)
+function selectInBox({ x, y, width, height }) {
+    const minX = Math.min(x, x + width)
+    const maxX = Math.max(x, x + width)
+    const minY = Math.min(y, y + height)
+    const maxY = Math.max(y, y + height)
 
-    // Limpiá antes de seleccionar
-    selected.value = []
-
-    // Seats
-    props.seats.forEach((seat, i) => {
-        seat.selected = (
+    // seats
+    props.seats.forEach(seat => {
+        seat.selected =
             seat.x >= minX && seat.x <= maxX &&
             seat.y >= minY && seat.y <= maxY
-        )
-        if (seat.selected) selected.value.push({ type: 'seat', idx: i })
     })
+    emit('update:seats', props.seats)
 
-    // Shapes
-    props.shapes.forEach((shape, i) => {
-        let isSel = false
-        if (shape.type === 'circle') {
-            isSel = (
-                shape.x >= minX && shape.x <= maxX &&
-                shape.y >= minY && shape.y <= maxY
-            )
-        } else if (shape.type === 'rect') {
-            isSel = (
-                shape.x + shape.width >= minX && shape.x <= maxX &&
-                shape.y + shape.height >= minY && shape.y <= maxY
-            )
-        } else if (shape.type === 'text') {
-            isSel = (
-                shape.x >= minX && shape.x <= maxX &&
-                shape.y >= minY && shape.y <= maxY
-            )
+    // shapes
+    props.shapes.forEach(sh => {
+        let sel = false
+        if (sh.type === 'rect') {
+            sel = sh.x + sh.width >= minX && sh.x <= maxX && sh.y + sh.height >= minY && sh.y <= maxY
         }
-        shape.selected = isSel
-        if (isSel) selected.value.push({ type: 'shape', idx: i })
+        else if (sh.type === 'circle') {
+            sel = sh.x >= minX && sh.x <= maxX && sh.y >= minY && sh.y <= maxY
+        }
+        else /* text */ {
+            sel = sh.x >= minX && sh.x <= maxX && sh.y >= minY && sh.y <= maxY
+        }
+        sh.selected = sel
     })
+    emit('update:shapes', props.shapes)
 }
 
-// ---- Configuración visual de shapes/asientos/labels - cambia de color si se selecciona shape ----
-function getShapeConfig(s, i) {
-    const isSelected = selected.value.some(sel => sel.type === 'shape' && sel.idx === i)
-    if (s.type === 'rect')
-        return {
-            x: s.x, y: s.y, width: s.width, height: s.height,
-            stroke: isSelected ? 'blue' : 'gray',
-            strokeWidth: 2,
-            draggable: true,
-        }
-    if (s.type === 'circle')
-        return {
-            x: s.x, y: s.y, radius: s.width / 2 || 30,
-            stroke: isSelected ? 'blue' : 'gray',
-            strokeWidth: 2,
-            draggable: true,
-        }
-    // text
+function clearTransformer() {
+    const tr = transformerRef.value.getNode()
+    tr.nodes([])
+    layerRef.value.getNode().batchDraw()
+}
+
+// ——————————————
+// 2) Configuración de tags y props de shapes
+// ——————————————
+function shapeTag(s) {
+    return s.type === 'rect' ? 'v-rect'
+        : s.type === 'circle' ? 'v-circle'
+            : 'v-text'
+}
+function shapeConfig(s, i) {
+    const sel = !!s.selected
     return {
-        x: s.x, y: s.y, text: s.label, fontSize: s.fontSize,
-        fill: isSelected ? 'blue' : 'black',
-        draggable: true,
+        x: s.x, y: s.y,
+        ...(s.type === 'rect'
+            ? { width: s.width, height: s.height }
+            : s.type === 'circle'
+                ? { radius: s.radius ?? (s.width / 2) }
+                : { text: s.label, fontSize: s.fontSize }
+        ),
+        stroke: sel ? 'blue' : 'gray',
+        strokeWidth: 2,
+        draggable: true
     }
 }
 
-function getSeatConfig(seat, i) {
-    const isSelected = selected.value.some(sel => sel.type === 'seat' && sel.idx === i)
-    return {
-        x: seat.x, y: seat.y, radius: seat.radius || 22,
-        fill: isSelected ? '#fac' : '#72d759',
-        stroke: '#555', strokeWidth: 2,
-        draggable: true,
+// ——————————————
+// 3) Handlers de shapes
+// ——————————————
+async function onShapeMouseDown(i, e) {
+    e.cancelBubble = true
+    // toggle o selección simple
+    const updated = props.shapes.map((sh, idx) => ({
+        ...sh,
+        selected: e.shiftKey
+            ? (idx === i ? !sh.selected : sh.selected)
+            : (idx === i)
+    }))
+    // limpio seats
+    props.seats.forEach(s => s.selected = false)
+    emit('update:seats', props.seats)
+    emit('update:shapes', updated)
+
+    // engancho transformer sólo a este nodo
+    await nextTick()
+    const node = shapeRefs.value[i]?.getNode?.()
+    if (node) {
+        const tr = transformerRef.value.getNode()
+        tr.nodes([node])
+        tr.moveToTop()
+        layerRef.value.getNode().batchDraw()
     }
 }
-
-function getLabelConfig(seat, i) {
-    const isSelected = selected.value.some(sel => sel.type === 'seat' && sel.idx === i)
-    return {
-        x: seat.x,
-        y: seat.y + (seat.radius || 22) + 14,
-        text: seat.label,
-        fontSize: seat.fontSize || 16,
-        fill: isSelected ? '#1976d2' : '#222', // azul si está seleccionado, negro si no
-        align: 'center'
-    }
-}
-
-
-// --- Selección individual (sigue funcionando)
-function selectShape(i) {
-    selected.value = [{ type: 'shape', idx: i }]
-}
-function selectSeat(i) {
-    selected.value = [{ type: 'seat', idx: i }]
-}
-
-// --- Drag update (puedes emitir eventos si lo deseas)
 function onShapeDragEnd(i, e) {
-    props.shapes[i].x = e.target.x()
-    props.shapes[i].y = e.target.y()
+    const { x, y } = e.target.position()
+    const updated = props.shapes.map((sh, idx) =>
+        idx === i ? { ...sh, x, y, selected: sh.selected } : sh
+    )
+    emit('update:shapes', updated)
 }
-function onSeatDragEnd(i, e) {
-    props.seats[i].x = e.target.x()
-    props.seats[i].y = e.target.y()
+function onShapeTransformEnd(i, evt) {
+    const node = evt.target
+    const orig = props.shapes[i]
+    const copy = { ...orig }
+    if (orig.type === 'rect') {
+        copy.width = node.width() * node.scaleX()
+        copy.height = node.height() * node.scaleY()
+    }
+    if (orig.type === 'circle') {
+        copy.radius = node.radius() * node.scaleX()
+    }
+    if (orig.type === 'text') {
+        copy.fontSize = orig.fontSize * node.scaleX()
+    }
+    copy.rotation = node.rotation()
+    node.scale({ x: 1, y: 1 })
+
+    const updated = props.shapes.map((sh, idx) =>
+        idx === i
+            ? { ...copy, selected: true }
+            : { ...sh, selected: false }
+    )
+    props.seats.forEach(s => s.selected = false)
+    emit('update:seats', props.seats)
+    emit('update:shapes', updated)
 }
 
-// --- Transformer (para shape/seat seleccionado)
-watch(selected, async () => {
+// ——————————————
+// 4) Handlers de SeatsLayer
+// ——————————————
+function onSeatsUpdate(ns) {
+    emit('update:seats', ns)
+}
+async function onSeatSelection() {
     await nextTick()
     const layer = layerRef.value.getNode()
-    const transformer = transformerRef.value.getNode()
-    const nodes = []
+    const tr = transformerRef.value.getNode()
 
-    // Agregá todos los nodos seleccionados (seats y shapes)
-    selected.value.forEach(sel => {
-        if (sel.type === 'seat') {
-            const node = layer.findOne('#seat-' + sel.idx)
-            if (node) nodes.push(node)
-        }
-        if (sel.type === 'shape') {
-            const node = layer.findOne('#shape-' + sel.idx)
-            if (node) nodes.push(node)
-        }
-    })
-    transformer.nodes(nodes)
+    const shapeNodes = props.shapes
+        .map((sh, i) => sh.selected ? layer.findOne('#shape-' + i) : null)
+        .filter(Boolean)
+
+    // Aquí también **sin** .value
+    const seatNodes = seatsLayerRef.value.selectedCircleRefs || []
+
+
+
+    tr.nodes([...shapeNodes, ...seatNodes])
+    tr.moveToTop()
     layer.batchDraw()
-})
+}
+
+
+// ——————————————
+// 5) Watch global para shapes.selected O seats.selected
+// ——————————————
+watch(
+    [
+        () => props.shapes.map(s => s.selected),
+        () => props.seats.map(s => s.selected)
+    ],
+    async () => {
+        await nextTick()
+        const layer = layerRef.value.getNode()
+        const tr = transformerRef.value.getNode()
+
+        // Shape nodes
+        const shapeNodes = props.shapes
+            .map((_, i) =>
+                props.shapes[i].selected
+                    ? layer.findOne('#shape-' + i)
+                    : null)
+            .filter(Boolean)
+
+        // Seat nodes: **sin**.value
+        const seatNodes = seatsLayerRef.value.selectedCircleRefs || []
+
+        tr.nodes([...shapeNodes, ...seatNodes])
+        tr.moveToTop()
+        layer.batchDraw()
+    },
+    { immediate: true, flush: 'post' }
+)
+
 </script>

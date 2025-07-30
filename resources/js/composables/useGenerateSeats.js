@@ -33,7 +33,6 @@ export function useGenerateSeats(seats, tickets, canvasW, canvasH) {
                 y,
                 entrada_id: id,   // ← siempre definido
                 label: '',
-                draggable: true,
                 rotation: 0,
             })
         }

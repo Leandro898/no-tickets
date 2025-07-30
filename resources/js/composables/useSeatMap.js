@@ -85,7 +85,6 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             type: s.type ?? 'seat',
             width: s.width ?? null,
             height: s.height ?? null,
-            draggable: true,
             rotation: s.rotation ?? 0,
         }))
 
@@ -99,7 +98,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             rotation: s.rotation ?? 0,
             label: s.label ?? '',
             fontSize: s.font_size ?? 18,
-            draggable: true,
+            selected: false      // ← inicializamos selected
         }))
     })
 
@@ -125,7 +124,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             strokeWidth: 2,
             label: '',
             rotation: 0,
-            draggable: true
+            
         })
     }
     function addCircle() {
@@ -139,7 +138,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             strokeWidth: 2,
             label: '',
             rotation: 0,
-            draggable: true
+            
         })
     }
     function addText() {
@@ -152,7 +151,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             label: t,
             fontSize: 18,
             rotation: 0,
-            draggable: true
+            
         })
     }
 
@@ -177,7 +176,27 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             .forEach((s, i) => s.label = `${letter}${start + i}`)
     }
 
+    // ─── **NUEVO** handler para shapes
+    function onShapesUpdate(newShapes) {
+        shapes.value = (newShapes || []).map(s => ({
+            type: s.type,
+            x: s.x,
+            y: s.y,
+            width: s.width ?? null,
+            height: s.height ?? null,
+            rotation: s.rotation ?? 0,
+            label: s.label ?? '',
+            fontSize: s.fontSize ?? 18,
+            selected: !!s.selected
+        }))
+    }
+
     // ─── 7) UNDO / REDO ─────────────────────────────────────────────────────────
+    function deleteSelected() {
+        // elimina tanto asientos como shapes que estén marcados selected
+        seats.value = seats.value.filter(s => !s.selected)
+        shapes.value = shapes.value.filter(sh => !sh.selected)
+    }
     watch(seats, s => {
         history.value.push(JSON.parse(JSON.stringify(s)))
         if (history.value.length > 50) history.value.shift()
@@ -195,12 +214,15 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         history.value.push(next)
     }
     function toggleSelectAll() {
-        const all = seats.value.every(s => s.selected)
-        seats.value = seats.value.map(s => ({ ...s, selected: !all }))
+        // unimos ambos arrays para saber si están todos seleccionados
+        const elementos = [...seats.value, ...shapes.value];
+        const todos = elementos.every(el => el.selected);
+
+        // invertimos selected en cada array
+        seats.value = seats.value.map(s => ({ ...s, selected: !todos }));
+        shapes.value = shapes.value.map(sh => ({ ...sh, selected: !todos }));
     }
-    function deleteSelected() {
-        seats.value = seats.value.filter(s => !s.selected)
-    }
+    
 
     // ─── 8) ZOOM & RESET ────────────────────────────────────────────────────────
     function zoomIn() { const st = canvasRef.value.getStage(); st.scale({ x: st.scaleX() * 1.2, y: st.scaleY() * 1.2 }); st.batchDraw() }
@@ -223,7 +245,6 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             label: '',
             row: '',
             number: 0,
-            draggable: true,
             rotation: 0,
             selected: false
         })
@@ -312,7 +333,6 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
                 row: prefix,
                 number: start + i,
                 label: `${prefix}${start + i}`,
-                draggable: true,
                 rotation: 0,
                 selected: false
             })
@@ -333,6 +353,6 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         history, future, toggleSelectAll, undo, redo,
         zoomIn, zoomOut, resetView, deleteSelected, showHelp,
         showAddRow, openAddRowModal, sectors, onRowAdd,
-        onRename, tools, 
+        onRename, tools, onShapesUpdate,
     }
 }

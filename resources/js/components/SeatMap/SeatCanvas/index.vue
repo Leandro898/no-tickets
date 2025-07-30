@@ -1,5 +1,6 @@
 <template>
     <div v-bind="$attrs">
+        
         <v-stage ref="stageRef" :config="{ width, height }" @mousedown="onMouseDown" @mousemove="onMouseMove"
             @mouseup="onMouseUp" @click="onStageClick">
             <v-layer ref="layerRef">
@@ -19,7 +20,6 @@
                         height: shape.height,
                         stroke: shape.stroke || 'gray',
                         strokeWidth: shape.strokeWidth || 2,
-                        draggable: true,
                         rotation: shape.rotation || 0
                     }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
                     <!-- Círculo -->
@@ -30,7 +30,6 @@
                             radius: shape.radius,
                             stroke: shape.stroke || 'gray',
                             strokeWidth: shape.strokeWidth || 2,
-                            draggable: true,
                             rotation: shape.rotation || 0
                         }" @dragend="onShapeDragEnd(i, $event)" @click="onShapeClick(i, $event)" />
                     <!-- Texto editable -->
@@ -39,9 +38,9 @@
                         y: shape.y,
                         text: shape.label,
                         fontSize: shape.fontSize || 18,
-                        draggable: true,
                         rotation: shape.rotation || 0
-                    }" @dragend="onShapeDragEnd(i, $event)" @dblclick="onShapeTextEdit(i)" @click="onShapeClick(i, $event)" />
+                    }" @dragend="onShapeDragEnd(i, $event)" @dblclick="onShapeTextEdit(i)"
+                        @click="onShapeClick(i, $event)" />
                 </template>
 
                 <!-- 4) Transformer para shapes -->
@@ -57,19 +56,23 @@
 
                 <!-- 5) Tus asientos “reales” -->
                 <SeatsLayer ref="seatsLayerRef" :seats="seatItems" :defaultRadius="defaultRadius"
-                    @update:seats="onSeatsLayerUpdate"  />
+                    @update:seats="onSeatsLayerUpdate" />
 
                 <LabelsLayer :seats="seatItems" :defaultRadius="defaultRadius" />
 
+
+
+
                 <!-- 6) Transformer de grupo de asientos -->
                 <v-rect v-if="transformerNodes.length" :x="bbox.x" :y="bbox.y" :width="bbox.width" :height="bbox.height"
-                    fill="#ffffff" :opacity="0.001" :draggable="true" :listening="true" :strokeWidth="0"
-                    @mouseover="onGroupMouseOver" @mouseout="onGroupMouseOut" @dragstart="handleGroupDragStart"
-                    @dragmove="onGroupDragMove" @dragend="handleGroupDragEnd" />
+                    fill="#ffffff" :opacity="0.001" :listening="true" :strokeWidth="0" @mouseover="onGroupMouseOver"
+                    @mouseout="onGroupMouseOut" @dragstart="handleGroupDragStart" @dragmove="onGroupDragMove"
+                    @dragend="handleGroupDragEnd" />
                 <v-transformer v-if="transformerNodes.length" ref="transformerRef" :nodes="transformerNodes"
                     :config="{ enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right'] }" />
             </v-layer>
         </v-stage>
+
     </div>
 </template>
 
@@ -109,6 +112,39 @@ const stageRef = ref(null)
 const layerRef = ref(null)
 const transformerRef = ref(null)
 const seatsLayerRef = ref(null)
+
+import { onMounted, nextTick } from 'vue'
+
+onMounted(async () => {
+    await nextTick()
+    // ¡Esto solo se dispara cuando TODO está montado!
+    if (seatsLayerRef.value) {
+        console.log('REF seatsLayerRef al montarse:', seatsLayerRef.value)
+        console.log('selectedCircleRefs desde el padre:', seatsLayerRef.value.selectedCircleRefs)
+        if (seatsLayerRef.value.selectedCircleRefs)
+            console.log('selectedCircleRefs.value:', seatsLayerRef.value.selectedCircleRefs.value)
+    } else {
+        console.log('AÚN NO SE MONTÓ seatsLayerRef en onMounted')
+    }
+})
+
+
+// Accedé así:
+console.log("selectedCircleRefs actual (en padre):", seatsLayerRef.value?.selectedCircleRefs)
+
+// -- DEBUG: para ver si seatsLayerRef y su propiedad selectedCircleRefs existen --
+watch(
+    () => seatsLayerRef.value,
+    (nuevo) => {
+        console.log("REF seatsLayerRef en padre:", nuevo)
+        if (nuevo && nuevo.selectedCircleRefs)
+            console.log("selectedCircleRefs desde el padre:", nuevo.selectedCircleRefs)
+        if (nuevo && nuevo.selectedCircleRefs && nuevo.selectedCircleRefs.value)
+            console.log("selectedCircleRefs.value:", nuevo.selectedCircleRefs.value)
+    },
+    { immediate: true }
+)
+
 const shapeTransformerRef = ref(null)
 const shapeRefs = ref([])  // refs para cada shape
 
@@ -236,8 +272,12 @@ function onShapeTransformEnd() {
 
 // — Lógica Transformer + drag grupal para seats (igual que antes) —
 const transformerNodes = computed(
-    () => seatsLayerRef.value?.selectedCircleRefs || []
+    () => seatsLayerRef.value?.selectedCircleRefs.value || []
 )
+
+watch(transformerNodes, (val) => {
+    console.log("transformerNodes:", val)
+})
 
 const bbox = computed(() => {
     const sel = seatItems.value.filter(s => s && s.selected)
@@ -313,6 +353,28 @@ function onStageClick(e) {
         emit('update:seats', props.seats.map(s => s ? { ...s, selected: false } : s))
     }
 
+}
+// Es para poder seleccionar multiple?
+function getShapeConfig(shape, i) {
+    const isSelected = !!shape.selected
+    const selectedCount = shapes.value.filter(sh => sh.selected).length
+    return {
+        x: shape.x,
+        y: shape.y,
+        width: shape.width,
+        height: shape.height,
+        radius: shape.radius,
+        stroke: shape.stroke || 'gray',
+        strokeWidth: shape.strokeWidth || 2,
+        text: shape.label,
+        fontSize: shape.fontSize || 18,
+        rotation: shape.rotation || 0,
+        draggable: isSelected && selectedCount === 1 // Solo draggable si está seleccionado y solo uno
+    }
+}
+
+function probarRef() {
+    console.log('Accediendo desde el padre:', seatsLayerRef.value?.selectedCircleRefs?.value)
 }
 
 </script>

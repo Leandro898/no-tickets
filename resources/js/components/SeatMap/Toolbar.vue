@@ -30,17 +30,24 @@ import { computed } from 'vue'
 // Recibimos los props que le pasas desde index.vue
 const props = defineProps({
     seats: { type: Array, required: true },
+    shapes: { type: Array, required: true },
     history: { type: Array, required: true },
     future: { type: Array, required: true },
 })
 
 // ¿Están TODOS seleccionados?
-const allSelected = computed(
-    () => props.seats.length > 0 && props.seats.every(s => s && s.selected)
-)
+const allSelected = computed(() => {
+    // juntamos asientos y shapes en un solo array
+    const elementos = [...props.seats, ...props.shapes];
+    // si no hay ninguno, devolvemos false
+    if (elementos.length === 0) return false;
+    // devolvemos true solo si TODOS tienen selected === true
+    return elementos.every(el => el.selected);
+});
 // ¿Hay al menos uno seleccionado?
 const anySelected = computed(
-    () => props.seats.some(s => s && s.selected)
+    () => props.seats.some(s => s?.selected)
+        || props.shapes.some(sh => sh?.selected)
 )
 // ¿Podemos deshacer?
 const canUndo = computed(
