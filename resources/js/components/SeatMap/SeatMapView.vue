@@ -181,7 +181,10 @@ function onShapeTransformEnd(i, evt) {
         copy.height = node.height() * node.scaleY()
     }
     if (orig.type === 'circle') {
-        copy.radius = node.radius() * node.scaleX()
+        const newR = node.radius() * node.scaleX()
+        copy.radius = newR
+        copy.width = newR * 2    // ← ancho = diámetro
+        copy.height = newR * 2    // ← alto  = diámetro
     }
     if (orig.type === 'text') {
         copy.fontSize = orig.fontSize * node.scaleX()
