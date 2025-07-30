@@ -1,3 +1,4 @@
+<!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\Page.vue -->
 <template>
     <div class="flex h-full">
         <!-- 1) Sidebar de herramientas -->
@@ -65,13 +66,14 @@
 
         <!-- Modales -->
         <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
-        <GenerateSeatsModal v-if="showGenerateModal" :tickets="tickets" v-model:count="generateCount"
-            :selectedTicket="selectedTicket?.id" @selectTicket="selectTicket" @generate="generateSeats"
-            @cancel="showGenerateModal = false" />
+        <GenerateSeatsModal v-if="showGenerateModal" :tickets="tickets" :seats="seats" v-model:count="generateCount"
+            :selectedTicket="selectedTicket?.id" :remaining="remaining" @selectTicket="selectTicket"
+            @generate="generateSeats" @cancel="showGenerateModal = false" />
     </div>
 </template>
 
 <script setup>
+
 import { useSeatMap } from '@/composables/useSeatMap'
 import { useTickets } from '@/composables/useTickets'
 import { useGenerateSeats } from '@/composables/useGenerateSeats'
@@ -140,7 +142,8 @@ const {
     selectedTicket,
     openGenerateModal,
     selectTicket,
-    generateSeats
+    generateSeats,
+    remaining
 } = useGenerateSeats(seats, tickets, canvasW, canvasH)
 
 

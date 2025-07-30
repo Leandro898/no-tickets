@@ -1,3 +1,4 @@
+<!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\SeatMapView.vue -->
 <template>
     <v-stage :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
         @mouseup="onStageMouseUp">
@@ -26,9 +27,11 @@
 </template>
 
 <script setup>
+
 import { ref, nextTick, watch } from 'vue'
 import SelectionBox from './SeatCanvas/SelectionBox.vue'
 import SeatsLayer from './SeatCanvas/SeatsLayer.vue'
+import SeatCanvas from './SeatCanvas/index.vue'
 
 const props = defineProps({
     width: Number,

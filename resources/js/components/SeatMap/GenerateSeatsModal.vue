@@ -1,14 +1,14 @@
 <template>
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h3 class="text-xl font-bold mb-4">Generar s</h3>
+            <h3 class="text-xl font-bold mb-4">Generar asientos</h3>
 
             <!-- Tipo de Entrada -->
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-1">Tipo de Entrada</label>
                 <select v-model="localSelected" class="w-full border p-2 rounded-lg">
                     <option v-for="t in tickets" :key="t.id" :value="t.id">
-                        {{ t.nombre }} ({{ t.remaining }} disponibles)
+                        {{ t.nombre }} ({{ remainingFor(t.id) }} disponibles)
                     </option>
                 </select>
             </div>
@@ -39,41 +39,61 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+
+// FUNCION PARA VER LOGS DE STOCK
+// onMounted(() => {
+//     console.log('🔍 [Modal] props.tickets =', props.tickets)
+//     console.log('🔍 [Modal] props.seats   =', props.seats)
+//     console.log('🔍 [Modal] selectedTicket=', props.selectedTicket)
+// })
 
 const props = defineProps({
-    tickets: { type: Array, required: true },
-    count: { type: Number, required: true },
-    selectedTicket: { type: [Number, String], default: null },
+    tickets: { type: Array, required: true },      // [{ id, nombre, total }]
+    seats: { type: Array, required: true },      // [{ entrada_id, … }]
+    count: { type: Number, required: true },     // v-model:count
+    selectedTicket: { type: [Number, String], default: null }, // v-model:selectedTicket
+    remaining: Number    // ← la recibes para usarla directamente
 })
 const emit = defineEmits(['update:count', 'selectTicket', 'generate', 'cancel'])
 
-// Local copy para no mutar directo
+// --- Copias locales para no mutar props directos
 const localCount = ref(props.count)
 const localSelected = ref(props.selectedTicket)
 
-// Computed para saber cuántos quedan del tipo seleccionado
+// --- Calcula dinámico: total - creados
 function remainingFor(id) {
+    if (!id) return 0
+
     const t = props.tickets.find(x => x.id === id)
-    return t ? t.remaining : 0
+    const total = t?.stock_inicial || 0    // ← aquí usamos la propiedad correcta
+
+    const used = props.seats.filter(s => s.entrada_id === id).length
+    
+
+    return Math.max(total - used, 0)
 }
 
-// Podrás generar si hay ticket seleccionado y cantidad válida
-const canGenerate = computed(() => {
-    return (
-        localSelected.value !== null &&
-        localCount.value >= 1 &&
-        localCount.value <= remainingFor(localSelected.value)
-    )
+
+// --- Habilita botón sólo si la cantidad cabe en el stock
+const canGenerate = computed(() =>
+    localSelected.value !== null &&
+    localCount.value >= 1 &&
+    localCount.value <= remainingFor(localSelected.value)
+)
+
+// --- Emitimos hacia el padre al cambiar
+watch(localCount, v => emit('update:count', v))
+watch(localSelected, v => {
+    emit('selectTicket', v)
+    // Si nos pasamos, reajustamos
+    if (localCount.value > remainingFor(v)) {
+        localCount.value = remainingFor(v) || 1
+    }
 })
 
+// --- Dispara la generación definitiva
 function doGenerate() {
-    // 1️⃣ Busca el objeto ticket en el array props.tickets
-    const ticketObj = props.tickets.find(t => t.id === localSelected.value)
-    // 2️⃣ Emite ese objeto
-    emit('selectTicket', ticketObj)
-    // 3️⃣ Mantén la lógica de count y generate
-    emit('update:count', localCount.value)
     emit('generate')
 }
 </script>
