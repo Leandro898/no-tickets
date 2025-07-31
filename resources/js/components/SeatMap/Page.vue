@@ -15,8 +15,9 @@
 
       <!-- Uploader + Quitar fondo -->
       <div class="flex items-center gap-2 mb-4">
-        <ImageUploader :eventoId="eventoId" @imageLoaded="onBgLoaded" @fileSelected="onFileSelected" />
-        <button v-if="bgImage" @click="removeBg"
+        <ImageUploader :eventoId="eventoId" @image-loaded="onBgLoaded" @file-selected="onFileSelected"
+          @imageUploaded="onBgUploaded" />
+        <button v-if="bgImage" @click="eliminarBg"
           class="px-4 py-2 bg-gray-100 border rounded hover:bg-red-100 hover:text-red-700 transition">
           Quitar imagen
         </button>
@@ -51,7 +52,7 @@
         </button>
         <button @click="guardarTodo"
           class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
-          :disabled="isLoading">
+          :disabled="isLoading || bgUploading">
           <svg v-if="isLoading" class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none"
             viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
@@ -110,6 +111,7 @@ const {
   onBgLoaded,
   onFileSelected,
   removeBg,
+  eliminarBg,
   guardarTodo,
   onSeatsUpdate,
   history,
@@ -127,7 +129,9 @@ const {
   sectors,
   onRowAdd,
   onRename,
-  onShapesUpdate // Maneja shapes
+  onShapesUpdate, // Maneja shapes
+  onBgUploadRequest,   // lo exponemos desde el composable
+  bgUploading,
 } = useSeatMap(props.eventoId, props.initialBgImageUrl)
 
 const { tickets, totalTickets } = useTickets(props.eventoId)
@@ -139,8 +143,14 @@ const {
   openGenerateModal,
   selectTicket,
   generateSeats,
-  remaining
+  remaining,
 } = useGenerateSeats(seats, tickets, canvasW, canvasH)
+
+// Nuevo handler:
+function onBgUploaded(url) {
+  // le pasamos la URL al composable
+  onBgUploadRequest(url)
+}
 
 // 🎯 Handler intermedio para depurar
 function handleSeatsFromView(newSeats) {

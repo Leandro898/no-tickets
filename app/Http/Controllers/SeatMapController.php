@@ -160,7 +160,7 @@ class SeatMapController extends Controller
             'seats.*.label'       => 'nullable|string|max:255',
             'seats.*.fontSize'    => 'nullable|numeric',
             'seats.*.rotation'    => 'nullable|numeric',
-            'bgUrl'               => 'nullable|string',
+            'bgUrl'               => 'nullable|url',
             'map'                 => 'nullable|string',
         ]);
 

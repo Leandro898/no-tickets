@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use App\Models\PurchasedTicket;
+use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
     public function store(Request $request)
     {
-        // 1️⃣ Validación: fíjate que los names del form coincidan con estos
         $data = $request->validate([
             'event_id'         => 'required|integer|exists:eventos,id',
             'seats'            => 'required|array',
@@ -22,37 +22,41 @@ class OrderController extends Controller
             'buyer_dni'        => 'nullable|string|max:50',
         ]);
 
-        // 2️⃣ Calcular el total (ajusta según tu lógica de precios)
-        $seatCount = count($data['seats']);
-        // Por ejemplo, supongamos que cada asiento vale $100:
-        $totalAmount = $seatCount * 100;
+        // Traemos los seats completos para tener su entrada_id
+        $seats = Seat::whereIn('id', $data['seats'])->get();
 
-        // 3️⃣ Crear la orden dentro de una transacción
-        DB::transaction(function () use ($data, $totalAmount, &$order) {
+        // Calcula total según tu lógica
+        $totalAmount = $seats->count() * 100; // ejemplo
+
+        DB::transaction(function () use ($data, $seats, $totalAmount, &$order) {
             $order = Order::create([
-                'user_id'          => auth()->id() ?? null,  // si quieres asociar usuario
+                'user_id'          => auth()->id(),
                 'event_id'         => $data['event_id'],
                 'buyer_full_name'  => $data['buyer_full_name'],
                 'buyer_email'      => $data['buyer_email'],
                 'buyer_phone'      => $data['buyer_phone']  ?? null,
                 'buyer_dni'        => $data['buyer_dni']    ?? null,
                 'total_amount'     => $totalAmount,
-                'items_data'       => json_encode($data['seats']),
+                'items_data'       => $seats->pluck('id')->toJson(),
                 'payment_status'   => 'pending',
                 'mp_payment_id'    => null,
                 'mp_preference_id' => null,
             ]);
 
-            // 4️⃣ Registrar cada asiento como PurchasedTicket
-            foreach ($data['seats'] as $seatId) {
+            // Creamos un PurchasedTicket por cada seat, incluyendo entrada_id
+            foreach ($seats as $seat) {
+                $uuid = (string) Str::uuid();      // genera un UUID
                 $order->purchasedTickets()->create([
-                    'seat_id' => $seatId,
-                    // otros campos que tu PurchasedTicket requiera…
+                    'entrada_id'   => $seat->entrada_id,
+                    'short_code'   => strtoupper(Str::random(6)),
+                    'unique_code'  => $uuid,         // ahora sí lo envías
+                    'qr_path'      => null,          // o lo que corresponda
+                    'status'       => 'valid',       // si tu tabla lo requiere
+                    // … cualquier otro campo NOT NULL
                 ]);
             }
         });
 
-        // 5️⃣ Redirigir a “gracias” o iniciar flujo Mercado Pago
         return redirect()
             ->route('orders.thankyou', $order)
             ->with('success', 'Orden creada correctamente. ¡Continuá con el pago!');

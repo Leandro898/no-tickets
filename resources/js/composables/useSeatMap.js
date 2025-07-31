@@ -14,10 +14,11 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         { name: 'text', label: 'Agregar texto', icon: '🔤' },
     ]
 
+    const bgUploading = ref(false)
     const canvasW = ref(1000)
     const canvasH = ref(800)
     const bgImage = ref(null)
-    const bgImageUrl = ref('')
+    const bgImageUrl = ref(initialBgImageUrl || '')
     const mapJSON = ref(null)
     const currentTool = ref('rect')
     const spacePressed = ref(false)
@@ -102,6 +103,15 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         }))
     })
 
+    // ✨ Nuevo: recibe la URL que emitió ImageUploader.vue
+    async function onBgUploadRequest(url) {
+        bgImageUrl.value = url
+        const img = new Image()
+        img.src = url
+        await new Promise(r => img.onload = r)
+        bgImage.value = img
+    }
+
     // ─── 3) PAN con barra espaciadora ──────────────────────────────────────────
     window.addEventListener('keydown', e => { if (e.code === 'Space') spacePressed.value = true })
     window.addEventListener('keyup', e => { if (e.code === 'Space') spacePressed.value = false })
@@ -124,7 +134,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             strokeWidth: 2,
             label: '',
             rotation: 0,
-            
+
         })
     }
     function addCircle() {
@@ -138,7 +148,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             strokeWidth: 2,
             label: '',
             rotation: 0,
-            
+
         })
     }
     function addText() {
@@ -151,7 +161,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             label: t,
             fontSize: 18,
             rotation: 0,
-            
+
         })
     }
 
@@ -217,7 +227,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         seats.value = seats.value.map(s => ({ ...s, selected: !todos }));
         shapes.value = shapes.value.map(sh => ({ ...sh, selected: !todos }));
     }
-    
+
 
     // ─── 8) ZOOM & RESET ────────────────────────────────────────────────────────
     function zoomIn() { const st = canvasRef.value.getStage(); st.scale({ x: st.scaleX() * 1.2, y: st.scaleY() * 1.2 }); st.batchDraw() }
@@ -247,6 +257,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
 
     // ─── 10) GUARDAR TODO (shapes+seats) ────────────────────────────────────────
     async function guardarTodo() {
+        
         // 10.1) Filtrar solo los asientos reales para validación
         const onlySeats = seats.value.filter(s => s.type === 'seat')
         const faltan = onlySeats.some(s => !s.entrada_id)
@@ -290,11 +301,18 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
                 }))
             ]
 
+            // Log para depuración. Saber qué se va a enviar por Fetch
+            // console.log('GUARDANDO:', {
+            //     seats: elements, bgUrl: bgImageUrl.value, map: mapJSON.value
+            // })
+
             const payload = {
                 seats: toRaw(elements),
                 bgUrl: bgImageUrl.value,
                 map: mapJSON.value,
             }
+
+            console.log('[GUARDAR] bgImageUrl:', bgImageUrl.value)
 
             const res = await fetch(`/api/eventos/${eventoId}/mapa`, {
                 method: 'POST',
@@ -335,19 +353,121 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
     }
 
     // ─── 12) BG UPLOADER ────────────────────────────────────────────────────────
-    function onBgLoaded(img) { bgImage.value = img }
-    function onFileSelected(f) { /* … lógica de subir fondo … */ }
-    function removeBg() { bgImage.value = null; selectedFile.value = null; removedBg.value = true }
 
+    /**
+     * Recibe una imagen ya subida y la carga en el canvas.
+     * @param {HTMLImageElement} img 
+     */
+    function onBgLoaded(img) {
+        bgImage.value = img;
+    }
+
+    /**
+     * Dada una URL de imagen, hace preview y actualiza los refs.
+     * @param {string} url 
+     */
+    async function onBgUploadRequest(url) {
+        // 1) Previsualización inmediata
+        const img = new Image();
+        img.src = url;
+        await new Promise(r => (img.onload = r));
+        // 2) Actualiza refs
+        bgImageUrl.value = url;
+        bgImage.value = img;
+
+        console.log(bgImageUrl.value)
+    }
+
+    /**
+ * Sube el archivo al servidor y, si todo ok, dispara onBgUploadRequest(url).
+ * @param {File} file 
+ */
+    async function onFileSelected(file) {
+        console.log('[useSeatMap] onFileSelected invoked →', file)
+        bgUploading.value = true; // INICIA subida
+
+        // Prepara FormData
+        const fd = new FormData();
+        fd.append('image', file);
+
+        // Llama al endpoint de upload
+        const res = await fetch(`/api/eventos/${eventoId}/upload-bg`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            },
+            body: fd
+        });
+
+        if (!res.ok) {
+            // leer el texto crudo (JSON) que Laravel envía en 422
+            const text = await res.text();
+            console.error('Validation errors:', text);
+            toast.value = {
+                visible: true,
+                message: 'Falló la subida de la imagen (422)',
+                type: 'error'
+            };
+            bgUploading.value = false; // TERMINA subida aunque haya error
+            return;
+        }
+
+        // Obtén la URL devuelta y lanza preview + ref updates
+        const { url } = await res.json();
+        await onBgUploadRequest(url);
+
+        toast.value = { visible: true, message: 'Imagen subida ✅', type: 'success' };
+        setTimeout(() => (toast.value.visible = false), 2000);
+
+        bgUploading.value = false; // TERMINA subida
+    }
+
+    /**
+     * Quita la imagen de fondo del canvas.
+     */
+    function removeBg() {
+        bgImage.value = null;
+        bgImageUrl.value = '';
+    }
+
+    /**
+ * Elimina la imagen de fondo tanto del servidor como del canvas/local.
+ */
+    async function eliminarBg() {
+        if (!bgImageUrl.value) return
+
+        // Llama a la API para borrar imagen del storage y de la base
+        const res = await fetch(`/api/eventos/${eventoId}/delete-bg`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ url: bgImageUrl.value })
+        });
+
+        if (!res.ok) {
+            const text = await res.text();
+            toast.value = { visible: true, message: 'No se pudo eliminar la imagen', type: 'error' };
+            console.error('Error eliminando fondo:', text);
+            return;
+        }
+
+        // Limpiá refs locales
+        bgImage.value = null;
+        bgImageUrl.value = '';
+        toast.value = { visible: true, message: 'Imagen eliminada ✅', type: 'success' };
+        setTimeout(() => (toast.value.visible = false), 2000);
+    }
     // ─── RETURN ────────────────────────────────────────────────────────────────
     return {
         canvasRef, seats, shapes, canvasW, canvasH, bgImage,
         mapJSON, currentTool, spacePressed, isLoading, toast,
-        onToolSelect, onBgLoaded, onFileSelected, removeBg,
+        onToolSelect, onBgLoaded, onFileSelected, removeBg, eliminarBg,
         addSeat, guardarTodo, onSeatsUpdate,
         history, future, toggleSelectAll, undo, redo,
         zoomIn, zoomOut, resetView, deleteSelected, showHelp,
         showAddRow, openAddRowModal, sectors, onRowAdd,
-        onRename, tools, onShapesUpdate,
+        onRename, tools, onShapesUpdate, bgImageUrl, onBgUploadRequest, bgUploading,
     }
 }
