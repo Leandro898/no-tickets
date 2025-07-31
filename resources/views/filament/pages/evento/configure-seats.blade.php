@@ -4,11 +4,9 @@
     </p>
 
     <x-filament::card class="overflow-hidden">
-        <div
-            id="seat-map-app"
-            data-evento-id="{{ $record->id }}"
-            data-bg-image-url="{{ $record->bg_image_url ?? '' }}"
-        ></div>
+        <div id="seat-map-app" 
+        data-evento-slug="{{ $evento->slug }}"
+        data-initial-bg-image-url="{{ $evento->bg_image_url ?? '' }}"></div>
     </x-filament::card>
 
     @vite('resources/js/app.js')

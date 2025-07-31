@@ -2,7 +2,7 @@
 import { ref, onMounted, toRaw, watch } from 'vue'
 import { useTickets } from '@/composables/useTickets'
 
-export function useSeatMap(eventoId, initialBgImageUrl) {
+export function useSeatMap(eventoSlug, initialBgImageUrl) {
     // ─── 1) STATE ─────────────────────────────────────────────────────────────
     const canvasRef = ref(null)
     const seats = ref([])
@@ -34,7 +34,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
     const sectors = ref([])
 
     // Para asignar entrada_id por defecto
-    const { tickets, totalTickets } = useTickets(eventoId)
+    const { tickets, totalTickets } = useTickets(eventoSlug)
 
     // ─── 2) onMounted: CARGAR MAPA (seats + shapes + bg + JSON) ───────────────
     onMounted(async () => {
@@ -47,14 +47,14 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             bgImageUrl.value = initialBgImageUrl
         }
 
-        // 2.2) Validar que tengamos eventoId
-        if (!eventoId) {
-            console.error('useSeatMap: falta el eventoId')
+        // 2.2) Validar que tengamos eventoSlug
+        if (!eventoSlug) {
+            console.error('useSeatMap: falta el eventoSlug')
             return
         }
 
         // 2.3) Petición al backend
-        const res = await fetch(`/api/eventos/${eventoId}/map`)
+        const res = await fetch(`/api/eventos/${eventoSlug}/map`)
         if (!res.ok) {
             console.error(`Error al cargar el mapa: ${res.status}`)
             return
@@ -333,7 +333,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
 
             console.log('[GUARDAR] bgImageUrl:', bgImageUrl.value)
 
-            const res = await fetch(`/api/eventos/${eventoId}/mapa`, {
+            const res = await fetch(`/api/eventos/${eventoSlug}/mapa`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
@@ -411,7 +411,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         fd.append('image', file);
 
         // Llama al endpoint de upload
-        const res = await fetch(`/api/eventos/${eventoId}/upload-bg`, {
+        const res = await fetch(`/api/eventos/${eventoSlug}/upload-bg`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json'
@@ -457,7 +457,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         if (!bgImageUrl.value) return
 
         // Llama a la API para borrar imagen del storage y de la base
-        const res = await fetch(`/api/eventos/${eventoId}/delete-bg`, {
+        const res = await fetch(`/api/eventos/${eventoSlug}/delete-bg`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

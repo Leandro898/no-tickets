@@ -15,7 +15,7 @@
 
       <!-- Uploader + Quitar fondo -->
       <div class="flex items-center gap-2 mb-4">
-        <ImageUploader :eventoId="eventoId" @image-loaded="onBgLoaded" @file-selected="onFileSelected"
+        <ImageUploader :eventoSlug="eventoSlug" @image-loaded="onBgLoaded" @file-selected="onFileSelected"
           @imageUploaded="onBgUploaded" />
         <button v-if="bgImage" @click="eliminarBg"
           class="px-4 py-2 bg-gray-100 border rounded hover:bg-red-100 hover:text-red-700 transition">
@@ -89,7 +89,7 @@ import Toast from '../ui/Toast.vue'
 import { nextTick, watch } from 'vue'
 
 const props = defineProps({
-  eventoId: { type: [Number, String], required: true },
+  eventoSlug: { type: [Number, String], required: true },
   initialBgImageUrl: { type: String, default: '' },
 })
 
@@ -132,9 +132,9 @@ const {
   onShapesUpdate, // Maneja shapes
   onBgUploadRequest,   // lo exponemos desde el composable
   bgUploading,
-} = useSeatMap(props.eventoId, props.initialBgImageUrl)
+} = useSeatMap(props.eventoSlug, props.initialBgImageUrl)
 
-const { tickets, totalTickets } = useTickets(props.eventoId)
+const { tickets, totalTickets } = useTickets(props.eventoSlug)
 
 const {
   showGenerateModal,

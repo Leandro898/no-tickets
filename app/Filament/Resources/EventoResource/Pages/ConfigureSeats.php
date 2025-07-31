@@ -32,4 +32,13 @@ class ConfigureSeats extends Page
         return [];
     }
 
+    // App\Filament\Resources\EventoResource\Pages\ConfigureSeats.php
+
+    public function getViewData(): array
+    {
+        return [
+            'evento' => $this->record, // Así accedés al modelo completo
+            'entriesCount' => $this->entriesCount,
+        ];
+    }
 }

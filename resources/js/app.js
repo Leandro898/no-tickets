@@ -15,9 +15,9 @@ import SeatCheckout from './components/SeatCheckout.vue'     // selector en fron
 // ——— 1) Editor interno Filament (admin) ———
 const adminEl = document.getElementById('seat-map-app')
 if (adminEl) {
-    const eventoId = Number(adminEl.dataset.eventoId)
+    const eventoSlug = adminEl.dataset.eventoSlug // CORRECTO, queda como string
     const initialBgImageUrl = adminEl.dataset.bgImageUrl || ''
-    createApp(SeatMap, { eventoId, initialBgImageUrl })
+    createApp(SeatMap, { eventoSlug, initialBgImageUrl })
         .use(VueKonva)
         .mount(adminEl)
 }

@@ -247,13 +247,13 @@ Route::get('orders/{order}/status', function (Order $order) {
 // RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
 
 Route::get(
-    'eventos/{evento:slug}/checkout-seats',
+    'eventos/{evento}/checkout-seats',
     [SeatMapController::class, 'showCheckout']
 )->name('eventos.checkout-seats');
 
 // Ruta para el checkout de asientos
 Route::get(
-    'eventos/{evento:slug}/checkout',
+    'eventos/{evento}/checkout',
     [CheckoutController::class, 'show']
 )->name('eventos.checkout');
 

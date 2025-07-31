@@ -6,7 +6,7 @@
 
 <script setup>
 const props = defineProps({
-    eventoId: { type: [Number, String], required: true }
+    eventoSlug: { type: [Number, String], required: true }
 })
 const emit = defineEmits(['imageLoaded', 'fileSelected', 'imageUploaded'])
 
@@ -30,7 +30,7 @@ async function handleChange(e) {
     const formData = new FormData()
     formData.append('image', file)
     try {
-        const response = await fetch(`/api/eventos/${props.eventoId}/upload-bg`, {
+        const response = await fetch(`/api/eventos/${props.eventoSlug}/upload-bg`, {
             method: 'POST',
             body: formData,
         })
