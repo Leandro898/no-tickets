@@ -1,5 +1,6 @@
 <?php
-
+//Path: app/Livewire/Entradas/GestionEntradas.php
+// This file is part of the Livewire component for managing event entries.
 namespace App\Livewire\Entradas;
 
 use Livewire\Component;

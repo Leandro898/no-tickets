@@ -1,3 +1,4 @@
+{{-- Path: resources/views/livewire/entradas/gestion-entradas.blade.php --}}
 <div class="space-y-6">
     {{-- Botón Crear --}}
     <button
