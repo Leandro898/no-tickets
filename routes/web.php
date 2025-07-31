@@ -29,7 +29,8 @@ use App\Http\Controllers\PurchaseController;
 use Filament\Http\Middleware\Authorize as FilamentAuthorize;
 use App\Http\Controllers\SeatPurchaseController;
 use App\Http\Controllers\SeatMapController;
-
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -250,11 +251,19 @@ Route::get(
     [SeatMapController::class, 'showCheckout']
 )->name('eventos.checkout-seats');
 
+// Ruta para el checkout de asientos
+Route::get(
+    'eventos/{evento:slug}/checkout',
+    [CheckoutController::class, 'show']
+)->name('eventos.checkout');
 
 
-
-
-
+// Ruta que procesa la creación de la orden (checkout)
+Route::post('orders', [OrderController::class, 'store'])
+    ->name('orders.create');
+// Ruta que muestra la página de agradecimiento después de la compra
+Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
+    ->name('orders.thankyou');
 
 
 

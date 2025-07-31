@@ -5,7 +5,7 @@
   <div
   id="seat-checkout"
   data-slug="{{ $evento->slug }}"
-  data-purchase-route="{{ route('eventos.checkout-seats', $evento->slug) }}"
+  data-purchase-route="{{ route('eventos.checkout', $evento->slug) }}"
 ></div>
 
 @endsection
