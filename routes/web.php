@@ -245,17 +245,10 @@ Route::get('orders/{order}/status', function (Order $order) {
 
 // RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
 
-// 1) Mostrar la pantalla de selección de asientos
 Route::get(
-    '/eventos/{evento:slug}/checkout-seats',
+    'eventos/{evento:slug}/checkout-seats',
     [SeatMapController::class, 'showCheckout']
 )->name('eventos.checkout-seats');
-
-// 2) Procesar la compra de los asientos seleccionados
-Route::post(
-    '/eventos/{evento:slug}/checkout-seats',
-    [PurchaseController::class, 'storeSeats']
-)->name('eventos.checkout-seats.store');
 
 
 

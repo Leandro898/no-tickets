@@ -23,13 +23,14 @@ if (adminEl) {
 }
 
 // ——— 2) Selector / Checkout para el front ———
-const checkoutEl = document.getElementById('seat-checkout-app')
-if (checkoutEl) {
-    const eventoId = Number(checkoutEl.dataset.eventoId)
-    const purchaseRoute = checkoutEl.dataset.purchaseRoute  // ← aquí
-    console.log('[app.js] montando SeatCheckout con:', { eventoId, purchaseRoute })
-    createApp(SeatCheckout, { eventoId, purchaseRoute })
+const el = document.getElementById('seat-checkout')
+if (el) {
+    const eventoSlug = el.dataset.slug
+    const purchaseRoute = el.dataset.purchaseRoute
+    //console.log('[app.js] montando SeatCheckout con:', { eventoSlug, purchaseRoute })
+
+    createApp(SeatCheckout, { eventoSlug, purchaseRoute })
         .use(VueKonva)
-        .mount(checkoutEl)
+        .mount(el)
 }
 

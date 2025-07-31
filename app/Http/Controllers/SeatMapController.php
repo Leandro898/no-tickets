@@ -13,6 +13,7 @@ class SeatMapController extends Controller
      */
     public function showCheckout(Evento $evento)
     {
+        //dd('Llegué a showCheckout', $evento->slug);
         // $evento trae el registro completo por slug
         return view('eventos.checkout-seats', compact('evento'));
     }

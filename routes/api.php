@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Http\Controllers\SeatMapController;
 use App\Http\Controllers\EventoController;
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
