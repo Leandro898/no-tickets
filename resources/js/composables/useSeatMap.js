@@ -157,13 +157,8 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
 
     // ─── 5) DRAG & SELECT UPDATE ────────────────────────────────────────────────
     function onSeatsUpdate(newSeats) {
-        seats.value = (newSeats || []).map(s => ({
-            ...s,
-            selected: !!s.selected,
-            radius: s.radius ?? 22,
-            label: s.label || '',
-            fontSize: s.fontSize || 18,
-        }))
+        // REEMPLAZAR el array COMPLETO
+        seats.value = newSeats.map(s => ({ ...s }))
     }
 
     // ─── 6) RENAME ──────────────────────────────────────────────────────────────

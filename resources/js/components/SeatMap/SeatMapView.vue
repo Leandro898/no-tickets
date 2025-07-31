@@ -16,22 +16,25 @@
                     @dragend="onShapeDragEnd(i, $event)" @transformend.native="onShapeTransformEnd(i, $event)" />
             </template>
 
-            <!-- 4) Capa de asientos -->
+            <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
             <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
                 @update:selection="onSeatSelection" />
 
             <!-- 5) Transformer único -->
-            <v-transformer ref="transformerRef" />
+            <v-transformer ref="transformerRef" @transformend="onTransformerTransformEnd" />
+       
         </v-layer>
     </v-stage>
 </template>
 
 <script setup>
+// valor de radio por defecto si seat.radius no existiera
+const defaultRadius = 22
 
 import { ref, nextTick, watch } from 'vue'
-import SelectionBox from './SeatCanvas/SelectionBox.vue'
-import SeatsLayer from './SeatCanvas/SeatsLayer.vue'
-import SeatCanvas from './SeatCanvas/index.vue'
+import SelectionBox from './SelectionBox.vue'
+import SeatsLayer from './SeatsLayer.vue'
+
 
 const props = defineProps({
     width: Number,
@@ -209,7 +212,13 @@ function onShapeTransformEnd(i, evt) {
 // 4) Handlers de SeatsLayer
 // ——————————————
 function onSeatsUpdate(ns) {
-    emit('update:seats', ns)
+    //console.log('🏷️ SeatMapView recibió update:seats →', ns)
+    emit('update:seats', ns);
+
+    // FORZÁ REDIBUJADO (solo si layerRef existe)
+    if (layerRef.value && layerRef.value.getNode) {
+        layerRef.value.getNode().batchDraw();
+    }
 }
 async function onSeatSelection() {
     await nextTick()
@@ -261,5 +270,42 @@ watch(
     },
     { immediate: true, flush: 'post' }
 )
+
+// —————————————— Hace el resize de los asientos y shapes
+async function onTransformerTransformEnd() {
+    const tr = transformerRef.value.getNode()
+    // nodos que estamos transformando (Shapes y Circles)
+    const nodes = tr.nodes()
+    // Factor de escala (asumimos uniforme)
+    const scaleX = tr.scaleX()
+    const scaleY = tr.scaleY()
+    // Copiamos el array actual de seats para actualizarlo
+    const updatedSeats = props.seats.map(s => ({ ...s }))
+
+    // Para cada nodo transformado, buscamos su asiento por id
+    nodes.forEach(node => {
+        const id = node.id()           // será "seat-3", "seat-7", etc.
+        if (id?.startsWith('seat-')) {
+            const idx = parseInt(id.split('-')[1])
+            const seat = updatedSeats[idx]
+            // Actualizamos su radio y posición
+            seat.radius = (seat.radius ?? defaultRadius) * scaleX
+            seat.x = node.x()
+            seat.y = node.y()
+            // mantenemos seat.selected = true
+        }
+        // si quieras manejar shapes igual, añades lógica aquí...
+    })
+
+    // Resetear la escala del transformer
+    tr.scale({ x: 1, y: 1 })
+    // Re-enganchar los mismos nodos
+    tr.nodes(nodes)
+    // Redibujar la capa
+    layerRef.value.getNode().batchDraw()
+
+    // Emitir la actualización al padre
+    emit('update:seats', updatedSeats)
+}
 
 </script>
