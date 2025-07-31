@@ -9,6 +9,15 @@ use Illuminate\Support\Facades\Storage;
 class SeatMapController extends Controller
 {
     /**
+     * Muestra la vista de selección de asientos para el front.
+     */
+    public function showCheckout(Evento $evento)
+    {
+        // $evento trae el registro completo por slug
+        return view('eventos.checkout-seats', compact('evento'));
+    }
+    
+    /**
      * Devuelve las entradas (tickets) para este evento,
      * con un count de los asientos ya asignados y el remaining.
      */
@@ -251,5 +260,13 @@ class SeatMapController extends Controller
             'bgUrl'  => $evento->bg_image_url,
             'map'    => $evento->map_data,
         ]);
+    }
+
+    // Lista los asientos guardados para el mapa en el front
+    public function listSeats(Evento $evento)
+    {
+        return response()->json(
+            $evento->seats()->get(['id', 'x', 'y', 'radius'])
+        );
     }
 }

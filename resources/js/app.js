@@ -1,30 +1,35 @@
 import './bootstrap'
 import { createApp } from 'vue'
 import VueKonva from 'vue-konva'
-import SeatMap from './components/SeatMap/Page.vue'
 
-// IMPORTAR TOAST
+
+// Toastr
 import toastr from 'toastr'
 import 'toastr/build/toastr.min.css'
 window.toastr = toastr
 
-const el = document.getElementById('seat-map-app')
+// Componentes
+import SeatMap from './components/SeatMap/Page.vue'     // editor en admin
+import SeatCheckout from './components/SeatCheckout.vue'     // selector en front
 
-if (el) {
-    // 1️⃣ Leemos data-evento-id en lugar de data-event-id
-    const eventoId = Number(el.dataset.eventoId)
-    const initialBgImageUrl = el.dataset.bgImageUrl || ''
-
-    if (!eventoId) {
-        console.error('❌ No se encontró o es inválido el atributo data-evento-id en #seat-map-app')
-    }
-
-    // 2️⃣ Creamos la app pasándole los props correctos
-    const app = createApp(SeatMap, {
-        eventoId,
-        initialBgImageUrl
-    })
-
-    app.use(VueKonva)
-    app.mount(el)
+// ——— 1) Editor interno Filament (admin) ———
+const adminEl = document.getElementById('seat-map-app')
+if (adminEl) {
+    const eventoId = Number(adminEl.dataset.eventoId)
+    const initialBgImageUrl = adminEl.dataset.bgImageUrl || ''
+    createApp(SeatMap, { eventoId, initialBgImageUrl })
+        .use(VueKonva)
+        .mount(adminEl)
 }
+
+// ——— 2) Selector / Checkout para el front ———
+const checkoutEl = document.getElementById('seat-checkout-app')
+if (checkoutEl) {
+    const eventoId = Number(checkoutEl.dataset.eventoId)
+    const purchaseRoute = checkoutEl.dataset.purchaseRoute  // ← aquí
+    console.log('[app.js] montando SeatCheckout con:', { eventoId, purchaseRoute })
+    createApp(SeatCheckout, { eventoId, purchaseRoute })
+        .use(VueKonva)
+        .mount(checkoutEl)
+}
+

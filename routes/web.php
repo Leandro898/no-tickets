@@ -27,6 +27,9 @@ use App\Models\User;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\PurchaseController;
 use Filament\Http\Middleware\Authorize as FilamentAuthorize;
+use App\Http\Controllers\SeatPurchaseController;
+use App\Http\Controllers\SeatMapController;
+
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -240,7 +243,19 @@ Route::get('orders/{order}/status', function (Order $order) {
     ]);
 });
 
+// RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
 
+// 1) Mostrar la pantalla de selección de asientos
+Route::get(
+    '/eventos/{evento:slug}/checkout-seats',
+    [SeatMapController::class, 'showCheckout']
+)->name('eventos.checkout-seats');
+
+// 2) Procesar la compra de los asientos seleccionados
+Route::post(
+    '/eventos/{evento:slug}/checkout-seats',
+    [PurchaseController::class, 'storeSeats']
+)->name('eventos.checkout-seats.store');
 
 
 
