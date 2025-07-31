@@ -11,6 +11,17 @@
             draggable: true
         }" :ref="el => setCircleEl(el, originalIndex)" @mousedown="onToggleSeat(originalIndex, $event)"
         @dragend="onSeatDragEnd(originalIndex, $event)" @dragmove="onSeatDragMove(originalIndex, $event)" />
+
+    <v-text v-for="seat in seats" :key="'label-' + seat.id" :config="{
+        x: seat.x,
+        y: seat.y + (seat.radius ?? 22) + 12,
+        text: seat.label || '',     // <-- SIEMPRE ESTO!
+        fontSize: 15,
+        fill: '#6366f1',
+        align: 'center',
+        fontStyle: 'bold',
+    }" />
+
 </template>
 
 <script setup>

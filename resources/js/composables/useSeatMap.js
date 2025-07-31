@@ -171,15 +171,27 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
         seats.value = newSeats.map(s => ({ ...s }))
     }
 
-    // ─── 6) RENAME ──────────────────────────────────────────────────────────────
+    // ─── 6) RENAME asientos ──────────────────────────────────────────────────────────────
     function onRename({ type, label, letter, start }) {
         const sel = seats.value.filter(s => s.selected)
         if (!sel.length) return
-        if (type === 'single') sel[0].label = label
-        else sel
-            .sort((a, b) => a.x - b.x)
-            .forEach((s, i) => s.label = `${letter}${start + i}`)
+        if (type === 'single') {
+            if (!label || label.trim() === '') {
+                toast.value = { visible: true, message: 'El label no puede estar vacío.', type: 'error' }
+                return
+            }
+            sel[0].label = label
+        } else {
+            if (!letter || letter.trim() === '') {
+                toast.value = { visible: true, message: 'El prefijo no puede estar vacío.', type: 'error' }
+                return
+            }
+            sel
+                .sort((a, b) => a.x - b.x)
+                .forEach((s, i) => s.label = `${letter}${start + i}`)
+        }
     }
+
 
     // ─── **NUEVO** handler para shapes
     function onShapesUpdate(newShapes) {
@@ -257,12 +269,19 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
 
     // ─── 10) GUARDAR TODO (shapes+seats) ────────────────────────────────────────
     async function guardarTodo() {
-        
+
         // 10.1) Filtrar solo los asientos reales para validación
         const onlySeats = seats.value.filter(s => s.type === 'seat')
         const faltan = onlySeats.some(s => !s.entrada_id)
         if (faltan) {
             toast.value = { visible: true, message: 'Hay asientos sin tipo de entrada.', type: 'error' }
+            return
+        }
+
+        // 🚨 Validar que todos tengan label (nombre)
+        const faltanLabel = onlySeats.some(s => !s.label || s.label.trim() === '')
+        if (faltanLabel) {
+            toast.value = { visible: true, message: 'Hay asientos sin nombre (label)', type: 'error' }
             return
         }
 
@@ -301,7 +320,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
                 }))
             ]
 
-            // Log para depuración. Saber qué se va a enviar por Fetch
+            // Log para depuración
             // console.log('GUARDANDO:', {
             //     seats: elements, bgUrl: bgImageUrl.value, map: mapJSON.value
             // })
@@ -332,6 +351,7 @@ export function useSeatMap(eventoId, initialBgImageUrl) {
             setTimeout(() => toast.value.visible = false, 2000)
         }
     }
+
 
     // ─── 11) ADD‑ROW MODAL ─────────────────────────────────────────────────────
     function openAddRowModal() { showAddRow.value = true }

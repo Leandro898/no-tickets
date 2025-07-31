@@ -36,6 +36,12 @@ class Evento extends Model
         'has_seats' => 'boolean',
     ];
 
+    // Buscar por slug
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
     // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'
     // public function getRouteKeyName(): string
     // {
