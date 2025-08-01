@@ -19,14 +19,14 @@ class ListEventos extends ListRecords
     {
         return [
             Action::make('crear-normal')
-                ->label('Crear evento sin butacas')
+                ->label('Crear evento sin asientos')
                 ->icon('heroicon-o-calendar')
                 ->url(fn() => EventoResource::getUrl('create', [
                     'has_seats' => 0,
                 ])),
 
             Action::make('crear-con-butacas')
-                ->label('Crear evento con butacas')
+                ->label('Crear evento con asientos')
                 ->icon('heroicon-o-ticket')
                 ->url(fn() => EventoResource::getUrl('create', [
                     'has_seats' => 1,
@@ -43,7 +43,7 @@ class ListEventos extends ListRecords
     protected function getTableRecordUrlUsing(): ?\Closure
     {
         return fn($record) => EventoResource::getUrl('detalles', [
-            'record' => $record->getKey(), // o $record->id
+            'record' => $record->slug, // o $record->id
         ]);
     }
 }

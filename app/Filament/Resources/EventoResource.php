@@ -45,7 +45,8 @@ class EventoResource extends Resource
     protected static ?string $navigationGroup = null; // **NULL para que no esté en grupo**
     protected static ?int $navigationSort = 1;
     // ← aquí le dices “usa slug como clave primaria para las rutas”
-    protected static string $primaryColumn = 'slug';
+    protected static ?string $recordRouteKeyName = 'slug';
+
 
     public static function form(Form $form): Form
     {
@@ -234,12 +235,12 @@ class EventoResource extends Resource
         return [
             'index'              => ListEventos::route('/'),
             'create'             => CreateEvento::route('/create'),
-            'edit'               => EditEvento::route('/{record:slug}/edit'),
-            'gestionar-entradas' => GestionarEntradas::route('/{record:slug}/gestionar-entradas'),
-            'reportes'           => ReportesEvento::route('/{record:slug}/reportes'),
-            'detalles'           => EventoDetalles::route('/{record:slug}/detalles'),
-            'lista-digital'      => ListaDigital::route('/{record:slug}/lista-digital'),
-            'configure-seats' => ConfigureSeats::route('/{record:slug}/asientos'),
+            'edit'               => EditEvento::route('/{record}/edit'),
+            'gestionar-entradas' => GestionarEntradas::route('/{record}/gestionar-entradas'),
+            'reportes'           => ReportesEvento::route('/{record}/reportes'),
+            'detalles'           => EventoDetalles::route('/{record}/detalles'),
+            'lista-digital'      => ListaDigital::route('/{record}/lista-digital'),
+            'configure-seats' => ConfigureSeats::route('/{record}/asientos'),
         ];
     }
 
