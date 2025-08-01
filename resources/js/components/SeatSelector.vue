@@ -58,7 +58,7 @@
                     </template>
 
                     <!-- Asientos -->
-                    <v-circle v-for="seat in seats" :key="'seat-' + seat.id" :config="{
+                    <v-circle v-for="(seat, idx) in seats" :key="'seat-' + seat.id" :config="{
                         id: 'seat-' + seat.id,
                         x: seat.x,
                         y: seat.y,
@@ -66,24 +66,57 @@
                         fill: seat.selected ? '#a78bfa' : '#e5e7eb',
                         stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
                         strokeWidth: 2,
-                    }" @click="toggle(seat.id)" @mouseenter="showTooltip(seat, $event)" @mouseleave="hideTooltip" />
+                    }" @click="($event) => toggle(idx, $event)" @mouseenter="showTooltip(seat, $event)"
+                        @mouseleave="hideTooltip" />
 
-                    <!-- Tooltip -->
+                    <!-- Tooltip
                     <v-label v-if="tooltip.visible" :config="tooltip.labelConfig">
                         <v-tag :config="tooltip.tagConfig" />
                         <v-text :config="tooltip.textConfig" />
-                    </v-label>
+                    </v-label> -->
                     <!-- Rectángulo de selección (“marquee”) -->
                     <v-rect v-if="marquee.visible" :config="marqueeRectConfig" />
                 </v-layer>
             </v-stage>
+            <div v-if="popupSeat" :style="{
+                position: 'fixed',
+                left: popupPosition.x + 20 + 'px',
+                top: popupPosition.y - 20 + 'px',
+                zIndex: 9999,
+                background: 'white',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
+                borderRadius: '14px',
+                padding: '22px 24px',
+                minWidth: '260px',
+                border: '1px solid #d1d5db',
+                pointerEvents: 'auto'
+            }" class="seat-popup">
+                <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
+                    Asiento {{ popupSeat.label || popupSeat.id }}
+                </div>
+                <div>
+                    <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
+                    <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
+                    <b>Número:</b> {{ popupSeat.number || '—' }}<br>
+                    <b>Precio:</b> ${{ popupSeat.price || '--' }}
+                </div>
+                <div style="margin-top: 18px; text-align: right;">
+                    <button @click="popupSeat = null"
+                        style="padding: 8px 20px; border-radius: 8px; background: #7c3aed; color: white; border: none;">Cerrar</button>
+                </div>
+            </div>
+
         </div>
     </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, computed, watch } from 'vue'
+import { defineProps, defineEmits, ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
 import axios from 'axios'
+
+// Para popup de asiento
+const popupSeat = ref(null)
+const popupPosition = ref({ x: 0, y: 0 })
 
 const props = defineProps({
     eventoSlug: { type: String, required: true }
@@ -114,7 +147,14 @@ const marquee = {
     x: 0, y: 0, width: 0, height: 0
 }
 
-// Carga inicial del mapa (fondo + shapes + asientos)
+// Cerrar popup al hacer click fuera
+function onClosePopup(e) {
+    if (popupSeat.value && !e.target.closest('.seat-popup')) {
+        popupSeat.value = null
+    }
+}
+
+// Carga inicial de datos y listeners
 onMounted(async () => {
     try {
         const res = await axios.get(`/api/eventos/${props.eventoSlug}/map`)
@@ -138,16 +178,47 @@ onMounted(async () => {
         console.error('No pude cargar el mapa:', err)
     }
     window.addEventListener('resize', updateScale)
+    // 💡 AGREGÁS EL ESCUCHADOR PARA CLICKS FUERA DEL POPUP
+    document.addEventListener('mousedown', onClosePopup)
     updateScale()
 })
 
-
+// Limpieza al salir del componente
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateScale)
+    // 💡 SACÁS EL ESCUCHADOR PARA EVITAR FILTRACIONES DE MEMORIA
+    document.removeEventListener('mousedown', onClosePopup)
+})
+console.log('SEATS:', seats.value)
 // Alterna selección de un asiento
-function toggle(id) {
-    const seat = seats.value.find(s => s.id === id)
-    seat.selected = !seat.selected
+function toggle(idx, evt = null) {
+    seats.value.forEach(s => s.selected = false)
+    seats.value[idx].selected = true
     emit('selection-change', seats.value.filter(s => s.selected).map(s => s.id))
+
+    // ---- Mostrar el popup ----
+    // Obtené el asiento seleccionado
+    const seat = seats.value[idx]
+    popupSeat.value = seat
+
+    // Si tenés el evento de click, obtené la posición del mouse
+    let x = 0, y = 0
+    if (evt && evt.evt) {
+        x = evt.evt.clientX
+        y = evt.evt.clientY
+    } else {
+        // Si no hay evento, lo ubicamos sobre el asiento
+        x = seat.x
+        y = seat.y
+    }
+    popupPosition.value = { x, y }
 }
+
+
+
+
+
+
 
 // Zoom con rueda
 function onWheel(e) {
@@ -244,12 +315,11 @@ const marqueeRectConfig = computed(() => ({
 
 function updateScale() {
     if (containerRef.value) {
-        // Tomá el ancho real disponible
-        const parentWidth = containerRef.value.offsetWidth
-        // Calcula el factor de escala (si querés mantener proporción usa Math.min)
-        scale.value = Math.min(parentWidth / baseWidth, 1) // nunca escalar más de 1
+        const parentWidth = containerRef.value.offsetWidth;
+        scale.value = Math.min(parentWidth / baseWidth, 1);
     }
 }
+
 
 
 </script>
@@ -269,8 +339,11 @@ function updateScale() {
 
 .stage-container {
     width: 100%;
-    max-width: 1000px;
-    height: auto;
-    /* Para que nunca supere el tamaño original */
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+    padding: 24px 0 32px 0;
 }
 </style>

@@ -27,6 +27,8 @@
 <script setup>
 import { ref, watch, nextTick, computed, defineExpose } from 'vue'
 
+
+
 const emit = defineEmits(['update:seats', 'edit-label', 'update:selection'])
 const props = defineProps({
     seats: { type: Array, required: true },
@@ -127,6 +129,7 @@ function onSeatDragEnd(i, e) {
 
 
 function onToggleSeat(i, event) {
+    console.log('CLICK FRONT', i)
     const selectedCount = props.seats.filter(s => s.selected).length
     const alreadySelected = props.seats[i].selected
 
@@ -139,8 +142,7 @@ function onToggleSeat(i, event) {
     // en cualquier otro caso, quiero interceptar el clic para cambiar selección:
     event.evt.cancelBubble = true
 
-    //event.evt?.stopPropagation()
-    // ahora tu lógica normal de selección:
+    // Lógica normal de selección:
     const seat = props.seats[i]
     let updated
 
@@ -158,12 +160,23 @@ function onToggleSeat(i, event) {
         )
     }
 
-    //console.log('[onToggleSeat] seleccion:', updated.map(s => s.selected))
     emit('update:seats', updated)
+
+    // --- POPUP tipo Ticketmaster ---
+    // Solo mostrar popup si es un asiento (no sección u otra cosa)
     if (!seat.type || seat.type === 'seat') {
-        emit('edit-label', { seat, index: i })
+        // Obtener la posición del mouse en el canvas de Konva
+        const stage = event.target.getStage()
+        const pointerPos = stage.getPointerPosition()
+        // Emitir evento para que el padre muestre el popup
+        console.log('[SeatsLayer] Emitiendo show-popup', seat, pointerPos)
+        emit('show-popup', { seat, position: { x: pointerPos.x, y: pointerPos.y } })
+
+        emit('edit-label', { seat, index: i }) // (si lo usás para edición)
     }
 }
+
+
 
 
 

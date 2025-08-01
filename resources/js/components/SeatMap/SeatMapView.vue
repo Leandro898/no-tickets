@@ -18,13 +18,43 @@
 
             <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
             <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
-                @update:selection="onSeatSelection" />
-
+                @update:selection="onSeatSelection" @show-popup="handleShowPopup" />
             <!-- 5) Transformer único -->
             <v-transformer ref="transformerRef" @transformend="onTransformerTransformEnd" />
-       
+
         </v-layer>
     </v-stage>
+
+    <!-- Justo debajo del canvas -->
+    <div v-if="popupSeat" :style="{
+        position: 'fixed',
+        left: popupPosition.x + 40 + 'px',
+        top: popupPosition.y - 40 + 'px',
+        zIndex: 9999,
+        background: 'white',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
+        borderRadius: '14px',
+        padding: '22px 24px',
+        minWidth: '260px',
+        border: '1px solid #d1d5db',
+        pointerEvents: 'auto',
+        transition: 'all 0.16s cubic-bezier(.4,2,.8,1)'
+    }" class="seat-popup" @mousedown.stop>
+        <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
+            Asiento {{ popupSeat.label || popupSeat.id }}
+        </div>
+        <div>
+            <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
+            <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
+            <b>Número:</b> {{ popupSeat.number || '—' }}<br>
+            <b>Precio:</b> ${{ popupSeat.price || '--' }}
+        </div>
+        <div style="margin-top: 18px; text-align: right;">
+            <button @click="popupSeat = null"
+                style="padding: 8px 20px; border-radius: 8px; background: #7c3aed; color: white; border: none;">Cerrar</button>
+        </div>
+    </div>
+
 </template>
 
 <script setup>
@@ -35,6 +65,28 @@ import { ref, nextTick, watch } from 'vue'
 import SelectionBox from './SelectionBox.vue'
 import SeatsLayer from './SeatsLayer.vue'
 
+const popupSeat = ref(null)
+const popupPosition = ref({ x: 0, y: 0 })
+
+function handleShowPopup({ seat, position }) {
+    console.log('Recibiendo show-popup:', seat, position) // DEBUG
+    popupSeat.value = seat
+    popupPosition.value = position
+}
+
+// Opcional: cerrar el popup al hacer click fuera
+import { onMounted, onBeforeUnmount } from 'vue'
+onMounted(() => {
+    document.addEventListener('mousedown', onClosePopup)
+})
+onBeforeUnmount(() => {
+    document.removeEventListener('mousedown', onClosePopup)
+})
+function onClosePopup(e) {
+    if (popupSeat.value && !e.target.closest('.seat-popup')) {
+        popupSeat.value = null
+    }
+}
 
 const props = defineProps({
     width: Number,
