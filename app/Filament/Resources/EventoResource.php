@@ -36,9 +36,6 @@ use Filament\Tables\Actions\CreateAction;
 
 use Illuminate\Database\Eloquent\Builder;
 
-
-
-
 class EventoResource extends Resource
 {
     protected static ?string $model = Evento::class;
@@ -47,6 +44,8 @@ class EventoResource extends Resource
     protected static ?string $pluralModelLabel = 'Eventos';
     protected static ?string $navigationGroup = null; // **NULL para que no esté en grupo**
     protected static ?int $navigationSort = 1;
+    // ← aquí le dices “usa slug como clave primaria para las rutas”
+    protected static string $primaryColumn = 'slug';
 
     public static function form(Form $form): Form
     {
@@ -235,12 +234,12 @@ class EventoResource extends Resource
         return [
             'index'              => ListEventos::route('/'),
             'create'             => CreateEvento::route('/create'),
-            'edit'               => EditEvento::route('/{record}/edit'),
-            'gestionar-entradas' => GestionarEntradas::route('/{record}/gestionar-entradas'),
-            'reportes'           => ReportesEvento::route('/{record}/reportes'),
-            'detalles'           => EventoDetalles::route('/{record}/detalles'),
-            'lista-digital'      => ListaDigital::route('/{record}/lista-digital'),
-            'configure-seats' => ConfigureSeats::route('/{record}/asientos'),
+            'edit'               => EditEvento::route('/{record:slug}/edit'),
+            'gestionar-entradas' => GestionarEntradas::route('/{record:slug}/gestionar-entradas'),
+            'reportes'           => ReportesEvento::route('/{record:slug}/reportes'),
+            'detalles'           => EventoDetalles::route('/{record:slug}/detalles'),
+            'lista-digital'      => ListaDigital::route('/{record:slug}/lista-digital'),
+            'configure-seats' => ConfigureSeats::route('/{record:slug}/asientos'),
         ];
     }
 
@@ -254,7 +253,8 @@ class EventoResource extends Resource
 
     public static function getRecordUrl($record, string $pageName = 'detalles'): string
     {
-        return static::getUrl('detalles', ['record' => $record]);
+        // ahora $record ya resolverá al slug
+        return static::getUrl($pageName, ['record' => $record]);
     }
 
     public static function getModel(): string
