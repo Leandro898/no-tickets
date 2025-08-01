@@ -1,16 +1,13 @@
 <template>
-    <v-circle v-for="({ seat, originalIndex }) in validSeats" :key="originalIndex" :id="`seat-${originalIndex}`"
-        :config="{
-            x: seat.x,
-            y: seat.y,
-            radius: seat.radius ?? defaultRadius,
-            fill: seat.selected ? '#a78bfa' : '#e5e7eb',
-            stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
-            strokeWidth: seat.selected ? 4 : 2,
-            dragDistance: 5,
-            draggable: true
-        }" :ref="el => setCircleEl(el, originalIndex)" @mousedown="onToggleSeat(originalIndex, $event)"
-        @dragend="onSeatDragEnd(originalIndex, $event)" @dragmove="onSeatDragMove(originalIndex, $event)" />
+    <v-circle v-for="(seat, idx) in seats" :key="seat.id" :config="{
+        id: 'seat-' + seat.id,
+        x: seat.x,
+        y: seat.y,
+        radius: seat.radius,
+        fill: seat.selected ? '#a78bfa' : '#e5e7eb',
+        stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
+        strokeWidth: 2
+    }" @click="toggle(idx, $event)" @mouseover="onCircleHover(idx, $event)" @mouseout="onCircleOut" />
 
     <v-text v-for="seat in seats" :key="'label-' + seat.id" :config="{
         x: seat.x,
@@ -191,6 +188,19 @@ function onCircleTransformEnd(i, evt) {
     emit('update:seats', updated)
     shape.scaleX(1)
     shape.scaleY(1)
+}
+
+function onCircleHover(i, e) {
+    // mostramos el popup con los datos de ese asiento
+    popupSeat.value = seats.value[i]
+    // posicionamos justo donde está el mouse
+    const { clientX: x, clientY: y } = e.evt
+    popupPosition.value = { x, y }
+}
+
+function onCircleOut() {
+    // ocultamos tan pronto sale el mouse
+    popupSeat.value = null
 }
 
 

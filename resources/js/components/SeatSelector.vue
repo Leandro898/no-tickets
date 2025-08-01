@@ -1,122 +1,140 @@
+<!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatSelector.vue -->
 <template>
-    <div ref="containerRef" class="stage-container relative mx-auto">
-        <div class="relative">
-            <!-- Controles de Zoom/Pan/Reset -->
-            <div class="absolute top-2 left-2 z-10 flex gap-2 bg-white bg-opacity-80 p-2 rounded">
-                <button @click="zoomIn" title="Zoom In">＋</button>
-                <button @click="zoomOut" title="Zoom Out">－</button>
-                <button @click="resetZoom" title="Reset">⟳</button>
-            </div>
-
-            <!-- Lienzo Konva -->
-            <v-stage ref="stageRef" :config="{
-                width: baseWidth,
-                height: baseHeight,
-                draggable: true,
-                scaleX: scale,
-                scaleY: scale
-            }" @wheel="onWheel" @mousedown="startMarquee" @mousemove="drawMarquee" @mouseup="endMarquee">
-                <v-layer>
-                    <!-- Fondo -->
-                    <v-image v-if="bgImage" :config="{ image: bgImage, width: baseWidth, height: baseHeight }" />
-
-
-                    <!-- Shapes -->
-                    <template v-for="(shape, idx) in shapes" :key="'shape-' + idx">
-                        <!-- Rectángulos -->
-                        <v-rect v-if="shape.type === 'rect'" :config="{
-                            x: shape.x,
-                            y: shape.y,
-                            width: shape.width,
-                            height: shape.height,
-                            rotation: shape.rotation || 0,
-                            fill: '#e0e7ff',
-                            stroke: '#818cf8',
-                            strokeWidth: 2,
-                        }" />
-                        <!-- Círculos -->
-                        <v-circle v-else-if="shape.type === 'circle'" :config="{
-                            x: shape.x,
-                            y: shape.y,
-                            width: shape.width,
-                            height: shape.height,
-                            radius: shape.width ? shape.width / 2 : 30,
-                            fill: '#e0e7ff',
-                            stroke: '#818cf8',
-                            strokeWidth: 2,
-                        }" />
-                        <!-- Textos -->
-                        <v-text v-else-if="shape.type === 'text'" :config="{
-                            x: shape.x,
-                            y: shape.y,
-                            text: shape.label,
-                            fontSize: shape.font_size || shape.fontSize || 18,
-                            fill: '#6366f1',
-                            fontStyle: 'bold',
-                            rotation: shape.rotation || 0,
-                        }" />
-                    </template>
-
-                    <!-- Asientos -->
-                    <v-circle v-for="(seat, idx) in seats" :key="'seat-' + seat.id" :config="{
-                        id: 'seat-' + seat.id,
-                        x: seat.x,
-                        y: seat.y,
-                        radius: seat.radius,
-                        fill: seat.selected ? '#a78bfa' : '#e5e7eb',
-                        stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
-                        strokeWidth: 2,
-                    }" @click="($event) => toggle(idx, $event)" @mouseenter="showTooltip(seat, $event)"
-                        @mouseleave="hideTooltip" />
-
-                    <!-- Tooltip
-                    <v-label v-if="tooltip.visible" :config="tooltip.labelConfig">
-                        <v-tag :config="tooltip.tagConfig" />
-                        <v-text :config="tooltip.textConfig" />
-                    </v-label> -->
-                    <!-- Rectángulo de selección (“marquee”) -->
-                    <v-rect v-if="marquee.visible" :config="marqueeRectConfig" />
-                </v-layer>
-            </v-stage>
-            <div v-if="popupSeat" :style="{
-                position: 'fixed',
-                left: popupPosition.x + 20 + 'px',
-                top: popupPosition.y - 20 + 'px',
-                zIndex: 9999,
-                background: 'white',
-                boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
-                borderRadius: '14px',
-                padding: '22px 24px',
-                minWidth: '260px',
-                border: '1px solid #d1d5db',
-                pointerEvents: 'auto'
-            }" class="seat-popup">
-                <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
-                    Asiento {{ popupSeat.label || popupSeat.id }}
+    <div class="seat-selector-wrapper h-full">
+        <div ref="containerRef" class="stage-container relative mx-auto w-full h-full" @mousemove="hidePopupOnMove">
+            <div class="relative">
+                <!-- Controles de Zoom/Pan/Reset -->
+                <div class="absolute top-2 left-2 z-10 flex gap-2 bg-white bg-opacity-80 p-2 rounded">
+                    <button @click="zoomIn" title="Zoom In">＋</button>
+                    <button @click="zoomOut" title="Zoom Out">－</button>
+                    <button @click="resetZoom" title="Reset">⟳</button>
                 </div>
-                <div>
-                    <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
-                    <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
-                    <b>Número:</b> {{ popupSeat.number || '—' }}<br>
-                    <b>Precio:</b> ${{ popupSeat.price || '--' }}
-                </div>
-                <div style="margin-top: 18px; text-align: right;">
-                    <button @click="popupSeat = null"
-                        style="padding: 8px 20px; border-radius: 8px; background: #7c3aed; color: white; border: none;">Cerrar</button>
+
+                <!-- Lienzo Konva -->
+                <v-stage ref="stageRef" :config="{
+                    width: baseWidth,
+                    height: baseHeight,
+                    draggable: true,
+                    scaleX: scale,
+                    scaleY: scale
+                }" @wheel="onWheel" @mousedown="startMarquee" @mousemove="drawMarquee" @mouseup="endMarquee">
+                    <v-layer>
+                        <!-- Fondo -->
+                        <v-image v-if="bgImage" :config="{ image: bgImage, width: baseWidth, height: baseHeight }" />
+
+
+                        <!-- Shapes -->
+                        <template v-for="(shape, idx) in shapes" :key="'shape-' + idx">
+                            <!-- Rectángulos -->
+                            <v-rect v-if="shape.type === 'rect'" :config="{
+                                x: shape.x,
+                                y: shape.y,
+                                width: shape.width,
+                                height: shape.height,
+                                rotation: shape.rotation || 0,
+                                fill: '#e0e7ff',
+                                stroke: '#818cf8',
+                                strokeWidth: 2,
+                            }" />
+                            <!-- Círculos -->
+                            <v-circle v-else-if="shape.type === 'circle'" :config="{
+                                x: shape.x,
+                                y: shape.y,
+                                width: shape.width,
+                                height: shape.height,
+                                radius: shape.width ? shape.width / 2 : 30,
+                                fill: '#e0e7ff',
+                                stroke: '#818cf8',
+                                strokeWidth: 2,
+                            }" />
+                            <!-- Textos -->
+                            <v-text v-else-if="shape.type === 'text'" :config="{
+                                x: shape.x,
+                                y: shape.y,
+                                text: shape.label,
+                                fontSize: shape.font_size || shape.fontSize || 18,
+                                fill: '#6366f1',
+                                fontStyle: 'bold',
+                                rotation: shape.rotation || 0,
+                            }" />
+                        </template>
+
+                        <!-- Asientos -->
+                        <v-circle v-for="(seat, idx) in seats" :key="seat.id" :config="{
+                            id: 'seat-' + seat.id,
+                            x: seat.x,
+                            y: seat.y,
+                            radius: seat.radius,
+                            fill: seat.selected ? '#a78bfa' : '#e5e7eb',
+                            stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
+                            strokeWidth: 2,
+                        }" @mouseover="onCircleEnter(idx, $event)" @mouseout="onCircleLeave"
+                            @click="toggle(idx, $event)" />
+
+
+                        <!-- Rectángulo de selección (“marquee”) -->
+                        <v-rect v-if="marquee.visible" :config="marqueeRectConfig" />
+                    </v-layer>
+                </v-stage>
+                <div v-if="popupSeat" :style="{
+                    position: 'fixed',
+                    left: popupPosition.x + 20 + 'px',
+                    top: popupPosition.y - 20 + 'px',
+                    zIndex: 9999,
+                    background: 'white',
+                    boxShadow: '0 4px 24px rgba(0,0,0,0.14)',
+                    borderRadius: '14px',
+                    padding: '22px 24px',
+                    minWidth: '260px',
+                    border: '1px solid #d1d5db',
+                    pointerEvents: 'auto'
+                }" class="seat-popup">
+
+                    <!-- aquí va tu contenido del asiento… -->
+                    <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
+                        Asiento {{ popupSeat.label || popupSeat.id }}
+                    </div>
+                    <div>
+                        <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
+                        <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
+                        <b>Número:</b> {{ popupSeat.number || '—' }}<br>
+                        <b>Precio:</b> ${{ popupSeat.price || '--' }}
+                    </div>
                 </div>
             </div>
 
+            <!-- ➡️ Llamada al componente PurchasePanel -->
+            <!-- Panel de compra -->
+            <PurchasePanel :seats="purchaseSeats" :visible="showPurchase" @close="showPurchase = false"
+                @remove="removeSeat" />
         </div>
     </div>
 </template>
 
 <script setup>
-import { defineProps, defineEmits, ref, onMounted, computed, watch, onBeforeUnmount } from 'vue'
+import { defineProps, defineEmits, ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
+import PurchasePanel from './PurchasePanel.vue'
+
+// Variables para proceso de compra de asiento
+const showPurchase = ref(false)
+
+// Lista reactiva de asientos seleccionados
+const purchaseSeats = computed(() =>
+    seats.value.filter(s => s.selected)
+)
 
 // Para popup de asiento
 const popupSeat = ref(null)
 const popupPosition = ref({ x: 0, y: 0 })
+let hoverTimeout = null
+
+// 👋 Oculta el popup tan pronto movés el mouse
+function hidePopupOnMove() {
+    if (popupSeat.value) {
+        popupSeat.value = null
+    }
+}
 
 const props = defineProps({
     eventoSlug: { type: String, required: true }
@@ -132,13 +150,7 @@ const baseWidth = 1000
 const baseHeight = 800
 const stageRef = ref(null)
 
-// Tooltip
-const tooltip = {
-    visible: false,
-    labelConfig: { x: 0, y: 0 },
-    tagConfig: { fill: 'black', cornerRadius: 4 },
-    textConfig: { text: '', fontSize: 14, fill: 'white', padding: 6 }
-}
+
 
 // Marquee
 const marquee = {
@@ -157,31 +169,52 @@ function onClosePopup(e) {
 // Carga inicial de datos y listeners
 onMounted(async () => {
     try {
-        const res = await axios.get(`/api/eventos/${props.eventoSlug}/map`)
-        const { seats: rawSeats, shapes: rawShapes, bgUrl } = res.data
-        seats.value = (rawSeats || []).map(s => ({
-            ...s,
+        // 1) Llamás al endpoint que te devuelve 'id' de seats
+        const res = await axios.get(
+            `/api/eventos/${props.eventoSlug}/map`
+        )
+
+        const rawSeats = res.data.seats || []
+        const rawShapes = res.data.shapes || []
+        const bgUrl = res.data.bgUrl
+
+        // 2) Mapear usando s.id, no s.entrada_id
+        seats.value = rawSeats.map(s => ({
+            id: s.id,           // <-- PK único de la tabla 'seats'
+            entrada_id: s.entrada_id,   // sigue disponible si lo necesitás
+            x: s.x,
+            y: s.y,
+            label: s.label,
+            price: s.price,
             radius: s.radius ?? 22,
             selected: false
         }))
-        shapes.value = (rawShapes || []).map(s => ({
+        console.log('🔍 seats después del map:', seats.value)
+
+        // 3) Shapes igual que antes
+        shapes.value = rawShapes.map(s => ({
             ...s,
             fontSize: s.font_size || s.fontSize || 18
         }))
+
+        // 4) Cargo imagen de fondo
         if (bgUrl) {
             const img = new window.Image()
             img.src = bgUrl
             await new Promise(r => (img.onload = r))
             bgImage.value = img
         }
+
     } catch (err) {
         console.error('No pude cargar el mapa:', err)
     }
+
+    // listeners y escalado
     window.addEventListener('resize', updateScale)
-    // 💡 AGREGÁS EL ESCUCHADOR PARA CLICKS FUERA DEL POPUP
     document.addEventListener('mousedown', onClosePopup)
     updateScale()
 })
+
 
 // Limpieza al salir del componente
 onBeforeUnmount(() => {
@@ -189,36 +222,33 @@ onBeforeUnmount(() => {
     // 💡 SACÁS EL ESCUCHADOR PARA EVITAR FILTRACIONES DE MEMORIA
     document.removeEventListener('mousedown', onClosePopup)
 })
-console.log('SEATS:', seats.value)
+//console.log('SEATS:', seats.value)
 // Alterna selección de un asiento
 function toggle(idx, evt = null) {
-    seats.value.forEach(s => s.selected = false)
-    seats.value[idx].selected = true
-    emit('selection-change', seats.value.filter(s => s.selected).map(s => s.id))
+    // 1) Invertir selección de este asiento - osea pasar de activo a desactivado
+    seats.value[idx].selected = !seats.value[idx].selected
 
-    // ---- Mostrar el popup ----
-    // Obtené el asiento seleccionado
-    const seat = seats.value[idx]
-    popupSeat.value = seat
+    // 2) 2) Emitir lista actualizada de IDs seleccionados
+    const seleccionados = seats.value
+        .filter(s => s.selected)
+        .map(s => s.id)
+    emit('selection-change', seleccionados)
 
-    // Si tenés el evento de click, obtené la posición del mouse
-    let x = 0, y = 0
-    if (evt && evt.evt) {
-        x = evt.evt.clientX
-        y = evt.evt.clientY
+    // 3) Popup individual solo si acabás de seleccionar
+    if (seats.value[idx].selected) {
+        popupSeat.value = seats.value[idx]
+        // posición igual que antes…
+        const x = evt?.evt?.clientX ?? seats.value[idx].x
+        const y = evt?.evt?.clientY ?? seats.value[idx].y
+        popupPosition.value = { x, y }
     } else {
-        // Si no hay evento, lo ubicamos sobre el asiento
-        x = seat.x
-        y = seat.y
+        // si des­clickeó y ya no quería ver detalles, ocultalo
+        popupSeat.value = null
     }
-    popupPosition.value = { x, y }
+
+    // 🔥 Abrir/cerrar drawer en base al computed
+    showPurchase.value = purchaseSeats.value.length > 0
 }
-
-
-
-
-
-
 
 // Zoom con rueda
 function onWheel(e) {
@@ -248,27 +278,7 @@ function resetZoom() {
     stage.position({ x: 0, y: 0 })
 }
 
-function showTooltip(seat, { evt }) {
-    const stage = stageRef.value.getStage()
-    const pointer = stage.getPointerPosition()
-    tooltip.visible = true
-    tooltip.labelConfig.x = pointer.x + 10
-    tooltip.labelConfig.y = pointer.y + 10
 
-    // Usar label si existe y no es vacío, sino mostrar número, sino ID
-    if (seat.label && seat.label !== 'null' && seat.label !== 'undefined' && seat.label.trim() !== '') {
-        tooltip.textConfig.text = seat.label
-    } else if (typeof seat.number !== 'undefined' && seat.number !== null && seat.number !== 0) {
-        tooltip.textConfig.text = `#${seat.number}`
-    } else {
-        tooltip.textConfig.text = `#${seat.id}`
-    }
-}
-
-
-function hideTooltip() {
-    tooltip.visible = false
-}
 
 // Marquee (selección por rectángulo)
 function startMarquee({ evt }) {
@@ -314,14 +324,72 @@ const marqueeRectConfig = computed(() => ({
 
 
 function updateScale() {
-    if (containerRef.value) {
-        const parentWidth = containerRef.value.offsetWidth;
-        scale.value = Math.min(parentWidth / baseWidth, 1);
-    }
+    const c = containerRef.value;
+    if (!c) return;
+    const { offsetWidth: cw, offsetHeight: ch } = c;
+    const scaleX = cw / baseWidth;
+    const scaleY = ch / baseHeight;
+    const newScale = Math.min(scaleX, scaleY, 1);    // no sobredimensionar
+    scale.value = newScale;
+
+    const stage = stageRef.value.getStage();
+    stage.scale({ x: newScale, y: newScale });
+    stage.batchDraw();
 }
 
 
 
+
+
+// Desmarca un asiento individual y refresca el panel
+// ✔️ Única función de “quitar asiento”
+function removeSeat(id) {
+    console.log('🗑️ Quiero quitar asiento:', id)
+    // 1) Desmarco en el mapa
+    const s = seats.value.find(x => x.id === id)
+    if (s) s.selected = false
+
+    // 2) Emito al padre la nueva lista de IDs
+    const nuevos = seats.value
+        .filter(x => x.selected)
+        .map(x => x.id)
+    emit('selection-change', nuevos)
+
+    // 3) Mantengo abierto el drawer solo si queda al menos uno
+    showPurchase.value = nuevos.length > 0
+}
+
+
+
+
+
+// 🔥 Abrir o cerrar drawer automáticamente al cambiar selección
+watch(purchaseSeats, v => {
+    showPurchase.value = v.length > 0
+})
+
+function openPurchasePanel() {
+    // cerramos el popup
+    popupSeat.value = null
+    // abrimos el drawer de compra
+    showPurchase.value = true
+}
+
+// Mostrar popup al pasar el mouse por encima de un círculo
+function onCircleEnter(idx, e) {
+    clearTimeout(hoverTimeout)
+    hoverTimeout = setTimeout(() => {
+        // solo tras 400 ms mostramos el tooltip
+        popupSeat.value = seats.value[idx]
+        const { clientX: x, clientY: y } = e.evt
+        popupPosition.value = { x: x + 8, y: y + 8 }
+    }, 400)
+}
+
+function onCircleLeave() {
+    clearTimeout(hoverTimeout)
+    popupSeat.value = null
+}
 </script>
 
 <style scoped>
@@ -339,11 +407,20 @@ function updateScale() {
 
 .stage-container {
     width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
-    padding: 24px 0 32px 0;
+    /* ya lo tenías */
+    height: 100%;
+    /* ¡importante! */
+    display: flex;
+    /* centra al <v-stage> dentro */
+    align-items: center;
+    justify-content: center;
 }
+
+.seat-selector-wrapper {
+    position: relative;
+}
+
+
+
+
 </style>

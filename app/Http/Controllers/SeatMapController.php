@@ -234,6 +234,7 @@ class SeatMapController extends Controller
     {
         return response()->json([
             'seats'  => $evento->seats()->get([
+                'id',
                 'type',
                 'x',
                 'y',
