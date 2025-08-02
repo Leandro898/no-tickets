@@ -8,13 +8,17 @@ use App\Models\Evento;
 
 class EntradaController extends Controller
 {
-    public function manage($evento_slug)
+    public function gestionarEntradas($slug)
     {
-        $evento = Evento::where('slug', $evento_slug)->first();
+        $evento = Evento::where('slug', $slug)->firstOrFail();
 
-        if (!$evento) {
-            return redirect()->route('admin.dashboard')->with('error', 'Evento no encontrado.');
-        }
+        // lógica para editar evento
+        return view('filament.resources.evento-resource.pages.editar-evento', compact('evento'));
+    }
+
+    public function manage($slug)
+    {
+        $evento = Evento::where('slug', $slug)->firstOrFail();
 
         $entradas = $evento->entradas;
 

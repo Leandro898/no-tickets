@@ -39,10 +39,12 @@
 
             {{-- BOTONES DE ACCIÓN --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->slug])" icon="heroicon-o-pencil-square"
-                    class="btn-detalles">Editar evento</x-filament::button>
+                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['slug' => $record->slug])" icon="heroicon-o-pencil-square"
+                    class="btn-detalles">
+                    Editar evento
+                </x-filament::button>
 
-                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.manage-entradas', ['slug' => $record->slug])" icon="heroicon-o-pencil" class="btn-detalles">
+                <x-filament::button tag="a" :href="route('filament.admin.resources.entradas.manage-entradas', ['slug' => $record->slug])" icon="heroicon-o-pencil" class="btn-detalles">
                     Editar Entradas
                 </x-filament::button>
 
