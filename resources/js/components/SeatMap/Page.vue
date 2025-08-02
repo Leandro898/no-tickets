@@ -42,10 +42,11 @@
 
       <!-- Botones inferiores -->
       <div class="mt-4 flex gap-2">
-        <button @click="openAddRowModal"
+        <!-- ESTE BOTON AGREGA UNA FILA DE BUTACAS, NO LO USAMOS POR AHORA 
+          <button @click="openAddRowModal"
           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
           Agregar fila de butacas
-        </button>
+        </button> -->
         <button @click="openGenerateModal"
           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
           Generar entradas
@@ -154,7 +155,7 @@ function onBgUploaded(url) {
 
 // 🎯 Handler intermedio para depurar
 function handleSeatsFromView(newSeats) {
-  console.log('El padre recibe:', newSeats)
+  //console.log('El padre recibe:', newSeats)
   onSeatsUpdate(newSeats)
 }
 

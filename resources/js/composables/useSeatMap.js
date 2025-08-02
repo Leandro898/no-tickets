@@ -1,5 +1,5 @@
 // resources/js/composables/useSeatMap.js
-import { ref, onMounted, toRaw, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, toRaw, watch } from 'vue'
 import { useTickets } from '@/composables/useTickets'
 
 export function useSeatMap(eventoSlug, initialBgImageUrl) {
@@ -113,8 +113,31 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
     }
 
     // ─── 3) PAN con barra espaciadora ──────────────────────────────────────────
-    window.addEventListener('keydown', e => { if (e.code === 'Space') spacePressed.value = true })
-    window.addEventListener('keyup', e => { if (e.code === 'Space') spacePressed.value = false })
+    function onKeyDown(e) {
+        // solo si no estamos escribiendo en un input/textarea
+        const tag = e.target.tagName
+        if (e.code === 'Space' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+            e.preventDefault()        // evita el scroll de la página
+            spacePressed.value = true
+        }
+    }
+
+    function onKeyUp(e) {
+        if (e.code === 'Space') {
+            e.preventDefault()
+            spacePressed.value = false
+        }
+    }
+
+    onMounted(() => {
+        window.addEventListener('keydown', onKeyDown)
+        window.addEventListener('keyup', onKeyUp)
+    })
+
+    onBeforeUnmount(() => {
+        window.removeEventListener('keydown', onKeyDown)
+        window.removeEventListener('keyup', onKeyUp)
+    })
 
     // ─── 4) TOOLBAR ACTIONS (añadir rect/circle/text) ─────────────────────────
     function onToolSelect(name) {

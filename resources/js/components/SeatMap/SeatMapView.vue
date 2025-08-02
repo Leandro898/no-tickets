@@ -1,8 +1,8 @@
 <!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\SeatMapView.vue -->
 <template>
     <div v-bind="$attrs" style="width: 100%; height: 100%; position: relative;">
-        <v-stage ref="canvasRef" :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
-            @mouseup="onStageMouseUp">
+        <v-stage ref="canvasRef" :config="{ width, height, draggable: panMode }" @mousedown="onStageMouseDown"
+            @mousemove="onStageMouseMove" @mouseup="onStageMouseUp" @wheel="onWheel">
             <v-layer ref="layerRef">
                 <!-- 1) Fondo -->
                 <v-image v-if="bgImage" :config="{ image: bgImage, width, height, listening: false }" />
@@ -19,8 +19,8 @@
 
                 <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
 
-                <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
-                    @update:selection="onSeatSelection" @show-popup="handleShowPopup" />
+                <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" :isBackend="true"
+                    @update:seats="onSeatsUpdate" @update:selection="onSeatSelection" />
                 <!-- 5) Transformer único -->
                 <v-transformer ref="transformerRef" @transformend="onTransformerTransformEnd" />
 
@@ -122,7 +122,7 @@ let startPos = { x: 0, y: 0 }
 const isDragging = ref(false)
 
 // ——————————————
-// 1) Helpers Stage: selección en recuadro
+// 1) Handlers 
 // ——————————————
 function onStageMouseDown(e) {
     const stage = canvasRef.value.getNode()
@@ -188,6 +188,35 @@ function selectInBox({ x, y, width, height }) {
     emit('update:shapes', updatedShapes)
 }
 
+/**
+ * Zoom con rueda del mouse.
+ */
+function onWheel(e) {
+    e.evt.preventDefault();             // evita el scroll de la página
+    const stage = canvasRef.value.getStage();
+    const oldScale = stage.scaleX();
+    const pointer = stage.getPointerPosition(); // posición del mouse en coords del Stage
+
+    // ajusta este factor a tu gusto (1.05 = 5% por notch)
+    const scaleBy = 1.05;
+    const newScale = e.evt.deltaY > 0
+        ? oldScale / scaleBy
+        : oldScale * scaleBy;
+
+    stage.scale({ x: newScale, y: newScale });
+
+    // Para que zoom se centre donde está el cursor:
+    const mousePointTo = {
+        x: (pointer.x - stage.x()) / oldScale,
+        y: (pointer.y - stage.y()) / oldScale
+    };
+    stage.position({
+        x: pointer.x - mousePointTo.x * newScale,
+        y: pointer.y - mousePointTo.y * newScale
+    });
+
+    layerRef.value.getNode().batchDraw();
+}
 
 
 function clearTransformer() {
@@ -330,7 +359,7 @@ watch(
     ],
     async () => {
         await nextTick();
-        console.log('Watcher disparado, seats:', props.seats.map(s => s.selected), 'shapes:', props.shapes.map(s => s.selected))
+        //console.log('Watcher disparado, seats:', props.seats.map(s => s.selected), 'shapes:', props.shapes.map(s => s.selected))
         if (
             !layerRef.value || !layerRef.value.getNode ||
             !transformerRef.value || !transformerRef.value.getNode ||
@@ -385,18 +414,20 @@ async function onTransformerTransformEnd() {
 
     // Para cada nodo transformado, buscamos su asiento por id
     nodes.forEach(node => {
-        const id = node.id()           // será "seat-3", "seat-7", etc.
+        const id = node.id();           // "seat-3", donde "3" es el PK de la tabla
         if (id?.startsWith('seat-')) {
-            const idx = parseInt(id.split('-')[1])
-            const seat = updatedSeats[idx]
-            // Actualizamos su radio y posición
-            seat.radius = (seat.radius ?? defaultRadius) * scaleX
-            seat.x = node.x()
-            seat.y = node.y()
-            // mantenemos seat.selected = true
+            const pk = parseInt(id.split('-')[1], 10);
+            // Buscamos el índice real en el array de props.seats:
+            const seatIndex = props.seats.findIndex(s => s.id === pk);
+            if (seatIndex === -1) return;       // si no lo encontramos, salimos
+            const seat = updatedSeats[seatIndex];
+            // Actualizamos radio y posición:
+            seat.radius = (seat.radius ?? defaultRadius) * scaleX;
+            seat.x = node.x();
+            seat.y = node.y();
         }
-        // si quieras manejar shapes igual, añades lógica aquí...
-    })
+    });
+
 
     // Resetear la escala del transformer
     tr.scale({ x: 1, y: 1 })

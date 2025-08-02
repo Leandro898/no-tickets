@@ -141,26 +141,23 @@ function onSeatDragEnd(i, e) {
 
 
 function onToggleSeat(i, event) {
-    // 1) Si es parte de una selección múltiple y estás clickeando
-    //    uno ya seleccionado sin Shift, soltamos para que arrastre.
+    // 1) Si es parte de una selección múltiple y clickeas un seleccionado sin Shift, dejamos que Konva arrastre.
     const selectedCount = props.seats.filter(s => s.selected).length
     const alreadySelected = props.seats[i].selected
     if (!event.shiftKey && alreadySelected && selectedCount > 1) {
-        return    // dejo que Konva inicie el drag directamente
+        return
     }
 
-    // 2) Cancelo burbujeo para que no dispare el onStageMouseDown del fondo
+    // 2) Cancelamos burbujeo para que no dispare el mousedown del fondo
     event.evt.cancelBubble = true
 
-    // 3) Calculo el nuevo estado de selección
+    // 3) Calculamos nuevo estado de selección
     let updated
     if (event.shiftKey) {
-        // con Shift haces toggle individual
         updated = props.seats.map((s, idx) =>
             idx === i ? { ...s, selected: !s.selected } : s
         )
     } else {
-        // sin Shift sólo ese asiento queda seleccionado
         updated = props.seats.map((s, idx) =>
             idx === i
                 ? { ...s, selected: true }
@@ -168,20 +165,19 @@ function onToggleSeat(i, event) {
         )
     }
 
-    // 4) Notifico al padre del nuevo arreglo
+    // 4) Notificamos al padre
     emit('update:seats', updated)
 
-    // 5) Si es un asiento “real” (type==='seat'), disparo el popup:
+    // 5) Disparamos popup **solo** si NO estamos en el backend
     const seat = props.seats[i]
-    if (!seat.type || seat.type === 'seat') {
-        // obtengo la posición actual del puntero en Stage
+    if ((!seat.type || seat.type === 'seat') && !props.isBackend) {
         const stage = event.target.getStage()
         const pointerPos = stage.getPointerPosition()
         emit('show-popup', {
             seat,
             position: { x: pointerPos.x, y: pointerPos.y }
         })
-        // opcional: si usas 'edit-label' para abrir un modal de edición
+        // si usas este evento para editar labels…
         emit('edit-label', { seat, index: i })
     }
 }
@@ -221,7 +217,7 @@ function onCircleOut() {
 
 
 watch(() => props.seats, (nuevo) => {
-    console.log('SEATS recibidos:', nuevo)
+    //console.log('SEATS recibidos:', nuevo)
 }, { immediate: true })
 
 
