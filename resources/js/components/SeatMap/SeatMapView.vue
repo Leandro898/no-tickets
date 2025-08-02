@@ -5,7 +5,7 @@
             @mouseup="onStageMouseUp">
             <v-layer ref="layerRef">
                 <!-- 1) Fondo -->
-                <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
+                <v-image v-if="bgImage" :config="{ image: bgImage, width, height, listening: false }" />
 
                 <!-- 2) SelectionBox para drag‑select -->
                 <SelectionBox v-model="selectionBox" />
@@ -103,6 +103,11 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:seats', 'update:shapes'])
 
+// Exponé el método getStage
+defineExpose({
+    getStage: () => canvasRef.value?.getStage?.() || null
+})
+
 // refs a Stage/Layer/Transformer y SeatsLayer
 const layerRef = ref(null)
 const transformerRef = ref(null)
@@ -120,24 +125,36 @@ const isDragging = ref(false)
 // 1) Helpers Stage: selección en recuadro
 // ——————————————
 function onStageMouseDown(e) {
-    if (e.target === e.target.getStage()) {
+    const stage = canvasRef.value.getNode()
+    // si clic en el fondo...
+    if (e.target === stage) {
         isDragging.value = true
-        clearTransformer()
-        const p = e.target.getStage().getPointerPosition()
-        startPos = { ...p }
-        selectionBox.value = { visible: true, x: p.x, y: p.y, width: 0, height: 0 }
+        const pos = stage.getPointerPosition()
+        startPos = { ...pos }
+        // inicializo el SelectionBox
+        selectionBox.value = {
+            visible: true,
+            x: pos.x,
+            y: pos.y,
+            width: 0,
+            height: 0
+        }
     }
 }
+
 function onStageMouseMove(e) {
     if (!isDragging.value) return
-    const p = e.target.getStage().getPointerPosition()
-    selectionBox.value.width = p.x - startPos.x
-    selectionBox.value.height = p.y - startPos.y
+    const pos = e.target.getStage().getPointerPosition()
+    selectionBox.value.width = pos.x - startPos.x
+    selectionBox.value.height = pos.y - startPos.y
 }
+
 function onStageMouseUp(e) {
     if (!isDragging.value) return
     isDragging.value = false
+    // oculto el rect
     selectionBox.value.visible = false
+    // calculo la selección
     selectInBox(selectionBox.value)
 }
 
@@ -148,29 +165,30 @@ function selectInBox({ x, y, width, height }) {
     const maxY = Math.max(y, y + height)
 
     // seats
-    props.seats.forEach(seat => {
-        seat.selected =
+    const updatedSeats = props.seats.map(seat => ({
+        ...seat,
+        selected:
             seat.x >= minX && seat.x <= maxX &&
             seat.y >= minY && seat.y <= maxY
-    })
-    emit('update:seats', props.seats)
+    }))
+    emit('update:seats', updatedSeats)
 
-    // shapes
-    props.shapes.forEach(sh => {
+    // shapes (idéntica lógica)
+    const updatedShapes = props.shapes.map(sh => {
         let sel = false
         if (sh.type === 'rect') {
-            sel = sh.x + sh.width >= minX && sh.x <= maxX && sh.y + sh.height >= minY && sh.y <= maxY
+            sel = sh.x + sh.width >= minX && sh.x <= maxX &&
+                sh.y + sh.height >= minY && sh.y <= maxY
+        } else {
+            sel = sh.x >= minX && sh.x <= maxX &&
+                sh.y >= minY && sh.y <= maxY
         }
-        else if (sh.type === 'circle') {
-            sel = sh.x >= minX && sh.x <= maxX && sh.y >= minY && sh.y <= maxY
-        }
-        else /* text */ {
-            sel = sh.x >= minX && sh.x <= maxX && sh.y >= minY && sh.y <= maxY
-        }
-        sh.selected = sel
+        return { ...sh, selected: sel }
     })
-    emit('update:shapes', props.shapes)
+    emit('update:shapes', updatedShapes)
 }
+
+
 
 function clearTransformer() {
     const tr = transformerRef.value.getNode()
@@ -215,8 +233,8 @@ async function onShapeMouseDown(i, e) {
             : (idx === i)
     }))
     // limpio seats
-    props.seats.forEach(s => s.selected = false)
-    emit('update:seats', props.seats)
+    const clearedSeats = props.seats.map(s => ({ ...s, selected: false }))
+    emit('update:seats', clearedSeats)
     emit('update:shapes', updated)
 
     // engancho transformer sólo a este nodo
@@ -312,6 +330,7 @@ watch(
     ],
     async () => {
         await nextTick();
+        console.log('Watcher disparado, seats:', props.seats.map(s => s.selected), 'shapes:', props.shapes.map(s => s.selected))
         if (
             !layerRef.value || !layerRef.value.getNode ||
             !transformerRef.value || !transformerRef.value.getNode ||
@@ -321,7 +340,6 @@ watch(
         const layer = layerRef.value.getNode();
         const tr = transformerRef.value.getNode();
 
-        // Shape nodes
         const shapeNodes = props.shapes
             .map((_, i) =>
                 props.shapes[i].selected
@@ -331,13 +349,27 @@ watch(
 
         // Seat nodes: **sin**.value
         const seatNodes = seatsLayerRef.value.selectedCircleRefs || [];
+        const nodes = [...shapeNodes, ...seatNodes];
 
-        tr.nodes([...shapeNodes, ...seatNodes]);
+        // 🚩🚩🚩
+        // 💡 SI NO HAY NADA SELECCIONADO, forzá a limpiar SÍ o SÍ el transformer,
+        // y luego un batchDraw para que Konva actualice el render.
+        if (!nodes.length) {
+            tr.nodes([]);
+            tr.moveToTop();
+            layer.batchDraw();
+            return;
+        }
+
+        tr.nodes(nodes);
         tr.moveToTop();
         layer.batchDraw();
     },
     { immediate: true, flush: 'post' }
 );
+
+
+
 
 
 // —————————————— Hace el resize de los asientos y shapes

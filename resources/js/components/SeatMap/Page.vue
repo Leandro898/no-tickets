@@ -154,7 +154,7 @@ function onBgUploaded(url) {
 
 // 🎯 Handler intermedio para depurar
 function handleSeatsFromView(newSeats) {
-  //console.log('📄 Page.vue recibió update:seats →', newSeats)
+  console.log('El padre recibe:', newSeats)
   onSeatsUpdate(newSeats)
 }
 

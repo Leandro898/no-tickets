@@ -1,16 +1,18 @@
 <template>
-    <v-circle v-for="(seat, idx) in seats" :key="seat.id" :config="{
+    <v-circle v-for="(seat, idx) in seats" :key="seat.id" :ref="el => setCircleEl(el, idx)" :config="{
         id: 'seat-' + seat.id,
         x: seat.x,
         y: seat.y,
         radius: seat.radius ?? defaultRadius,
         fill: seat.selected ? '#a78bfa' : '#e5e7eb',
-    stroke: (!seat.label || seat.label.trim() === '') ? 'red' : (seat.selected ? '#7c3aed' : '#a1a1aa'),
-        strokeWidth: 2
-    }" @click="toggle(idx, $event)" v-on="!isBackend ? {
+        stroke: (!seat.label || seat.label.trim() === '') ? 'red' : (seat.selected ? '#7c3aed' : '#a1a1aa'),
+        strokeWidth: 2,
+        draggable: true
+    }" @mousedown="onToggleSeat(idx, $event)" @dragmove="onSeatDragMove(idx, $event)"
+        @dragend="onSeatDragEnd(idx, $event)" v-on="!isBackend ? {
         mouseover: (e) => onCircleHover(idx, e),
         mouseout: onCircleOut
-    } : {}" />
+        } : {}" />
 
 
     <v-text v-for="seat in seats" :key="'label-' + seat.id" :config="{
@@ -83,6 +85,7 @@ watch(
     { immediate: true }
 )
 
+
 // --------- ARRANCA DRAG GRUPAL ---------
 let groupDragStart = null
 
@@ -138,30 +141,26 @@ function onSeatDragEnd(i, e) {
 
 
 function onToggleSeat(i, event) {
-    console.log('CLICK FRONT', i)
+    // 1) Si es parte de una selección múltiple y estás clickeando
+    //    uno ya seleccionado sin Shift, soltamos para que arrastre.
     const selectedCount = props.seats.filter(s => s.selected).length
     const alreadySelected = props.seats[i].selected
-
-    // Si estoy clickeando un asiento ya seleccionado y formo parte
-    // de una selección múltiple, que pase el evento al drag:
     if (!event.shiftKey && alreadySelected && selectedCount > 1) {
-        // no cancelBubble, no emit de selección
-        return
+        return    // dejo que Konva inicie el drag directamente
     }
-    // en cualquier otro caso, quiero interceptar el clic para cambiar selección:
+
+    // 2) Cancelo burbujeo para que no dispare el onStageMouseDown del fondo
     event.evt.cancelBubble = true
 
-    // Lógica normal de selección:
-    const seat = props.seats[i]
+    // 3) Calculo el nuevo estado de selección
     let updated
-
     if (event.shiftKey) {
-        // Shift+click: alterna
+        // con Shift haces toggle individual
         updated = props.seats.map((s, idx) =>
             idx === i ? { ...s, selected: !s.selected } : s
         )
     } else {
-        // Click normal: solo este
+        // sin Shift sólo ese asiento queda seleccionado
         updated = props.seats.map((s, idx) =>
             idx === i
                 ? { ...s, selected: true }
@@ -169,21 +168,24 @@ function onToggleSeat(i, event) {
         )
     }
 
+    // 4) Notifico al padre del nuevo arreglo
     emit('update:seats', updated)
 
-    // --- POPUP tipo Ticketmaster ---
-    // Solo mostrar popup si es un asiento (no sección u otra cosa)
+    // 5) Si es un asiento “real” (type==='seat'), disparo el popup:
+    const seat = props.seats[i]
     if (!seat.type || seat.type === 'seat') {
-        // Obtener la posición del mouse en el canvas de Konva
+        // obtengo la posición actual del puntero en Stage
         const stage = event.target.getStage()
         const pointerPos = stage.getPointerPosition()
-        // Emitir evento para que el padre muestre el popup
-        console.log('[SeatsLayer] Emitiendo show-popup', seat, pointerPos)
-        emit('show-popup', { seat, position: { x: pointerPos.x, y: pointerPos.y } })
-
-        emit('edit-label', { seat, index: i }) // (si lo usás para edición)
+        emit('show-popup', {
+            seat,
+            position: { x: pointerPos.x, y: pointerPos.y }
+        })
+        // opcional: si usas 'edit-label' para abrir un modal de edición
+        emit('edit-label', { seat, index: i })
     }
 }
+
 
 
 
