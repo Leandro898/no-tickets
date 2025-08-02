@@ -254,18 +254,22 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
             return
         }
         const defaultEntradaId = tickets.value[0].id
+        const nextNum = seats.value.length + 1
+        const newLabel = `S${nextNum}`
+
         seats.value.push({
             type: 'seat',
             x: canvasW.value / 2 - 20,
             y: canvasH.value / 2 - 20,
             entrada_id: defaultEntradaId,
-            label: '',
+            label: newLabel,      // <--- Acá, SIEMPRE asignale un nombre por defecto
             row: '',
-            number: 0,
+            number: nextNum,
             rotation: 0,
             selected: false
         })
     }
+
 
     // ─── 10) GUARDAR TODO (shapes+seats) ────────────────────────────────────────
     async function guardarTodo() {
@@ -281,9 +285,14 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
         // 🚨 Validar que todos tengan label (nombre)
         const faltanLabel = onlySeats.some(s => !s.label || s.label.trim() === '')
         if (faltanLabel) {
+            // 🔥🔥 Agregá este log para depuración:
+            const asientosSinLabel = onlySeats.filter(s => !s.label || s.label.trim() === '')
+            console.warn('Hay asientos sin label:', asientosSinLabel)
+
             toast.value = { visible: true, message: 'Hay asientos sin nombre (label)', type: 'error' }
             return
         }
+
 
         isLoading.value = true
         try {

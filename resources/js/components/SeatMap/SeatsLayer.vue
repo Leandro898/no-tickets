@@ -5,7 +5,7 @@
         y: seat.y,
         radius: seat.radius ?? defaultRadius,
         fill: seat.selected ? '#a78bfa' : '#e5e7eb',
-        stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
+    stroke: (!seat.label || seat.label.trim() === '') ? 'red' : (seat.selected ? '#7c3aed' : '#a1a1aa'),
         strokeWidth: 2
     }" @click="toggle(idx, $event)" v-on="!isBackend ? {
         mouseover: (e) => onCircleHover(idx, e),

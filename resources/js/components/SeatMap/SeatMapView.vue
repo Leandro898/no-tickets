@@ -1,7 +1,7 @@
 <!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\SeatMapView.vue -->
 <template>
     <div v-bind="$attrs" style="width: 100%; height: 100%; position: relative;">
-        <v-stage :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
+        <v-stage ref="canvasRef" :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
             @mouseup="onStageMouseUp">
             <v-layer ref="layerRef">
                 <!-- 1) Fondo -->
@@ -18,7 +18,7 @@
                 </template>
 
                 <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
-                 
+
                 <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
                     @update:selection="onSeatSelection" @show-popup="handleShowPopup" />
                 <!-- 5) Transformer único -->
@@ -70,6 +70,7 @@ import SeatsLayer from './SeatsLayer.vue'
 
 const popupSeat = ref(null)
 const popupPosition = ref({ x: 0, y: 0 })
+const canvasRef = ref(null)
 
 function handleShowPopup({ seat, position }) {
     console.log('Recibiendo show-popup:', seat, position) // DEBUG
