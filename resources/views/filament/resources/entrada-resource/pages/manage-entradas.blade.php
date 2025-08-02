@@ -1,7 +1,7 @@
 <x-filament::page>
-    {{-- Título --}}
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold">Entradas para: {{ $evento->nombre }}</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
     </div>
 
     {{-- Componente unificado --}}

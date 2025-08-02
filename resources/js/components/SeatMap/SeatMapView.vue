@@ -1,32 +1,34 @@
 <!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\SeatMapView.vue -->
 <template>
-    <v-stage :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
-        @mouseup="onStageMouseUp">
-        <v-layer ref="layerRef">
-            <!-- 1) Fondo -->
-            <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
+    <div v-bind="$attrs" style="width: 100%; height: 100%; position: relative;">
+        <v-stage :config="{ width, height }" @mousedown="onStageMouseDown" @mousemove="onStageMouseMove"
+            @mouseup="onStageMouseUp">
+            <v-layer ref="layerRef">
+                <!-- 1) Fondo -->
+                <v-image v-if="bgImage" :config="{ image: bgImage, width, height }" />
 
-            <!-- 2) SelectionBox para drag‑select -->
-            <SelectionBox v-model="selectionBox" />
+                <!-- 2) SelectionBox para drag‑select -->
+                <SelectionBox v-model="selectionBox" />
 
-            <!-- 3) Shapes -->
-            <template v-for="(s, i) in shapes" :key="i">
-                <component :is="shapeTag(s)" :config="shapeConfig(s, i)" :id="'shape-' + i"
-                    :ref="el => shapeRefs[i] = el" @mousedown="onShapeMouseDown(i, $event)"
-                    @dragend="onShapeDragEnd(i, $event)" @transformend.native="onShapeTransformEnd(i, $event)" />
-            </template>
+                <!-- 3) Shapes -->
+                <template v-for="(s, i) in shapes" :key="i">
+                    <component :is="shapeTag(s)" :config="shapeConfig(s, i)" :id="'shape-' + i"
+                        :ref="el => shapeRefs[i] = el" @mousedown="onShapeMouseDown(i, $event)"
+                        @dragend="onShapeDragEnd(i, $event)" @transformend.native="onShapeTransformEnd(i, $event)" />
+                </template>
 
-            <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
-            <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
-                @update:selection="onSeatSelection" @show-popup="handleShowPopup" />
-            <!-- 5) Transformer único -->
-            <v-transformer ref="transformerRef" @transformend="onTransformerTransformEnd" />
+                <!-- 4) Capa de asientos - Esta data viene del archivos SeatsLayer-->
+                 
+                <SeatsLayer ref="seatsLayerRef" :seats="seats" :defaultRadius="22" @update:seats="onSeatsUpdate"
+                    @update:selection="onSeatSelection" @show-popup="handleShowPopup" />
+                <!-- 5) Transformer único -->
+                <v-transformer ref="transformerRef" @transformend="onTransformerTransformEnd" />
 
-        </v-layer>
-    </v-stage>
+            </v-layer>
+        </v-stage>
 
-    <!-- Justo debajo del canvas -->
-    <div v-if="popupSeat" :style="{
+        <!-- Justo debajo del canvas -->
+        <div v-if="popupSeat" :style="{
         position: 'fixed',
         left: popupPosition.x + 40 + 'px',
         top: popupPosition.y - 40 + 'px',
@@ -40,21 +42,21 @@
         pointerEvents: 'auto',
         transition: 'all 0.16s cubic-bezier(.4,2,.8,1)'
     }" class="seat-popup" @mousedown.stop>
-        <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
-            Asiento {{ popupSeat.label || popupSeat.id }}
-        </div>
-        <div>
-            <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
-            <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
-            <b>Número:</b> {{ popupSeat.number || '—' }}<br>
-            <b>Precio:</b> ${{ popupSeat.price || '--' }}
-        </div>
-        <div style="margin-top: 18px; text-align: right;">
-            <button @click="popupSeat = null"
-                style="padding: 8px 20px; border-radius: 8px; background: #7c3aed; color: white; border: none;">Cerrar</button>
+            <div style="font-weight: bold; font-size: 1.1rem; color: #6366f1; margin-bottom: 8px;">
+                Asiento {{ popupSeat.label || popupSeat.id }}
+            </div>
+            <div>
+                <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
+                <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
+                <b>Número:</b> {{ popupSeat.number || '—' }}<br>
+                <b>Precio:</b> ${{ popupSeat.price || '--' }}
+            </div>
+            <div style="margin-top: 18px; text-align: right;">
+                <button @click="popupSeat = null"
+                    style="padding: 8px 20px; border-radius: 8px; background: #7c3aed; color: white; border: none;">Cerrar</button>
+            </div>
         </div>
     </div>
-
 </template>
 
 <script setup>
@@ -62,6 +64,7 @@
 const defaultRadius = 22
 
 import { ref, nextTick, watch } from 'vue'
+defineOptions({ inheritAttrs: false })
 import SelectionBox from './SelectionBox.vue'
 import SeatsLayer from './SeatsLayer.vue'
 
@@ -93,7 +96,9 @@ const props = defineProps({
     height: Number,
     bgImage: Object,
     seats: Array,
-    shapes: Array
+    shapes: Array,
+    panMode: Boolean,
+    
 })
 const emit = defineEmits(['update:seats', 'update:shapes'])
 
@@ -273,23 +278,27 @@ function onSeatsUpdate(ns) {
     }
 }
 async function onSeatSelection() {
-    await nextTick()
-    const layer = layerRef.value.getNode()
-    const tr = transformerRef.value.getNode()
+    await nextTick();
+    if (
+        !layerRef.value || !layerRef.value.getNode ||
+        !transformerRef.value || !transformerRef.value.getNode ||
+        !seatsLayerRef.value
+    ) return;
+
+    const layer = layerRef.value.getNode();
+    const tr = transformerRef.value.getNode();
 
     const shapeNodes = props.shapes
         .map((sh, i) => sh.selected ? layer.findOne('#shape-' + i) : null)
-        .filter(Boolean)
+        .filter(Boolean);
 
-    // Aquí también **sin** .value
-    const seatNodes = seatsLayerRef.value.selectedCircleRefs || []
+    const seatNodes = seatsLayerRef.value.selectedCircleRefs || [];
 
-
-
-    tr.nodes([...shapeNodes, ...seatNodes])
-    tr.moveToTop()
-    layer.batchDraw()
+    tr.nodes([...shapeNodes, ...seatNodes]);
+    tr.moveToTop();
+    layer.batchDraw();
 }
+
 
 
 // ——————————————
@@ -301,9 +310,15 @@ watch(
         () => props.seats.map(s => s.selected)
     ],
     async () => {
-        await nextTick()
-        const layer = layerRef.value.getNode()
-        const tr = transformerRef.value.getNode()
+        await nextTick();
+        if (
+            !layerRef.value || !layerRef.value.getNode ||
+            !transformerRef.value || !transformerRef.value.getNode ||
+            !seatsLayerRef.value
+        ) return;
+
+        const layer = layerRef.value.getNode();
+        const tr = transformerRef.value.getNode();
 
         // Shape nodes
         const shapeNodes = props.shapes
@@ -311,17 +326,18 @@ watch(
                 props.shapes[i].selected
                     ? layer.findOne('#shape-' + i)
                     : null)
-            .filter(Boolean)
+            .filter(Boolean);
 
         // Seat nodes: **sin**.value
-        const seatNodes = seatsLayerRef.value.selectedCircleRefs || []
+        const seatNodes = seatsLayerRef.value.selectedCircleRefs || [];
 
-        tr.nodes([...shapeNodes, ...seatNodes])
-        tr.moveToTop()
-        layer.batchDraw()
+        tr.nodes([...shapeNodes, ...seatNodes]);
+        tr.moveToTop();
+        layer.batchDraw();
     },
     { immediate: true, flush: 'post' }
-)
+);
+
 
 // —————————————— Hace el resize de los asientos y shapes
 async function onTransformerTransformEnd() {

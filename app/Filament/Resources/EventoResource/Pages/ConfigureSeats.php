@@ -16,11 +16,12 @@ class ConfigureSeats extends Page
 
     public function mount($record): void
     {
-        $this->record = EventoResource::getModel()::findOrFail($record);
+        $this->record = EventoResource::getModel()::where('slug', $record)->firstOrFail();
         $this->entriesCount = $this->record
             ->entradas()
             ->sum('stock_actual');
     }
+
 
     public function getTitle(): string
     {

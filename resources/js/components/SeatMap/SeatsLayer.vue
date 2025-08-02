@@ -3,11 +3,15 @@
         id: 'seat-' + seat.id,
         x: seat.x,
         y: seat.y,
-        radius: seat.radius,
+        radius: seat.radius ?? defaultRadius,
         fill: seat.selected ? '#a78bfa' : '#e5e7eb',
         stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
         strokeWidth: 2
-    }" @click="toggle(idx, $event)" @mouseover="onCircleHover(idx, $event)" @mouseout="onCircleOut" />
+    }" @click="toggle(idx, $event)" v-on="!isBackend ? {
+        mouseover: (e) => onCircleHover(idx, e),
+        mouseout: onCircleOut
+    } : {}" />
+
 
     <v-text v-for="seat in seats" :key="'label-' + seat.id" :config="{
         x: seat.x,
@@ -24,13 +28,21 @@
 <script setup>
 import { ref, watch, nextTick, computed, defineExpose } from 'vue'
 
-
-
-const emit = defineEmits(['update:seats', 'edit-label', 'update:selection'])
 const props = defineProps({
     seats: { type: Array, required: true },
-    defaultRadius: { type: Number, default: 22 }
+    defaultRadius: { type: Number, default: 22 },
+    isBackend: { type: Boolean, default: false }
+    // ...acá sumás cualquier otra prop que uses en el componente
 })
+
+const popupSeat = ref(null)
+const popupPosition = ref({ x: 0, y: 0 })
+
+
+
+
+const emit = defineEmits(['update:seats', 'edit-label', 'update:selection', 'show-popup'])
+
 
 const circleEls = ref([])
 const selectedCircleRefs = ref([])
@@ -191,17 +203,24 @@ function onCircleTransformEnd(i, evt) {
 }
 
 function onCircleHover(i, e) {
+    if (props.isBackend) return
     // mostramos el popup con los datos de ese asiento
-    popupSeat.value = seats.value[i]
+    popupSeat.value = props.seats[i]   // Usá props.seats (no seats.value) en <script setup>
     // posicionamos justo donde está el mouse
     const { clientX: x, clientY: y } = e.evt
     popupPosition.value = { x, y }
 }
 
 function onCircleOut() {
+    if (props.isBackend) return
     // ocultamos tan pronto sale el mouse
     popupSeat.value = null
 }
+
+
+watch(() => props.seats, (nuevo) => {
+    console.log('SEATS recibidos:', nuevo)
+}, { immediate: true })
 
 
 
