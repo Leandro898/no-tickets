@@ -16,10 +16,10 @@ class ManageEntradas extends Page
     protected static string $view = 'filament.resources.entrada-resource.pages.manage-entradas';
 
     // Recibimos el slug como parámetro desde la URL
-    public function mount(string $slug): void
+    public function mount($slug)
     {
         $this->evento = Evento::where('slug', $slug)->firstOrFail();
-        $this->entradas = Entrada::where('evento_id', $this->evento->id)->get();
+        $this->entradas = $this->evento->entradas;
     }
 
     public function getBreadcrumbs(): array
@@ -31,4 +31,6 @@ class ManageEntradas extends Page
     {
         return 'Crear Entrada / Ticket';
     }
+
+    
 }

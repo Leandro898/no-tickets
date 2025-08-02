@@ -267,13 +267,7 @@ Route::post('orders', [OrderController::class, 'store'])
 Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
     ->name('orders.thankyou');
 
-// Rutas para la gestión de entradas (Filament)
-Route::middleware(['auth', 'role:productor'])
-    ->prefix('admin')
-    ->name('filament.admin.resources.entradas.')
-    ->group(function () {
-        Route::get('entradas/manage-entradas/{slug}', ManageEntradas::class)->name('manage-entradas');
-    });
+
 
 
 

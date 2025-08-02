@@ -29,7 +29,7 @@ class EditEvento extends EditRecord
         return [
             Action::make('volver')
                 ->label('Ir a detalles')
-                ->url("/admin/eventos/{$this->record->id}/detalles")
+                ->url("/admin/eventos/{$this->record->slug}/detalles")
                 ->icon('heroicon-o-arrow-left')
                 ->extraAttributes(['class' => 'btn-volver']),
 
