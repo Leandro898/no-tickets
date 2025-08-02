@@ -42,8 +42,13 @@
                 <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->slug])" icon="heroicon-o-pencil-square"
                     class="btn-detalles">Editar evento</x-filament::button>
 
-                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.gestionar-entradas', ['record' => $record->slug])" icon="heroicon-o-pencil"
-                    class="btn-detalles">Editar Entradas</x-filament::button>
+                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.manage-entradas', ['slug' => $record->slug])" icon="heroicon-o-pencil" class="btn-detalles">
+                    Editar Entradas
+                </x-filament::button>
+
+
+
+
 
                 <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl([
                     'record' => $record->slug,
@@ -53,7 +58,9 @@
                 <x-filament::button type="button" icon="heroicon-o-link" class="btn-detalles"
                     x-on:click="mostrarModal = true">Copiar link</x-filament::button>
 
-                <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl(['record' => $record->slug])" icon="heroicon-o-list-bullet"
+                <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl([
+                    'record' => $record->slug,
+                ])" icon="heroicon-o-list-bullet"
                     class="btn-detalles">Lista digital</x-filament::button>
 
                 {{-- <x-filament::button type="button" wire:click="suspender">

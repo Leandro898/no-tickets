@@ -31,6 +31,7 @@ use App\Http\Controllers\SeatPurchaseController;
 use App\Http\Controllers\SeatMapController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Admin\EntradaController;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -264,6 +265,16 @@ Route::post('orders', [OrderController::class, 'store'])
 // Ruta que muestra la página de agradecimiento después de la compra
 Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
     ->name('orders.thankyou');
+
+// Rutas para la gestión de entradas (Filament)
+Route::middleware(['auth', 'role:productor'])
+    ->prefix('admin')
+    ->name('filament.admin.resources.eventos.')  // o entradas, pero debe coincidir
+    ->group(function () {
+        Route::get('entradas/manage-entradas/{evento_slug}', [EntradaController::class, 'manage'])
+            ->name('manage-entradas');
+    });
+
 
 
 
