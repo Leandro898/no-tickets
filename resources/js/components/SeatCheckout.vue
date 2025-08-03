@@ -28,23 +28,23 @@ function goToCheckout() {
 </script>
 
 <template>
-    <div class="flex-1 w-full flex items-center justify-center px-2">
+    <div class="flex-1 w-full flex items-center justify-center px-2 overflow-hidden">
         <!-- 1) El lienzo con los asientos -->
         <div class="w-full h-[calc(100vh-80px)] flex items-center justify-center">
             <SeatSelector :evento-slug=" props.eventoSlug" :purchase-route="props.purchaseRoute"
                 @selection-change="onSelectionChange" class="w-full h-full" />
         </div>
 
-        <!-- 2) Indicador de cuántos asientos seleccionó -->
+        <!-- 2) Indicador de cuántos asientos seleccionó
         <p class="text-lg">
             Asientos seleccionados: <strong>{{ selectedSeats.length }}</strong>
-        </p>
+        </p> -->
 
         <!-- 3) Botón para proceder al checkout -->
-        <button @click="goToCheckout"
+        <!-- <button @click="goToCheckout"
             class="px-6 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 disabled:opacity-50"
             :disabled="selectedSeats.length === 0">
             Comprar {{ selectedSeats.length }} asiento{{ selectedSeats.length > 1 ? 's' : '' }}
-        </button>
+        </button> -->
     </div>
 </template>
