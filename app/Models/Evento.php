@@ -123,4 +123,15 @@ class Evento extends Model
             }
         });
     }
+
+    /**
+     * Accesor para obtener la URL de la imagen de fondo.
+     * Si no hay imagen, retorna una cadena vacía.
+     */
+    public function getBgImageUrlAttribute(): ?string
+    {
+        return ! empty($this->attributes['bg_image_url'])
+            ? asset('storage/' . ltrim($this->attributes['bg_image_url'], '/'))
+            : null;
+    }
 }

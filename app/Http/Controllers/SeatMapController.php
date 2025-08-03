@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Evento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class SeatMapController extends Controller
 {
@@ -43,10 +45,6 @@ class SeatMapController extends Controller
 
         return response()->json($entradas);
     }
-
-
-    
-
 
     /**
      * Guarda únicamente los asientos (legacy).
@@ -125,15 +123,14 @@ class SeatMapController extends Controller
      */
     public function uploadBg(Request $request)
     {
-        $request->validate([
-            'image' => 'required|image|max:2048',
-        ]);
+        $request->validate(['image' => 'required|image|max:2048']);
 
+        // ★ Guardamos y devolvemos la ruta relativa
         $path = $request->file('image')->store('seat_maps', 'public');
-        $url  = asset("storage/{$path}");
-
-        return response()->json(['url' => $url]);
+        // No hagas asset() aquí, sólo path: "seat_maps/archivo.png"
+        return response()->json(['url' => $path]);
     }
+
 
     /**
      * Guarda el flujo completo:
@@ -143,6 +140,7 @@ class SeatMapController extends Controller
      */
     public function saveMap(Request $request, Evento $evento)
     {
+        //Log::info('REQUEST:', $request->all());
         // 1️⃣ Validación
         $v = $request->validate([
             'seats'               => 'required|array',
@@ -160,27 +158,28 @@ class SeatMapController extends Controller
             'seats.*.label'       => 'nullable|string|max:255',
             'seats.*.fontSize'    => 'nullable|numeric',
             'seats.*.rotation'    => 'nullable|numeric',
-            'bgUrl'               => 'nullable|url',
+            'bgUrl'               => 'nullable|string|max:255',
             'map'                 => 'nullable|string',
         ]);
 
         // 2️⃣ Fondo y JSON
-        if (!empty($v['bgUrl']) && $v['bgUrl'] !== $evento->bg_image_url) {
-            // elimina viejo si hace falta…
-            $evento->update(['bg_image_url' => $v['bgUrl']]);
+        if (!empty($v['bgUrl'])) {
+            // Extrae sólo "seat_maps/archivo.png"
+            $relative = Str::afterLast($v['bgUrl'], '/storage/');
+            $evento->update(['bg_image_url' => $relative]);
         }
         if (isset($v['map'])) {
             $evento->update(['map_data' => $v['map']]);
         }
 
+        
         // 3️⃣ Borrar anteriores
         $evento->seats()->delete();
-        $evento->shapes()->delete();    // 🔥 aquí borras también los shapes
+        $evento->shapes()->delete();
 
-        // 4️⃣ Volver a crear
+        // 4️⃣ Volver a crear asientos y shapes
         foreach ($v['seats'] as $el) {
             if ($el['type'] === 'seat') {
-                // asiento real en la tabla seats
                 $evento->seats()->create([
                     'type'       => $el['type'],
                     'x'          => $el['x'],
@@ -195,7 +194,6 @@ class SeatMapController extends Controller
                     'rotation'   => $el['rotation'] ?? 0,
                 ]);
             } else {
-                // cualquier rect, circle o text en shapes
                 $evento->shapes()->create([
                     'type'      => $el['type'],
                     'x'         => $el['x'],
@@ -208,7 +206,7 @@ class SeatMapController extends Controller
                 ]);
             }
         }
-
+        // Log::info('llega 3');
         return response()->json(['status' => 'ok']);
     }
 
@@ -230,10 +228,25 @@ class SeatMapController extends Controller
     /**
      * Devuelve el mapa completo (asientos + shapes + bg + JSON).
      */
+    /**
+     * Devuelve el mapa completo (asientos + shapes + bg + JSON).
+     */
     public function getMap(Evento $evento)
     {
-        return response()->json([
-            'seats'  => $evento->seats()->get([
+        // ── 1) Limpiar bg_image_url
+        $bg       = $evento->bg_image_url;    // "seat_maps/archivo.png"
+        $relative = $bg
+            ? Str::afterLast($bg, '/storage/') // queda: "seat_maps/archivo.png"
+            : null;
+
+        // ── 2) Reconstruir URL pública
+        $bgUrl = $relative
+            ? asset("storage/{$relative}")    // ej: http://localhost:8000/storage/seat_maps/archivo.png
+            : null;
+
+        // ── 3) Asientos
+        $seats = $evento->seats()
+            ->select([
                 'id',
                 'type',
                 'x',
@@ -247,22 +260,23 @@ class SeatMapController extends Controller
                 'radius',
                 'label',
                 'font_size',
-                'rotation',
-            ]),
-            'shapes' => $evento->shapes()->get([
-                'type',
-                'x',
-                'y',
-                'width',
-                'height',
-                'rotation',
-                'label',
-                'font_size',
-            ]),
-            'bgUrl'  => $evento->bg_image_url,
+                'rotation'
+            ])->get();
+
+        // ── 4) Shapes
+        $shapes = $evento->shapes()
+            ->select(['type', 'x', 'y', 'width', 'height', 'rotation', 'label', 'font_size'])
+            ->get();
+
+        // ── 5) Devolver JSON limpio ✅
+        return response()->json([
+            'seats'  => $seats,
+            'shapes' => $shapes,
+            'bgUrl'  => $bgUrl,
             'map'    => $evento->map_data,
         ]);
     }
+
 
     // Lista los asientos guardados para el mapa en el front
     public function listSeats(Evento $evento)

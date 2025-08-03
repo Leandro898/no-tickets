@@ -1,19 +1,21 @@
-<!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatMap\Page.vue -->
+<!-- resources\js\components\SeatMap\Page.vue -->
 <template>
   <div class="flex h-full">
     <!-- 1) Sidebar de herramientas -->
     <SidebarToolbar :tools="tools" :active="currentTool" @select="onToolSelect" class="shrink-0 border-r" />
 
     <!-- 2) Área principal -->
-    <div class="flex-1 p-4 bg-gray-50 overflow-auto">
-      <h2 class="text-2xl font-bold mb-4">Configurar Mapa de Asientos</h2>
-      <p class="mb-6 text-sm text-gray-600">
+    <div class="flex-1 flex flex-col p-4 bg-gray-50 overflow-hidden">
+      <!-- 2.1) Header -->
+      <h2 class="text-2xl font-bold mb-2">Configurar Mapa de Asientos</h2>
+      <p class="mb-4 text-sm text-gray-600">
         Entradas disponibles: {{ totalTickets }}
       </p>
 
+      <!-- 2.2) Toast -->
       <Toast :visible="toast.visible" :message="toast.message" :type="toast.type" @close="toast.visible = false" />
 
-      <!-- Uploader + Quitar fondo -->
+      <!-- 2.3) Uploader + Quitar fondo -->
       <div class="flex items-center gap-2 mb-4">
         <ImageUploader :eventoSlug="eventoSlug" @image-loaded="onBgLoaded" @file-selected="onFileSelected"
           @imageUploaded="onBgUploaded" />
@@ -23,30 +25,31 @@
         </button>
       </div>
 
-      <!-- Toolbar de acciones -->
+      <!-- 2.4) Toolbar de acciones -->
       <Toolbar class="mb-4" :seats="seats" :shapes="shapes" :history="history" :future="future"
         @toggle-select-all="toggleSelectAll" @undo="undo" @redo="redo" @zoom-in="zoomIn" @zoom-out="zoomOut"
         @reset-view="resetView" @delete-selected="deleteSelected" @show-help="showHelp" />
 
-      <!-- Canvas + controles -->
-      <div class="relative flex border rounded overflow-hidden bg-white">
-        <div class="flex-1">
+      <!-- 2.5) Contenedor del mapa (flex-1 para que crezca) -->
+      <div class="relative min-h-[500px] h-[160vh] border rounded overflow-hidden bg-white">
+
+
+        <!-- Wrapper mide ancho y alto completos -->
+        <div ref="wrapper" class="w-full h-full relative">
+
           <SeatMapView ref="canvasRef" :width="canvasW" :height="canvasH" :bg-image="bgImage" :shapes="shapes"
             :seats="seats" :pan-mode="spacePressed" @update:seats="handleSeatsFromView" @update:shapes="onShapesUpdate"
-            @update:mapJSON="mapJSON = $event" class="w-full h-full" />
-        </div>
+            class="absolute inset-0" />
 
+
+        </div>
+        <!-- Controles flotantes -->
         <SeatControls v-show="seats.some(s => s.selected)" :selected="seats.filter(s => s.selected)" @rename="onRename"
           class="absolute top-0 right-0 h-full w-64 bg-white shadow-lg z-20" />
       </div>
 
-      <!-- Botones inferiores -->
-      <div class="mt-4 flex gap-2">
-        <!-- ESTE BOTON AGREGA UNA FILA DE BUTACAS, NO LO USAMOS POR AHORA 
-          <button @click="openAddRowModal"
-          class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
-          Agregar fila de butacas
-        </button> -->
+      <!-- 2.6) Botones inferiores (siempre visibles) -->
+      <div class="mt-4 flex-shrink-0 flex gap-2">
         <button @click="openGenerateModal"
           class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition">
           Generar entradas
@@ -62,17 +65,21 @@
           {{ isLoading ? 'Guardando…' : 'Guardar todo' }}
         </button>
       </div>
-    </div>
 
-    <!-- Modales -->
-    <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
-    <GenerateSeatsModal v-if="showGenerateModal" :tickets="tickets" :seats="seats" v-model:count="generateCount"
-      :selectedTicket="selectedTicket?.id" :remaining="remaining" @selectTicket="selectTicket" @generate="generateSeats"
-      @cancel="showGenerateModal = false" />
+      <!-- 2.7) Modales -->
+      <AddRowModal v-if="showAddRow" :sectors="sectors" @add="onRowAdd" @cancel="showAddRow = false" />
+      <GenerateSeatsModal v-if="showGenerateModal" :tickets="tickets" :seats="seats" v-model:count="generateCount"
+        :selectedTicket="selectedTicket?.id" :remaining="remaining" @selectTicket="selectTicket"
+        @generate="generateSeats" @cancel="showGenerateModal = false" />
+    </div>
   </div>
 </template>
 
+
+
+
 <script setup>
+import { nextTick, watch, ref, onMounted, onBeforeUnmount } from 'vue'
 
 import { useSeatMap } from '@/composables/useSeatMap'
 import { useTickets } from '@/composables/useTickets'
@@ -87,14 +94,15 @@ import GenerateSeatsModal from './GenerateSeatsModal.vue'
 import ImageUploader from '../ui/ImageUploader.vue'
 import Toast from '../ui/Toast.vue'
 
-import { nextTick, watch } from 'vue'
-
 const props = defineProps({
   eventoSlug: { type: [Number, String], required: true },
   initialBgImageUrl: { type: String, default: '' },
 })
 
-// Extraemos toda la lógica, incluyendo shapes y seats
+// 1) Creamos el ref para el wrapper:
+const wrapper = ref(null)
+
+// 2) Extraemos estado y funciones del composable
 const {
   tools,
   shapes,
@@ -133,7 +141,7 @@ const {
   onShapesUpdate, // Maneja shapes
   onBgUploadRequest,   // lo exponemos desde el composable
   bgUploading,
-} = useSeatMap(props.eventoSlug, props.initialBgImageUrl)
+} = useSeatMap(props.eventoSlug, props.initialBgImageUrl, wrapper)
 
 const { tickets, totalTickets } = useTickets(props.eventoSlug)
 
@@ -146,6 +154,32 @@ const {
   generateSeats,
   remaining,
 } = useGenerateSeats(seats, tickets, canvasW, canvasH)
+
+// 3) Definimos la función resize **fuera** de onMounted,
+//    para poder referenciarla también en onBeforeUnmount.
+const resize = () => {
+  if (!wrapper.value) return
+  canvasW.value = wrapper.value.clientWidth
+  canvasH.value = wrapper.value.clientHeight
+}
+
+onMounted(() => {
+  // Medimos al cargar…
+  resize()
+  // …y cada vez que cambie tamaño de ventana
+  window.addEventListener('resize', resize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', resize)
+})
+
+
+
+
+
+
+
 
 // Nuevo handler:
 function onBgUploaded(url) {
@@ -174,5 +208,12 @@ watch(
 </script>
 
 <style scoped>
-/* Tus estilos extra aquí */
+
+/* 🔴 Dale ancho 100% y alto dinámico con, p.ej., 80vh */
+.seat-map-container {
+  width: 100%;
+  height: 80vh;
+  position: relative;
+}
+
 </style>

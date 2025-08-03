@@ -1,12 +1,16 @@
 // resources/js/composables/useSeatMap.js
-import { ref, onMounted, onBeforeUnmount, toRaw, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, toRaw, watch, nextTick } from 'vue'
 import { useTickets } from '@/composables/useTickets'
 
-export function useSeatMap(eventoSlug, initialBgImageUrl) {
+export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
     // ─── 1) STATE ─────────────────────────────────────────────────────────────
     const canvasRef = ref(null)
     const seats = ref([])
     const shapes = ref([])          // ← aquí guardaremos los shapes
+
+    // 🟢 1) Estado responsive
+    const canvasW = ref(0)
+    const canvasH = ref(0)
 
     const tools = [
         { name: 'rect', label: 'Agregar cuadrado', icon: '⬛' },
@@ -15,8 +19,7 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
     ]
 
     const bgUploading = ref(false)
-    const canvasW = ref(1000)
-    const canvasH = ref(800)
+    // ─── DIMENSIONES DEL CANVAS ────────────────────────────────────────────────
     const bgImage = ref(null)
     const bgImageUrl = ref(initialBgImageUrl || '')
     const mapJSON = ref(null)
@@ -36,81 +39,153 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
     // Para asignar entrada_id por defecto
     const { tickets, totalTickets } = useTickets(eventoSlug)
 
-    // ─── 2) onMounted: CARGAR MAPA (seats + shapes + bg + JSON) ───────────────
-    onMounted(async () => {
-        // 2.1) Background inicial
-        if (initialBgImageUrl) {
-            const img = new Image()
-            img.src = initialBgImageUrl
-            await new Promise(r => (img.onload = r))
-            bgImage.value = img
-            bgImageUrl.value = initialBgImageUrl
+    // ─── MEDIR CONTENEDOR ───────────────────────────────────
+    // 🟢 2) Función que mide el contenedor
+    function updateSize() {
+        if (containerRef?.value) {
+            canvasW.value = containerRef.value.clientWidth
+            canvasH.value = containerRef.value.clientHeight
         }
-
-        // 2.2) Validar que tengamos eventoSlug
-        if (!eventoSlug) {
-            console.error('useSeatMap: falta el eventoSlug')
-            return
-        }
-
-        // 2.3) Petición al backend
-        const res = await fetch(`/api/eventos/${eventoSlug}/map`)
-        if (!res.ok) {
-            console.error(`Error al cargar el mapa: ${res.status}`)
-            return
-        }
-        // Desestructuramos seats y shapes
-        const { seats: rawSeats, shapes: rawShapes, bgUrl, map } = await res.json()
-
-        // 2.4) Si viene bgUrl distinto, lo cargamos
-        if (bgUrl) {
-            const img2 = new Image()
-            img2.src = bgUrl
-            await new Promise(r => (img2.onload = r))
-            bgImage.value = img2
-            bgImageUrl.value = bgUrl
-        }
-
-        // 2.5) Guardar JSON crudo del canvas
-        mapJSON.value = map
-
-        // 2.6) Mapear los asientos y asignarles entrada_id por defecto si hiciera falta
-        const defaultEntradaId = tickets.value[0]?.id
-        seats.value = rawSeats.map(s => ({
-            ...s,
-            entrada_id: s.entrada_id ?? defaultEntradaId,
-            selected: false,
-            radius: s.radius ?? 22,
-            label: s.label ?? '',
-            fontSize: s.font_size ?? 18,
-            type: s.type ?? 'seat',
-            width: s.width ?? null,
-            height: s.height ?? null,
-            rotation: s.rotation ?? 0,
-        }))
-
-        // 2.7) Mapear los shapes
-        shapes.value = rawShapes.map(s => ({
-            type: s.type,
-            x: s.x,
-            y: s.y,
-            width: s.width ?? null,
-            height: s.height ?? null,
-            rotation: s.rotation ?? 0,
-            label: s.label ?? '',
-            fontSize: s.font_size ?? 18,
-            selected: false      // ← inicializamos selected
-        }))
+    }
+    onMounted(() => {
+        updateSize()
+            containerRef.value.clientWidth,
+            containerRef.value.clientHeight
+        
+        window.addEventListener('resize', updateSize)
     })
 
-    // ✨ Nuevo: recibe la URL que emitió ImageUploader.vue
-    async function onBgUploadRequest(url) {
-        bgImageUrl.value = url
-        const img = new Image()
-        img.src = url
-        await new Promise(r => img.onload = r)
-        bgImage.value = img
-    }
+    watch([canvasW, canvasH], ([w, h]) => {
+        
+    })
+
+    onBeforeUnmount(() => {
+        window.removeEventListener('resize', updateSize)
+    })
+
+    // ─── 2) onMounted: CARGAR MAPA (seats + shapes + bg + JSON) ───────────────
+    onMounted(async () => {
+        // 🔍 2.1) Fetch al backend y manejo de errores
+        try {
+            const res = await fetch(`/api/eventos/${eventoSlug}/map`)
+            if (!res.ok) {
+                console.error(`❌ Error al cargar el mapa: ${res.status}`)
+                return
+            }
+
+            // 📥 Leemos UNA VEZ el body como texto
+            const text = await res.text()
+
+            // 🔄 Intentamos convertir ese texto a JSON
+            let data
+            try {
+                data = JSON.parse(text)
+                console.log(data)
+            } catch (err) {
+                console.error('⚠️ Respuesta inválida (no es JSON):', text)
+                return
+            }
+
+            // 🟢 Si todo bien, extraemos el payload
+            const { seats: rawSeats, shapes: rawShapes, bgUrl, map } = data
+
+            // 2.2) Fondo inicial (prop)
+
+            if (initialBgImageUrl) {
+                const img0 = new Image()
+                img0.src = initialBgImageUrl
+                await new Promise(r => (img0.onload = r))
+                bgImage.value = img0
+                bgImageUrl.value = initialBgImageUrl
+            }
+
+            // 2.3) Validar eventoSlug
+            if (!eventoSlug) {
+                console.error('useSeatMap: falta el eventoSlug')
+                return
+            }
+
+            // 2.4) Si viene bgUrl, lo normalizamos y cargamos
+            if (bgUrl) {
+                //console.log('[useSeatMap] raw bgUrl:', bgUrl)
+
+                // Creamos un objeto URL para extraer solo el pathname:
+                const urlObj = new URL(bgUrl, window.location.origin)
+                // pathname = "/storage/seat_maps/…png"
+                const src = window.location.origin + urlObj.pathname
+
+                //console.log('[useSeatMap] cargando fondo desde:', src)
+                const img1 = new Image()
+                img1.onerror = () => console.error('Error al cargar fondo:', src)
+                img1.src = src
+                await new Promise(r => (img1.onload = r))
+
+                bgImage.value = img1
+                bgImageUrl.value = urlObj.pathname  // guardas "/storage/seat_maps/…png"
+            }
+
+            // 2.5) Guardar JSON crudo del canvas
+            mapJSON.value = map
+
+            await nextTick(); // Aseguráte que canvasW y canvasH ya están seteados
+
+            const baseW = canvasW.value || 1;
+            const baseH = canvasH.value || 1;
+
+            // 2.6) Mapear los asientos y asignarles entrada_id por defecto si hiciera falta
+            seats.value = rawSeats.map(s => ({
+                ...s,
+                x: s.x * baseW,
+                y: s.y * baseH,
+                width: s.width ? s.width * baseW : null,
+                height: s.height ? s.height * baseH : null,
+                radius: s.radius ? s.radius * baseW : null,
+                fontSize: s.fontSize ? s.fontSize * baseW : null,
+                selected: false,
+            }));
+
+            shapes.value = rawShapes.map(s => ({
+                ...s,
+                x: s.x * baseW,
+                y: s.y * baseH,
+                width: s.width ? s.width * baseW : null,
+                height: s.height ? s.height * baseH : null,
+                radius: s.radius ? s.radius * baseW : null,
+                fontSize: s.fontSize ? s.fontSize * baseW : null,
+                selected: false,
+            }));
+
+            
+
+
+        } catch (networkErr) {
+            console.error('🌐 Error de red al pedir el mapa:', networkErr)
+        }
+    })
+
+    // Justo después de cargar seats y shapes en onMounted
+    watch([canvasW, canvasH], ([w, h]) => {
+        const baseW = w || 1;
+        const baseH = h || 1;
+        seats.value = seats.value.map(s => ({
+            ...s,
+            x: s.x <= 1 ? s.x * baseW : s.x, // solo recalcula si está en relativo (menor o igual a 1)
+            y: s.y <= 1 ? s.y * baseH : s.y,
+            width: s.width && s.width <= 1 ? s.width * baseW : s.width,
+            height: s.height && s.height <= 1 ? s.height * baseH : s.height,
+            radius: s.radius && s.radius <= 1 ? s.radius * baseW : s.radius,
+            fontSize: s.fontSize && s.fontSize <= 1 ? s.fontSize * baseW : s.fontSize,
+        }));
+        shapes.value = shapes.value.map(s => ({
+            ...s,
+            x: s.x <= 1 ? s.x * baseW : s.x,
+            y: s.y <= 1 ? s.y * baseH : s.y,
+            width: s.width && s.width <= 1 ? s.width * baseW : s.width,
+            height: s.height && s.height <= 1 ? s.height * baseH : s.height,
+            radius: s.radius && s.radius <= 1 ? s.radius * baseW : s.radius,
+            fontSize: s.fontSize && s.fontSize <= 1 ? s.fontSize * baseW : s.fontSize,
+        }));
+    });
 
     // ─── 3) PAN con barra espaciadora ──────────────────────────────────────────
     function onKeyDown(e) {
@@ -324,33 +399,30 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
             }
 
             // 10.2) Construir array unificado: primero shapes, luego seats
+            const baseW = canvasW.value || 1; // Siempre evitá dividir por 0
+            const baseH = canvasH.value || 1;
+
             const elements = [
                 ...shapes.value.map(s => ({
-                    type: s.type,
-                    x: s.x,
-                    y: s.y,
-                    width: s.width,
-                    height: s.height,
-                    rotation: s.rotation,
-                    label: s.label,
-                    fontSize: s.fontSize,
+                    ...s,
+                    x: s.x / baseW,
+                    y: s.y / baseH,
+                    width: s.width ? s.width / baseW : null,
+                    height: s.height ? s.height / baseH : null,
+                    radius: s.radius ? s.radius / baseW : null,
+                    fontSize: s.fontSize ? s.fontSize / baseW : null,
                 })),
                 ...onlySeats.map(s => ({
-                    type: s.type,
-                    x: s.x,
-                    y: s.y,
-                    row: s.row,
-                    prefix: s.prefix,
-                    number: s.number,
-                    entrada_id: s.entrada_id,
-                    width: s.width,
-                    height: s.height,
-                    radius: s.radius,
-                    label: s.label,
-                    fontSize: s.fontSize,
-                    rotation: s.rotation,
+                    ...s,
+                    x: s.x / baseW,
+                    y: s.y / baseH,
+                    width: s.width ? s.width / baseW : null,
+                    height: s.height ? s.height / baseH : null,
+                    radius: s.radius ? s.radius / baseW : null,
+                    fontSize: s.fontSize ? s.fontSize / baseW : null,
                 }))
-            ]
+            ];
+
 
             // Log para depuración
             // console.log('GUARDANDO:', {
@@ -419,60 +491,59 @@ export function useSeatMap(eventoSlug, initialBgImageUrl) {
      * @param {string} url 
      */
     async function onBgUploadRequest(url) {
-        // 1) Previsualización inmediata
-        const img = new Image();
-        img.src = url;
-        await new Promise(r => (img.onload = r));
-        // 2) Actualiza refs
-        bgImageUrl.value = url;
-        bgImage.value = img;
+        // 🔄 Normalizar URL: si no es absoluta, le anteponemos origen + /storage/
+        let fullUrl = url;
+        if (!/^https?:\/\//.test(url)) {
+            // quitamos cualquier slash inicial y construimos ruta válida
+            fullUrl = window.location.origin + '/storage/' + url.replace(/^\/+/, '');
+        }
 
-        console.log(bgImageUrl.value)
+        // 🖼️ Previsualización con la URL limpia
+        const img = new Image();
+        img.src = fullUrl;
+        await new Promise(r => (img.onload = r));
+
+        // 🎯 Guardamos la URL completa
+        bgImageUrl.value = fullUrl;
+        bgImage.value = img;
     }
+
 
     /**
  * Sube el archivo al servidor y, si todo ok, dispara onBgUploadRequest(url).
  * @param {File} file 
  */
     async function onFileSelected(file) {
-        console.log('[useSeatMap] onFileSelected invoked →', file)
-        bgUploading.value = true; // INICIA subida
-
-        // Prepara FormData
+        bgUploading.value = true;
         const fd = new FormData();
         fd.append('image', file);
 
-        // Llama al endpoint de upload
         const res = await fetch(`/api/eventos/${eventoSlug}/upload-bg`, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json'
-            },
-            body: fd
+            headers: { 'Accept': 'application/json' },
+            body: fd,
         });
+        if (!res.ok) { /* manejo de error */ }
 
-        if (!res.ok) {
-            // leer el texto crudo (JSON) que Laravel envía en 422
-            const text = await res.text();
-            console.error('Validation errors:', text);
-            toast.value = {
-                visible: true,
-                message: 'Falló la subida de la imagen (422)',
-                type: 'error'
-            };
-            bgUploading.value = false; // TERMINA subida aunque haya error
-            return;
+        let { url } = await res.json();  // p.ej. "seat_maps/xxx.png"
+        console.log('[upload-bg] respuesta raw:', url);
+
+        // 🔄 Normalizar aquí también
+        if (!/^https?:\/\//.test(url)) {
+            url = window.location.origin + '/storage/' + url.replace(/^\/+/, '');
         }
+        console.log('🟢 [upload-bg] normalized URL:', url);
 
-        // Obtén la URL devuelta y lanza preview + ref updates
-        const { url } = await res.json();
+        // 📸 Preview y guardado
         await onBgUploadRequest(url);
+        bgImageUrl.value = url;
 
-        toast.value = { visible: true, message: 'Imagen subida ✅', type: 'success' };
-        setTimeout(() => (toast.value.visible = false), 2000);
-
-        bgUploading.value = false; // TERMINA subida
+        toast.value = { visible: true, message: 'Imagen cargada ✅', type: 'success' };
+        bgUploading.value = false;
     }
+
+
+
 
     /**
      * Quita la imagen de fondo del canvas.

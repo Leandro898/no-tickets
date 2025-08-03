@@ -1,5 +1,5 @@
 import './bootstrap'
-import { createApp } from 'vue'
+import { createApp, h } from 'vue'
 import VueKonva from 'vue-konva'
 
 
@@ -12,14 +12,21 @@ window.toastr = toastr
 import SeatMap from './components/SeatMap/Page.vue'     // editor en admin
 import SeatCheckout from './components/SeatCheckout.vue'     // selector en front
 
-// ——— 1) Editor interno Filament (admin) ———
+// ——— 1) Editor interno Filament (admin) - Para los asientos ———
 const adminEl = document.getElementById('seat-map-app')
 if (adminEl) {
-    const eventoSlug = adminEl.dataset.eventoSlug // CORRECTO, queda como string
-    const initialBgImageUrl = adminEl.dataset.bgImageUrl || ''
-    createApp(SeatMap, { eventoSlug, initialBgImageUrl })
-        .use(VueKonva)
-        .mount(adminEl)
+    // 🔴 Leemos los atributos data- desde Blade
+    
+    const eventoSlug = adminEl.dataset.eventoSlug
+    const initialBgImageUrl = adminEl.dataset.initialBgImageUrl || ''
+
+
+    // 🟢 Montamos SeatMap (Page.vue) pasando los props dinámicos
+    createApp({
+        render: () => h(SeatMap, { eventoSlug, initialBgImageUrl })
+    })
+    .use(VueKonva)
+    .mount(adminEl)
 }
 
 // ——— 2) Selector / Checkout para el front ———
