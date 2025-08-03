@@ -1,6 +1,7 @@
 // resources/js/composables/useSeatMap.js
 import { ref, onMounted, onBeforeUnmount, toRaw, watch, nextTick } from 'vue'
 import { useTickets } from '@/composables/useTickets'
+import { BASE_CANVAS_WIDTH, BASE_CANVAS_HEIGHT } from '@/constants/seatMap'
 
 export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
     // ─── 1) STATE ─────────────────────────────────────────────────────────────
@@ -74,6 +75,7 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
             }
 
             // 📥 Leemos UNA VEZ el body como texto
+            //aca quiere decir que recibe un JSON??? osea es como se recibe en el navegador? datos crudos?
             const text = await res.text()
 
             // 🔄 Intentamos convertir ese texto a JSON
@@ -90,7 +92,6 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
             const { seats: rawSeats, shapes: rawShapes, bgUrl, map } = data
 
             // 2.2) Fondo inicial (prop)
-
             if (initialBgImageUrl) {
                 const img0 = new Image()
                 img0.src = initialBgImageUrl
@@ -114,7 +115,7 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
                 // pathname = "/storage/seat_maps/…png"
                 const src = window.location.origin + urlObj.pathname
 
-                //console.log('[useSeatMap] cargando fondo desde:', src)
+                //console.log('[useSeatMap] cargando imagen de fondo desde:', src)
                 const img1 = new Image()
                 img1.onerror = () => console.error('Error al cargar fondo:', src)
                 img1.src = src
@@ -127,36 +128,35 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
             // 2.5) Guardar JSON crudo del canvas
             mapJSON.value = map
 
-            await nextTick(); // Aseguráte que canvasW y canvasH ya están seteados
+            await nextTick();
+            
+            // 🟢 ACA el canvasW y canvasH ya están actualizados al tamaño visible del canvas
+            const actualW = canvasW.value || BASE_CANVAS_WIDTH
+            const actualH = canvasH.value || BASE_CANVAS_HEIGHT
 
-            const baseW = canvasW.value || 1;
-            const baseH = canvasH.value || 1;
-
-            // 2.6) Mapear los asientos y asignarles entrada_id por defecto si hiciera falta
+            // 2.6) Mapear los asientos y asignarles entrada_id por defecto si hiciera falta - Antes
+            // 🔥🔥 ACA es donde multiplicamos por el ancho/alto ACTUAL, no el BASE
             seats.value = rawSeats.map(s => ({
                 ...s,
-                x: s.x * baseW,
-                y: s.y * baseH,
-                width: s.width ? s.width * baseW : null,
-                height: s.height ? s.height * baseH : null,
-                radius: s.radius ? s.radius * baseW : null,
-                fontSize: s.fontSize ? s.fontSize * baseW : null,
+                x: s.x * actualW,
+                y: s.y * actualH,
+                width: s.width ? s.width * actualW : null,
+                height: s.height ? s.height * actualH : null,
+                radius: s.radius ? s.radius * actualW : null,
+                fontSize: s.fontSize ? s.fontSize * actualW : null,
                 selected: false,
             }));
-
+            console.log('Se pintan asientos desde useSeatMap:', seats.value)
             shapes.value = rawShapes.map(s => ({
                 ...s,
-                x: s.x * baseW,
-                y: s.y * baseH,
-                width: s.width ? s.width * baseW : null,
-                height: s.height ? s.height * baseH : null,
-                radius: s.radius ? s.radius * baseW : null,
-                fontSize: s.fontSize ? s.fontSize * baseW : null,
+                x: s.x * actualW,
+                y: s.y * actualH,
+                width: s.width ? s.width * actualW : null,
+                height: s.height ? s.height * actualH : null,
+                radius: s.radius ? s.radius * actualW : null,
+                fontSize: s.fontSize ? s.fontSize * actualW : null,
                 selected: false,
             }));
-
-            
-
 
         } catch (networkErr) {
             console.error('🌐 Error de red al pedir el mapa:', networkErr)

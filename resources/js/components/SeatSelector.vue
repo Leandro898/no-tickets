@@ -12,15 +12,15 @@
 
                 <!-- Lienzo Konva -->
                 <v-stage ref="stageRef" :config="{
-                    width: baseWidth,
-                    height: baseHeight,
+                    width: BASE_CANVAS_WIDTH,
+                    height: BASE_CANVAS_HEIGHT,
                     draggable: true,
                     scaleX: scale,
                     scaleY: scale
                 }" @wheel="onWheel" @mousedown="startMarquee" @mousemove="drawMarquee" @mouseup="endMarquee">
                     <v-layer>
                         <!-- Fondo -->
-                        <v-image v-if="bgImage" :config="{ image: bgImage, width: baseWidth, height: baseHeight }" />
+                        <v-image v-if="bgImage" :config="{ image: bgImage, width: BASE_CANVAS_WIDTH, height: BASE_CANVAS_HEIGHT }" />
 
 
                         <!-- Shapes -->
@@ -115,6 +115,11 @@
 import { defineProps, defineEmits, ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
 import PurchasePanel from './PurchasePanel.vue'
+import { BASE_CANVAS_WIDTH, BASE_CANVAS_HEIGHT } from '@/constants/seatMap'
+
+// Esto es para que se relacionen las dimensiones del canvas con el tamaño real del contenedor
+const canvasW = ref(BASE_CANVAS_WIDTH)
+const canvasH = ref(BASE_CANVAS_HEIGHT)
 
 // Variables para proceso de compra de asiento
 const showPurchase = ref(false)
@@ -146,8 +151,6 @@ const shapes = ref([])
 const bgImage = ref(null)
 const containerRef = ref(null)
 const scale = ref(1)
-const baseWidth = 1000
-const baseHeight = 800
 const stageRef = ref(null)
 
 
@@ -182,14 +185,14 @@ onMounted(async () => {
         seats.value = rawSeats.map(s => ({
             id: s.id,           // <-- PK único de la tabla 'seats'
             entrada_id: s.entrada_id,   // sigue disponible si lo necesitás
-            x: s.x,
-            y: s.y,
+            x: s.x <= 1 ? s.x * BASE_CANVAS_WIDTH : s.x,
+            y: s.y <= 1 ? s.y * BASE_CANVAS_HEIGHT : s.y,
             label: s.label,
             price: s.price,
             radius: s.radius ?? 22,
             selected: false
         }))
-        console.log('🔍 seats después del map:', seats.value)
+        console.log('🔍 seats después del map desde SeatSelector:', seats.value)
 
         // 3) Shapes igual que antes
         shapes.value = rawShapes.map(s => ({
@@ -327,8 +330,12 @@ function updateScale() {
     const c = containerRef.value;
     if (!c) return;
     const { offsetWidth: cw, offsetHeight: ch } = c;
-    const scaleX = cw / baseWidth;
-    const scaleY = ch / baseHeight;
+    // canvasW.value = cw;
+    // canvasH.value = ch;
+
+    const scaleX = cw / BASE_CANVAS_WIDTH;
+    const scaleY = ch / BASE_CANVAS_HEIGHT;
+
     const newScale = Math.min(scaleX, scaleY, 1);    // no sobredimensionar
     scale.value = newScale;
 
@@ -336,9 +343,6 @@ function updateScale() {
     stage.scale({ x: newScale, y: newScale });
     stage.batchDraw();
 }
-
-
-
 
 
 // Desmarca un asiento individual y refresca el panel
@@ -407,11 +411,10 @@ function onCircleLeave() {
 
 .stage-container {
     width: 100%;
-    /* ya lo tenías */
-    height: 100%;
-    /* ¡importante! */
+    max-width: 100vw;
+    height: 80vh;
+    /* o el que te guste */
     display: flex;
-    /* centra al <v-stage> dentro */
     align-items: center;
     justify-content: center;
 }
