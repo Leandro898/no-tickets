@@ -3,5 +3,10 @@
 @tailwind utilities;
 
 @layer utilities {
-    
+    html,
+        body {
+            width: 100%;
+            max-width: 100vw;
+            overflow-x: hidden !important;
+        }
 }

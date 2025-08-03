@@ -1,7 +1,8 @@
 <!-- C:\xampp\htdocs\no-tickets\resources\js\components\SeatSelector.vue -->
 <template>
-    <div class="seat-selector-wrapper h-full">
-        <div ref="containerRef" class="stage-container relative mx-auto w-full h-full" @mousemove="hidePopupOnMove">
+    <div class="seat-selector-wrapper">
+        <div ref="containerRef" class="stage-container"
+            @mousemove="hidePopupOnMove">
             <div class="relative">
                 <!-- Controles de Zoom/Pan/Reset -->
                 <div class="absolute top-2 left-2 z-10 flex gap-2 bg-white bg-opacity-80 p-2 rounded">
@@ -20,7 +21,8 @@
                 }" @wheel="onWheel" @mousedown="startMarquee" @mousemove="drawMarquee" @mouseup="endMarquee">
                     <v-layer>
                         <!-- Fondo -->
-                        <v-image v-if="bgImage" :config="{ image: bgImage, width: BASE_CANVAS_WIDTH, height: BASE_CANVAS_HEIGHT }" />
+                        <v-image v-if="bgImage"
+                            :config="{ image: bgImage, width: BASE_CANVAS_WIDTH, height: BASE_CANVAS_HEIGHT }" />
 
 
                         <!-- Shapes -->
@@ -169,6 +171,7 @@ function onClosePopup(e) {
     }
 }
 
+
 // Carga inicial de datos y listeners
 onMounted(async () => {
     try {
@@ -217,6 +220,9 @@ onMounted(async () => {
     document.addEventListener('mousedown', onClosePopup)
     updateScale()
 })
+
+
+
 
 
 // Limpieza al salir del componente
@@ -412,16 +418,31 @@ function onCircleLeave() {
 .stage-container {
     width: 100%;
     max-width: 100vw;
-    height: 80vh;
-    /* o el que te guste */
+    height: 60vh;
+    /* ajustá este valor según tu necesidad, probá también 70vh */
+    min-height: 260px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: #faf5ff;
+    /* para ver bien el espacio ocupado */
+}
+
+.stage-container {
+    outline: 2px solid red;
+    /* para ver su caja real */
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.v-stage {
+    outline: 2px dashed blue;
+    /* ver dónde aparece tu canvas */
 }
 
 .seat-selector-wrapper {
     position: relative;
 }
+
 
 
 

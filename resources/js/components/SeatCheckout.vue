@@ -28,10 +28,9 @@ function goToCheckout() {
 </script>
 
 <template>
-    <div class="flex flex-col items-center gap-4">
+    <div class="flex-1 w-full flex items-center justify-center px-2">
         <!-- 1) El lienzo con los asientos -->
-        <div class="w-full flex items-center justify-center"
-            style="height: calc(100vh - 80px); /* ajusta 80px a la altura de tu nav */">
+        <div class="w-full h-[calc(100vh-80px)] flex items-center justify-center">
             <SeatSelector :evento-slug=" props.eventoSlug" :purchase-route="props.purchaseRoute"
                 @selection-change="onSelectionChange" class="w-full h-full" />
         </div>
