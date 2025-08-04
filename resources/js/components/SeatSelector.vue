@@ -108,10 +108,8 @@
                 </div>
             </div>
 
-            <!-- ➡️ Llamada al componente PurchasePanel -->
-            <!-- Panel de compra -->
-            <PurchasePanel :seats="purchaseSeats" :visible="showPurchase" @close="showPurchase = false"
-                @remove="removeSeat" />
+        
+            
         </div>
     </div>
 </template>
@@ -120,7 +118,6 @@
 /*–––––––––– Imports y Props ––––––––––*/
 import { defineProps, defineEmits, ref, onMounted, computed, onBeforeUnmount, watch } from 'vue'
 import axios from 'axios'
-import PurchasePanel from './PurchasePanel.vue'
 import { BASE_CANVAS_WIDTH, BASE_CANVAS_HEIGHT } from '@/constants/seatMap'
 
 // Detectar si es móvil para ajustar el zoom
@@ -141,9 +138,8 @@ const bgImage = ref(null)
 // Para popup de asiento
 const popupSeat = ref(null)
 const popupPosition = ref({ x: 0, y: 0 })
-const hoverTimeout = ref(null)
-// Variables para proceso de compra de asiento
-const showPurchase = ref(false)
+let hoverTimeout = null
+
 
 // Lista reactiva de asientos seleccionados
 const purchaseSeats = computed(() =>
@@ -280,10 +276,11 @@ function toggle(idx, evt = null) {
     seats.value[idx].selected = !seats.value[idx].selected
 
     // 2) 2) Emitir lista actualizada de IDs seleccionados
-    const seleccionados = seats.value
+    const arr = seats.value
         .filter(s => s.selected)
-        .map(s => s.id)
-    emit('selection-change', seleccionados)
+        .map(s => ({ id: s.id, label: s.label, price: s.price }))
+    emit('selection-change', arr)
+
 
     // 3) Popup individual solo si acabás de seleccionar
     if (seats.value[idx].selected) {
@@ -297,8 +294,6 @@ function toggle(idx, evt = null) {
         popupSeat.value = null
     }
 
-    // 🔥 Abrir/cerrar drawer en base al computed
-    showPurchase.value = purchaseSeats.value.length > 0
 }
 
 // Mostrar popup al pasar el mouse por encima de un círculo
@@ -383,33 +378,19 @@ function endMarquee() {
             s.selected = true
         }
     })
-    emit('selection-change', seats.value.filter(s => s.selected).map(s => s.id))
+    emit('selection-change', seats.value
+        .filter(s => s.selected)
+        .map(s => ({ id: s.id, label: s.label, price: s.price }))
+    )
+
 }
 
 /*–––––––––– Remover asiento desde panel ––––––––––*/
 // Desmarca un asiento individual y refresca el panel
 // ✔️ Única función de “quitar asiento”
-function removeSeat(id) {
-    console.log('🗑️ Quiero quitar asiento:', id)
-    // 1) Desmarco en el mapa
-    const s = seats.value.find(x => x.id === id)
-    if (s) s.selected = false
 
-    // 2) Emito al padre la nueva lista de IDs
-    const nuevos = seats.value
-        .filter(x => x.selected)
-        .map(x => x.id)
-    emit('selection-change', nuevos)
 
-    // 3) Mantengo abierto el drawer solo si queda al menos uno
-    showPurchase.value = nuevos.length > 0
-}
 
-/*–––––––––– Watchers ––––––––––*/
-// 🔥 Abrir o cerrar drawer automáticamente al cambiar selección
-watch(purchaseSeats, v => {
-    showPurchase.value = v.length > 0
-})
 
 
 

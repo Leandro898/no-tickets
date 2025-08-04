@@ -6,6 +6,7 @@ use App\Http\Controllers\MercadoPagoController;
 use App\Models\Order;
 use App\Http\Controllers\SeatMapController;
 use App\Http\Controllers\EventoController;
+use App\Http\Controllers\Api\SeatReservationController;
 
 
 /*
@@ -59,3 +60,15 @@ Route::post('/eventos/{evento}/mapa', [SeatMapController::class, 'saveMap']);
 // (esto es lo que el frontend necesita para cargar el mapa de asientos)
 // Devuelve los asientos, la imagen de fondo y el mapa completo 
 Route::get('/eventos/{evento}/map', [SeatMapController::class, 'getMap']);
+
+
+// RUTAS PARA RESERVA DE ASIENTOS
+Route::post('/asientos/reservar', [SeatReservationController::class, 'reservar'])->name('api.asientos.reservar');
+Route::post('/asientos/liberar', [SeatReservationController::class, 'liberar'])
+    ->name('api.asientos.liberar');
+
+// RUTAS PARA COMPRAR ASIENTOS (API)
+// Simula una compra de asientos (para pruebas)
+Route::post('/eventos/{evento}/purchase-simulated', 
+    [SeatReservationController::class, 'purchaseSimulated']
+)->name('api.eventos.purchase-simulated');

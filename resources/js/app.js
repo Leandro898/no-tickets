@@ -30,14 +30,15 @@ if (adminEl) {
 }
 
 // ——— 2) Selector / Checkout para el front ———
-const el = document.getElementById('seat-checkout')
-if (el) {
-    const eventoSlug = el.dataset.slug
-    const purchaseRoute = el.dataset.purchaseRoute
-    //console.log('[app.js] montando SeatCheckout con:', { eventoSlug, purchaseRoute })
+const checkoutEl = document.getElementById('seat-checkout')
+if (checkoutEl) {
+    const eventoSlug = checkoutEl.dataset.slug
+    const purchaseRoute = checkoutEl.dataset.purchaseRoute
 
-    createApp(SeatCheckout, { eventoSlug, purchaseRoute })
+    createApp({
+        render: () => h(SeatCheckout, { eventoSlug, purchaseRoute })
+    })
         .use(VueKonva)
-        .mount(el)
+        .mount(checkoutEl)
 }
 

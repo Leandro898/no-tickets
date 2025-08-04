@@ -1,3 +1,4 @@
+<!-- resources/js/components/PurchasePanel.vue -->
 <template>
     <div v-if="visible" class="purchase-drawer">
         <!-- Cabecera -->
@@ -15,7 +16,7 @@
             <ul class="seat-list">
                 <li v-for="s in seats" :key="s.id" class="seat-item">
                     <span>🎫 Asiento {{ s.label || s.id }}</span>
-                    <span class="seat-price">${{ s.price ?? 0 }}</span>
+                    <span class="seat-price">${{ s.price || 0 }}</span>
                     <!-- 🔴 Aquí sí emitimos correctamente 'remove' con el ID -->
                     <button class="remove-btn" @click="emit('remove', s.id)" aria-label="Quitar asiento">✕</button>
                 </li>
@@ -25,6 +26,11 @@
             <div class="total-row">
                 <span>Total:</span>
                 <strong>${{ totalPrice }}</strong>
+            </div>
+
+            <!-- Mensaje de error -->
+            <div v-if="error" class="text-red-600 mb-2">
+                {{ error }}
             </div>
 
             <!-- Formulario comprador -->
@@ -45,41 +51,40 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import axios from 'axios'
 
-// 1️⃣ Desestructuramos aquí los props:
-const { seats, visible } = defineProps({
+const props = defineProps({
     seats: { type: Array, required: true },
-    visible: { type: Boolean, required: true }
+    visible: { type: Boolean, required: true },
 })
+const emit = defineEmits(['close', 'remove', 'confirm'])
 
-// 2️⃣ Emit:
-const emit = defineEmits(['close', 'remove'])
-
-// 👤 Datos del comprador:
+// Datos del comprador
 const buyer = ref({ name: '', email: '' })
+// Estado de la petición
+const loading = ref(false)
+// Ahora sí definimos el error
+const error = ref(null)
 
-// Computed del total
 const totalPrice = computed(() =>
-    seats.reduce((sum, s) => sum + (s.price || 0), 0)
+    props.seats.reduce((sum, s) => sum + (s.price || 0), 0)
 )
 
-// 🚀 Checkout:
-// 3️⃣ Envío al backend usando seats
-async function submitPurchase() {
-    const seatIds = seats.map(s => s.id)
-    const slug = seats[0]?.evento_slug
-    try {
-        const res = await axios.post(
-            `/api/eventos/${slug}/asientos/purchase-multiple`,
-            { seat_ids: seatIds, buyer: buyer.value }
-        )
-        window.location.href = res.data.checkoutUrl
-    } catch (e) {
-        alert(e.response?.data?.error || '❌ Error al procesar la compra')
+function submitPurchase() {
+    error.value = null
+    if (!buyer.value.name || !buyer.value.email) {
+        error.value = 'Debes completar nombre y correo.'
+        return
     }
+    loading.value = true
+    // Emitimos los datos al padre y lo dejamos a él manejar la reserva/compra
+    emit('confirm', {
+        seats: props.seats.map(s => s.id),
+        buyer: { ...buyer.value }
+    })
+    loading.value = false
 }
 </script>
+
 
 <style scoped>
 .purchase-drawer {
