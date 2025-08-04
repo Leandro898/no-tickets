@@ -233,6 +233,14 @@ class SeatMapController extends Controller
      */
     public function getMap(Evento $evento)
     {
+        // 🔥 **Limpieza automática de expirados** 🔥
+        \App\Models\Seat::where('status', 'reservado')
+            ->where('reserved_until', '<', now())
+            ->update([
+                'status'         => 'disponible',
+                'reserved_until' => null,
+            ]);
+            
         // ── 1) Limpiar bg_image_url
         $bg       = $evento->bg_image_url;    // "seat_maps/archivo.png"
         $relative = $bg
@@ -260,7 +268,9 @@ class SeatMapController extends Controller
                 'radius',
                 'label',
                 'font_size',
-                'rotation'
+                'rotation',
+                'status',
+                'reserved_until'
             ])->get();
 
         // ── 4) Shapes

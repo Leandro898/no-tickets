@@ -12,8 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // Ejecuta la renovación de tokens de Mercado Pago una vez por día
+        // 1) Renovación de tokens de Mercado Pago una vez al día
         $schedule->command('mercadopago:refresh-tokens')->daily();
+
+        // 2) Liberar asientos cuya reserva haya expirado, cada minuto
+        $schedule->command('seats:release-expired')->everyMinute();
     }
 
     /**
@@ -28,4 +31,3 @@ class Kernel extends ConsoleKernel
         require base_path('routes/console.php');
     }
 }
-

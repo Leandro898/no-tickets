@@ -37,14 +37,18 @@ class SeatReservationController extends Controller
             }
 
             // Marca como reservado
+            $expiresAt = now()->addMinutes(1);
             foreach ($asientos as $asiento) {
-                $asiento->status = 'reservado';
-                // Opcional: $asiento->reserved_until = Carbon::now()->addMinutes(10);
+                $asiento->status         = 'reservado';
+                $asiento->reserved_until = $expiresAt;
                 $asiento->save();
             }
 
             DB::commit();
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success'         => true,
+                'reserved_until'  => $expiresAt->toIso8601String(),
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['error' => 'Error al reservar asientos.'], 500);

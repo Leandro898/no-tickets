@@ -65,16 +65,23 @@
                         </template>
 
                         <!-- Asientos -->
-                        <v-circle v-for="(seat, idx) in seats" :key="seat.id" :config="{
-                            id: 'seat-' + seat.id,
-                            x: seat.x,
-                            y: seat.y,
-                            radius: seat.radius,
-                            fill: seat.selected ? '#a78bfa' : '#e5e7eb',
-                            stroke: seat.selected ? '#7c3aed' : '#a1a1aa',
-                            strokeWidth: 2,
-                        }" @mouseover="onCircleEnter(idx, $event)" @mouseout="onCircleLeave"
+                        <v-circle v-for="(seat, idx) in seats" :key="seat.id" :id="'seat-' + seat.id" :x="seat.x"
+                            :y="seat.y" :radius="seat.radius"  :fill="seat.status === 'vendido'
+                                ? '#f87171'
+                                : seat.status === 'reservado'
+                                    ? '#facc15'
+                                    : seat.selected
+                                        ? '#a78bfa'
+                                        : '#e5e7eb'"  :stroke="seat.status === 'vendido'
+                                            ? '#dc2626'
+                                            : seat.status === 'reservado'
+                                                ? '#d97706'
+                                                : seat.selected
+                                                    ? '#7c3aed'
+                                                    : '#a1a1aa'"  :listening="seat.status === 'disponible'" :strokeWidth="2"
+                            @mouseover="onCircleEnter(idx, $event)" @mouseout="onCircleLeave"
                             @click="toggle(idx, $event)" @tap="toggle(idx, $event)" />
+
 
 
                         <!-- Rectángulo de selección (“marquee”) -->
@@ -108,8 +115,8 @@
                 </div>
             </div>
 
-        
-            
+
+
         </div>
     </div>
 </template>
@@ -139,6 +146,8 @@ const bgImage = ref(null)
 const popupSeat = ref(null)
 const popupPosition = ref({ x: 0, y: 0 })
 let hoverTimeout = null
+// 🟢 Añadimos un temporizador para liberar reservas expiradas
+let reserveCleanupInterval = null
 
 
 // Lista reactiva de asientos seleccionados
@@ -167,55 +176,38 @@ const marqueeRectConfig = computed(() => ({
 /*–––––––––– Lifecycle ––––––––––*/
 // Carga inicial de datos y listeners
 onMounted(async () => {
-    try {
-        // 1) Llamás al endpoint que te devuelve 'id' de seats
-        const res = await axios.get(
-            `/api/eventos/${props.eventoSlug}/map`
-        )
-
-        const rawSeats = res.data.seats || []
-        const rawShapes = res.data.shapes || []
-        const bgUrl = res.data.bgUrl
-
-        // 2) Mapear usando s.id, no s.entrada_id
-        seats.value = rawSeats.map(s => ({
-            id: s.id,           // <-- PK único de la tabla 'seats'
-            entrada_id: s.entrada_id,   // sigue disponible si lo necesitás
-            x: s.x <= 1 ? s.x * BASE_CANVAS_WIDTH : s.x,
-            y: s.y <= 1 ? s.y * BASE_CANVAS_HEIGHT : s.y,
-            label: s.label,
-            price: s.price,
-            radius: s.radius ?? 22,
-            selected: false
-        }))
-        console.log('🔍 seats después del map desde SeatSelector:', seats.value)
-
-        // 3) Shapes igual que antes
-        shapes.value = rawShapes.map(s => ({
-            ...s,
-            fontSize: s.font_size || s.fontSize || 18
-        }))
-
-        // 4) Cargo imagen de fondo
-        if (bgUrl) {
-            const img = new window.Image()
-            img.src = bgUrl
-            await new Promise(r => (img.onload = r))
-            bgImage.value = img
-        }
-
-    } catch (err) {
-        console.error('No pude cargar el mapa:', err)
+    const res = await axios.get(`/api/eventos/${props.eventoSlug}/map`)
+    seats.value = res.data.seats.map(s => ({
+        id: s.id,
+        x: s.x <= 1 ? s.x * BASE_CANVAS_WIDTH : s.x,
+        y: s.y <= 1 ? s.y * BASE_CANVAS_HEIGHT : s.y,
+        radius: s.radius || 22,
+        label: s.label,
+        price: s.price,
+        status: s.status,                          // 'disponible'|'reservado'|'vendido'
+        reservedUntil: s.reserved_until ? new Date(s.reserved_until) : null,
+        selected: false
+    }))
+    shapes.value = res.data.shapes.map(s => ({ ...s, fontSize: s.font_size || 18 }))
+    if (res.data.bgUrl) {
+        const img = new Image(); img.src = res.data.bgUrl
+        await new Promise(r => img.onload = r)
+        bgImage.value = img
     }
-
-    // listeners y escalado
     window.addEventListener('resize', updateScale)
     document.addEventListener('mousedown', onClosePopup)
     updateScale()
 
-    // 🔥 evita que el navegador capture toques como scroll/zoom
-    const stage = stageRef.value.getStage()
-    stage.getContainer().style.touchAction = 'none'
+    // 👉 **ADICIÓN**: liberar automáticamente reservas expiradas cada segundo
+    reserveCleanupInterval = setInterval(() => {
+        const now = Date.now()
+        seats.value.forEach(s => {
+            if (s.status === 'reservado' && s.reservedUntil && now > s.reservedUntil.getTime()) {
+                s.status = 'disponible'
+                s.reservedUntil = null
+            }
+        })
+    }, 1000)
 })
 
 // Limpieza al salir del componente
@@ -223,6 +215,9 @@ onBeforeUnmount(() => {
     window.removeEventListener('resize', updateScale)
     // 💡 SACÁS EL ESCUCHADOR PARA EVITAR FILTRACIONES DE MEMORIA
     document.removeEventListener('mousedown', onClosePopup)
+
+    // 👉 **ADICIÓN**: detener el intervalo de expiraciones
+    clearInterval(reserveCleanupInterval)
 })
 
 /*–––––––––– Data & Map Load ––––––––––*/
@@ -272,29 +267,34 @@ function updateScale() {
 /*–––––––––– Interacción Asientos ––––––––––*/
 // Alterna selección de un asiento
 function toggle(idx, evt = null) {
-    // 1) Invertir selección de este asiento - osea pasar de activo a desactivado
-    seats.value[idx].selected = !seats.value[idx].selected
-
-    // 2) 2) Emitir lista actualizada de IDs seleccionados
-    const arr = seats.value
-        .filter(s => s.selected)
-        .map(s => ({ id: s.id, label: s.label, price: s.price }))
-    emit('selection-change', arr)
-
-
-    // 3) Popup individual solo si acabás de seleccionar
-    if (seats.value[idx].selected) {
-        popupSeat.value = seats.value[idx]
-        // posición igual que antes…
-        const x = evt?.evt?.clientX ?? seats.value[idx].x
-        const y = evt?.evt?.clientY ?? seats.value[idx].y
-        popupPosition.value = { x, y }
-    } else {
-        // si des­clickeó y ya no quería ver detalles, ocultalo
-        popupSeat.value = null
+    const s = seats.value[idx];
+    // ■ Si NO está disponible, salimos sin hacer nada
+    if (s.status !== 'disponible') {
+        return;
     }
 
+    // ■ 1) Invertir selección
+    s.selected = !s.selected;
+
+    // ■ 2) Emitir lista actualizada
+    const seleccionados = seats.value
+        .filter(x => x.selected)
+        .map(x => ({ id: x.id, label: x.label, price: x.price }));
+    emit('selection-change', seleccionados);
+
+    // ■ 3) Popup si es nueva selección
+    if (s.selected) {
+        popupSeat.value = s;
+        const x = evt?.evt?.clientX ?? s.x;
+        const y = evt?.evt?.clientY ?? s.y;
+        popupPosition.value = { x, y };
+    } else {
+        popupSeat.value = null;
+    }
 }
+
+
+
 
 // Mostrar popup al pasar el mouse por encima de un círculo
 function onCircleEnter(idx, e) {
@@ -432,9 +432,4 @@ function hidePopupOnMove() {
 .seat-selector-wrapper {
     position: relative;
 }
-
-
-
-
-
 </style>

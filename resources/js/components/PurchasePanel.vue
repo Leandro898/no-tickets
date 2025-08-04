@@ -1,6 +1,17 @@
 <!-- resources/js/components/PurchasePanel.vue -->
 <template>
     <div v-if="visible" class="purchase-drawer">
+
+        <!-- Temporizador de expiración -->
+        <div class="p-4 bg-yellow-100 text-yellow-800 font-semibold">
+            <template v-if="remainingMs > 0">
+                ⏳ Te quedan {{ minutes }}:{{ seconds }} para completar tu compra
+            </template>
+            <template v-else>
+                ⚠️ Tu reserva ha expirado
+            </template>
+        </div>
+
         <!-- Cabecera -->
         <header class="drawer-header">
             <h3 class="drawer-title">🛒 Resumen de tu compra</h3>
@@ -43,20 +54,55 @@
                     <label for="buyer-email">Email *</label>
                     <input id="buyer-email" v-model="buyer.email" type="email" required />
                 </div>
-                <button type="submit" class="submit-btn">💳 Proceder al pago</button>
+                <button type="submit" class="submit-btn" :disabled="loading || remainingMs <= 0">💳 Proceder al
+                    pago</button>
             </form>
         </section>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 
 const props = defineProps({
     seats: { type: Array, required: true },
     visible: { type: Boolean, required: true },
+    reservedUntil: { type: Date, default: null },
 })
 const emit = defineEmits(['close', 'remove', 'confirm'])
+
+/*
+ * 1) Computamos el tiempo restante de reserva
+ *    y actualizamos cada segundo.
+ */
+const now = ref(Date.now())
+let timerInterval = null
+
+// ms restantes
+const remainingMs = computed(() =>
+    props.reservedUntil
+        ? new Date(props.reservedUntil).getTime() - now.value
+        : 0
+)
+const remainingSec = computed(() =>
+    Math.max(0, Math.ceil(remainingMs.value / 1000))
+)
+const minutes = computed(() =>
+    String(Math.floor(remainingSec.value / 60)).padStart(2, '0')
+)
+const seconds = computed(() =>
+    String(remainingSec.value % 60).padStart(2, '0')
+)
+
+// Arrancar/parar interval al abrir/cerrar
+watch(() => props.visible, visible => {
+    if (visible && props.reservedUntil) {
+        timerInterval = setInterval(() => now.value = Date.now(), 250)
+    } else {
+        clearInterval(timerInterval)
+    }
+})
+onBeforeUnmount(() => clearInterval(timerInterval))
 
 // Datos del comprador
 const buyer = ref({ name: '', email: '' })

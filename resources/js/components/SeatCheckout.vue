@@ -11,53 +11,62 @@ const props = defineProps({
 })
 
 // 1) Estado local
+const mapKey = ref(0);
 const selectedSeats = ref([])     // aquí guardamos los objetos asiento
 const showPurchase = ref(false) // controla visibilidad del drawer
+
+// Contdor de expiración de reserva
+const reservedUntil = ref(null)
 
 // Este método recibirá el array de IDs desde SeatSelector
 // 2) Cuando SeatSelector emite los asientos seleccionados:
 function onSelectionChange(seats) {
     selectedSeats.value = seats   // ahora son {id,label,price}
-    showPurchase.value = seats.length > 0
+    // showPurchase.value = seats.length > 0
 }
 
-
-// 3) Quitar asiento desde el drawer
-// function removeSeat(id) {
-//     selectedSeats.value = selectedSeats.value.filter(s => s.id !== id)
-//     if (!selectedSeats.value.length) showPurchase.value = false
-// }
-
-
-async function handleConfirm({ seats, buyer }) {
+async function reserveSeats() {
     try {
-        // 1) Reserva
-        //await axios.post('/api/asientos/reservar', { seats })
+        // 1) Reserva y obtenemos reserved_until
+        const ids = selectedSeats.value.map(s => s.id)
+        const res = await axios.post('/api/asientos/reservar', { seats: ids })
+        reservedUntil.value = new Date(res.data.reserved_until)
+        showPurchase.value = true
 
-        // 2) Compra simulada
-        const { data } = await axios.post(
-            props.purchaseRoute,
-            {
-                seats,
-                buyer_full_name: buyer.name,
-                buyer_email: buyer.email
-            }
-        )
-
-        alert(`✅ Compra simulada exitosa. Orden ID: ${data.order.id}`)
-        showPurchase.value = false
-        // Opcional: redirigir a “Mis Entradas” o recargar
-    }
-    catch (err) {
+        // 2) Ahora abrimos el panel de compra
+        // (el PurchasePanel recibirá reservedUntil como prop)
+    } catch (err) {
         if (err.response?.status === 409) {
-            const ocupados = err.response.data.ocupados
-            alert(`❌ Los asientos ${ocupados.join(', ')} ya no están disponibles.`)
-            // Forzar recarga del mapa
-            window.location.reload()
+            alert(`❌ Ya no están disponibles: ${err.response.data.ocupados.join(', ')}`)
+            mapKey.value++
         } else {
-            alert(err.response?.data?.error || '❌ Error al procesar la compra.')
+            alert('❌ Error al reservar')
         }
+        return
     }
+}
+
+// Cuando el usuario confirma dentro del timer:
+async function submitPayment({ seats, buyer }) {
+    try {
+        const { data } = await axios.post(props.purchaseRoute, {
+            seats,
+            buyer_full_name: buyer.name,
+            buyer_email: buyer.email
+        })
+        alert(`✅ Compra OK (ID ${data.order.id})`)
+        closePanel()
+    } catch (err) {
+        alert('❌ Error en la simulación de compra.')
+        mapKey.value++
+    }
+}
+
+function closePanel() {
+    showPurchase.value = false
+    selectedSeats.value = []
+    reservedUntil.value = null
+    mapKey.value++
 }
 
 // 4) Recarga el mapa (por ejemplo recargando la página o volviendo a fetch)
@@ -127,12 +136,18 @@ async function onClosePanel() {
     <div class="flex-1 w-full flex items-center justify-center px-2 overflow-hidden">
         <!-- 1) El lienzo con los asientos -->
         <div class="w-full h-[calc(100vh-80px)] flex items-center justify-center">
-            <SeatSelector :evento-slug=" props.eventoSlug" :purchase-route="props.purchaseRoute"
-                @selection-change="onSelectionChange" class="w-full h-full" />
+            <SeatSelector :key="mapKey" :evento-slug=" props.eventoSlug" @selection-change="onSelectionChange"
+                class="w-full h-full" />
         </div>
         <!-- 2) Drawer de compra -->
-        <PurchasePanel :visible="showPurchase" :seats="selectedSeats" @remove="removeSeat" @close="onClosePanel"
-            @confirm="handleConfirm" />
+        <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
+            @close="closePanel" @confirm="submitPayment" />
+
+        <!-- 2) Botón “Reservar” -->
+        <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats"
+            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+            🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
+        </button>
 
         <!-- 2) Indicador de cuántos asientos seleccionó
         <p class="text-lg">
