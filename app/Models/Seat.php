@@ -22,4 +22,12 @@ class Seat extends Model
         'y',
         'rotation',
     ];
+
+    /**
+     * Relación con la Entrada (tipo de ticket)
+     */
+    public function entrada()
+    {
+        return $this->belongsTo(Entrada::class);
+    }
 }

@@ -7,7 +7,7 @@ use App\Models\Order;
 use App\Http\Controllers\SeatMapController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\Api\SeatReservationController;
-
+use App\Http\Controllers\Api\SeatPurchaseController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,12 +25,12 @@ Route::post('mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook
      ->name('mercadopago.webhook');
 
 // 2️⃣ Endpoint para el polling de status
-Route::get('orders/{order}/status', function (Order $order) {
-    return response()->json([
-        // aquí comprueba el campo que utilizas para guardar el estado
-        'status' => $order->payment_status,
-    ]);
-});
+// Route::get('orders/{order}/status', function (Order $order) {
+//     return response()->json([
+//         // aquí comprueba el campo que utilizas para guardar el estado
+//         'status' => $order->payment_status,
+//     ]);
+// });
 
 //RUTAS PARA SELECCION DE ASIENTOS
 
@@ -66,6 +66,12 @@ Route::get('/eventos/{evento}/map', [SeatMapController::class, 'getMap']);
 Route::post('/asientos/reservar', [SeatReservationController::class, 'reservar'])->name('api.asientos.reservar');
 Route::post('/asientos/liberar', [SeatReservationController::class, 'liberar'])
     ->name('api.asientos.liberar');
+
+/* Ruta para la compra se asientos - Conexion con Mercado Pago */
+Route::post(
+    '/eventos/{evento}/asientos/purchase',
+    [SeatPurchaseController::class, 'purchase']
+)->name('api.eventos.asientos.purchase');
 
 // RUTAS PARA COMPRAR ASIENTOS (API)
 // Simula una compra de asientos (para pruebas)

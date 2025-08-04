@@ -33,6 +33,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\EntradaController;
 use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
+use App\Models\Order;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -66,7 +67,7 @@ Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleC
 Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
 //Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
 
-Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
+// Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
 
 Route::get('/purchase/success/{order}', [MercadoPagoController::class, 'success'])->name('purchase.success');
 Route::get('/purchase/failure/{order}', [MercadoPagoController::class, 'failure'])->name('purchase.failure');
@@ -239,12 +240,7 @@ Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'
 Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
      ->name('purchase.rejected');
 
-// Para actualizar pagina de pending - compra pendiente
-Route::get('orders/{order}/status', function (Order $order) {
-    return response()->json([
-        'status' => $order->status, // asegúrate de que tu modelo tenga este campo
-    ]);
-});
+
 
 // RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
 

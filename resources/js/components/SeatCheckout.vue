@@ -49,18 +49,37 @@ async function reserveSeats() {
 // Cuando el usuario confirma dentro del timer:
 async function submitPayment({ seats, buyer }) {
     try {
-        const { data } = await axios.post(props.purchaseRoute, {
+        const payload = {
             seats,
             buyer_full_name: buyer.name,
-            buyer_email: buyer.email
-        })
-        alert(`✅ Compra OK (ID ${data.order.id})`)
-        closePanel()
+            buyer_email: buyer.email,
+            buyer_dni: buyer.dni || '',
+        };
+        const res = await axios.post(props.purchaseRoute, payload);
+        window.location.href = res.data.redirect_url;
     } catch (err) {
-        alert('❌ Error en la simulación de compra.')
-        mapKey.value++
+        // Si viene 422, muestro el mensaje concreto
+        if (err.response?.status === 422) {
+            const data = err.response.data;
+            // Validaciones de FormRequest:
+            if (data.errors) {
+                // Ejemplo: { errors: { seats: [...], buyer_full_name: [...] } }
+                const msgs = Object.values(data.errors)
+                    .flat()
+                    .join('\n');
+                alert(`❌ Errores de validación:\n${msgs}`);
+            }
+            // Excepciones lanzadas manualmente en el controller:
+            else if (data.error) {
+                alert(`❌ ${data.error}`);
+            }
+        } else {
+            console.error(err);
+            alert('❌ Error inesperado. Mira la consola.');
+        }
     }
 }
+
 
 function closePanel() {
     showPurchase.value = false

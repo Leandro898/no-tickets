@@ -20,7 +20,9 @@ class CreateEvento extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return EntradaResource::getUrl('manage-entradas', [
-            'evento_id' => $this->record->id,
+            // Aquí envías el slug del evento, no el evento_id
+            'slug'      => $this->record->slug,
+            // El has_seats irá como query string
             'has_seats' => $this->record->has_seats ? 1 : 0,
         ]);
     }
