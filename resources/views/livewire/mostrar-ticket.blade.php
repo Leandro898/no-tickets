@@ -79,7 +79,7 @@
 <body>
   <div class="ticket">
     <div class="ticket-header">
-      <div class="ticket-title">Innova Ticket</div>
+      <div class="ticket-title">Tickets Pro</div>
       <div class="ticket-event">#{{ $ticket->short_code }}</div>
     </div>
     <div class="ticket-body">

@@ -20,7 +20,7 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-200 flex flex-col">
         <div class="h-16 flex items-center justify-center border-b border-gray-100 text-xl font-bold">
-            Innova Ticket
+            Tickets Pro
         </div>
 
         <nav class="flex-1 px-4 py-6 space-y-2 text-gray-700">

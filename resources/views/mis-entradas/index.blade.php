@@ -31,7 +31,7 @@
                             $evento = optional($ticket->entrada)->evento;
                             $cantidad = json_decode($ticket->order->items_data)[0]->cantidad ?? 1;
                             $mensaje = rawurlencode(
-                                "¡Hola! Gracias por tu compra en *Innova Ticket*.
+                                "¡Hola! Gracias por tu compra en *Tickets Pro*.
 
                         *Evento:* {$evento->nombre}
                         *Lugar:* {$evento->ubicacion}
