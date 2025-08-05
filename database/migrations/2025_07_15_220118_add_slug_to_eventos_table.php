@@ -12,7 +12,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('eventos', function (Blueprint $table) {
-<<<<<<< HEAD
+
             $table->string('slug')->unique()->after('nombre');
 =======
             if (! Schema::hasColumn('eventos', 'slug')) {
@@ -28,13 +28,13 @@ return new class extends Migration
     public function down()
     {
         Schema::table('eventos', function (Blueprint $table) {
-<<<<<<< HEAD
+
             $table->dropColumn('slug');
-=======
+
             if (Schema::hasColumn('eventos', 'slug')) {
                 $table->dropColumn('slug');
             }
->>>>>>> ajustes-seats
+ ajustes-seats
         });
     }
 };

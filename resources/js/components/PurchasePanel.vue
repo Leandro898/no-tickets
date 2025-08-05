@@ -1,7 +1,6 @@
 <!-- resources/js/components/PurchasePanel.vue -->
 <template>
     <div v-if="visible" class="purchase-drawer">
-
         <!-- Temporizador de expiración -->
         <div class="p-4 bg-yellow-100 text-yellow-800 font-semibold">
             <template v-if="remainingMs > 0">
@@ -18,33 +17,25 @@
             <button class="close-btn" @click="emit('close')">✕</button>
         </header>
 
-        <!-- Lista de asientos -->
+        <!-- Lista de asientos y formulario -->
         <section class="drawer-body">
-            <!-- <pre style="padding:1rem; background:#f9f9f9; font-size:0.8rem;">
-            {{ seats }}
-            </pre> -->
-
             <ul class="seat-list">
                 <li v-for="s in seats" :key="s.id" class="seat-item">
                     <span>🎫 Asiento {{ s.label || s.id }}</span>
                     <span class="seat-price">${{ s.price || 0 }}</span>
-                    <!-- 🔴 Aquí sí emitimos correctamente 'remove' con el ID -->
                     <button class="remove-btn" @click="emit('remove', s.id)" aria-label="Quitar asiento">✕</button>
                 </li>
             </ul>
 
-            <!-- Total -->
             <div class="total-row">
                 <span>Total:</span>
                 <strong>${{ totalPrice }}</strong>
             </div>
 
-            <!-- Mensaje de error -->
             <div v-if="error" class="text-red-600 mb-2">
                 {{ error }}
             </div>
 
-            <!-- Formulario comprador -->
             <form class="drawer-form" @submit.prevent="submitPurchase">
                 <div class="form-group">
                     <label for="buyer-name">Nombre completo *</label>
@@ -54,8 +45,9 @@
                     <label for="buyer-email">Email *</label>
                     <input id="buyer-email" v-model="buyer.email" type="email" required />
                 </div>
-                <button type="submit" class="submit-btn" :disabled="loading || remainingMs <= 0">💳 Proceder al
-                    pago</button>
+                <button type="submit" class="submit-btn" :disabled="loading || remainingMs <= 0">
+                    💳 Proceder al pago
+                </button>
             </form>
         </section>
     </div>
@@ -71,14 +63,10 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'remove', 'confirm'])
 
-/*
- * 1) Computamos el tiempo restante de reserva
- *    y actualizamos cada segundo.
- */
+// Temporizador
 const now = ref(Date.now())
 let timerInterval = null
 
-// ms restantes
 const remainingMs = computed(() =>
     props.reservedUntil
         ? new Date(props.reservedUntil).getTime() - now.value
@@ -94,7 +82,6 @@ const seconds = computed(() =>
     String(remainingSec.value % 60).padStart(2, '0')
 )
 
-// Arrancar/parar interval al abrir/cerrar
 watch(() => props.visible, visible => {
     if (visible && props.reservedUntil) {
         timerInterval = setInterval(() => now.value = Date.now(), 250)
@@ -104,11 +91,9 @@ watch(() => props.visible, visible => {
 })
 onBeforeUnmount(() => clearInterval(timerInterval))
 
-// Datos del comprador
+// Comprador y estado
 const buyer = ref({ name: '', email: '' })
-// Estado de la petición
 const loading = ref(false)
-// Ahora sí definimos el error
 const error = ref(null)
 
 const totalPrice = computed(() =>
@@ -122,7 +107,6 @@ function submitPurchase() {
         return
     }
     loading.value = true
-    // Emitimos los datos al padre y lo dejamos a él manejar la reserva/compra
     emit('confirm', {
         seats: props.seats.map(s => s.id),
         buyer: { ...buyer.value }
@@ -131,9 +115,9 @@ function submitPurchase() {
 }
 </script>
 
-
 <style scoped>
 .purchase-drawer {
+    /* Drawer lateral en desktop */
     position: fixed;
     top: 0;
     right: 0;
@@ -144,6 +128,24 @@ function submitPurchase() {
     display: flex;
     flex-direction: column;
     z-index: 10000;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+/* Bottom sheet en móviles */
+@media (max-width: 640px) {
+    .purchase-drawer {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        max-height: 80vh;
+        height: auto;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+    }
 }
 
 .drawer-header {

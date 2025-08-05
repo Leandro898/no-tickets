@@ -1,3 +1,4 @@
+<!-- /resources/js/components/SeatMap/SeatsLayer.vue -->
 <template>
     <v-circle v-for="(seat, idx) in seats" :key="seat.id" :ref="el => setCircleEl(el, idx)" :config="{
         id: 'seat-' + seat.id,
@@ -10,8 +11,8 @@
         draggable: true
     }" @mousedown="onToggleSeat(idx, $event)" @dragmove="onSeatDragMove(idx, $event)"
         @dragend="onSeatDragEnd(idx, $event)" v-on="!isBackend ? {
-        mouseover: (e) => onCircleHover(idx, e),
-        mouseout: onCircleOut
+            mouseover: (e) => onCircleHover(idx, e),
+            mouseout: onCircleOut
         } : {}" />
 
 
@@ -141,9 +142,11 @@ function onSeatDragEnd(i, e) {
 
 
 function onToggleSeat(i, event) {
+    console.log('🟢 [SeatsLayer] onToggleSeat llamado para asiento:', i, props.seats[i]);
     // 1) Si es parte de una selección múltiple y clickeas un seleccionado sin Shift, dejamos que Konva arrastre.
     const selectedCount = props.seats.filter(s => s.selected).length
     const alreadySelected = props.seats[i].selected
+    console.log('   selectedCount:', selectedCount, 'alreadySelected:', alreadySelected);
     if (!event.shiftKey && alreadySelected && selectedCount > 1) {
         return
     }

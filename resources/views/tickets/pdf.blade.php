@@ -74,11 +74,7 @@
             {{-- 1) MOSTRAR EL SHORT_CODE --}}
             <div class="ticket-code">#{{ $ticket->short_code }}</div>
 
-<<<<<<< HEAD
-            <h2>Innova Ticket</h2>
-=======
             <h2>Tickets Pro</h2>
->>>>>>> ajustes-seats
 
             <div class="info">
                 <p><strong>Evento:</strong> {{ $ticket->order->event->nombre ?? 'Evento' }}</p>

@@ -78,6 +78,7 @@ class EditEvento extends EditRecord
     // METODO PARA REDIRIGIR DESPUES DE EDITAR EL EVENTO
     protected function getRedirectUrl(): string
     {
-        return "/admin/eventos/{$this->record->id}/detalles";
+        return "/admin/eventos/{$this->record->slug}/detalles";
     }
+
 }

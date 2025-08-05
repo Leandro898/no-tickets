@@ -1,5 +1,6 @@
 <!-- resources/js/components/SeatCheckout.vue -->
 <script setup>
+
 import { defineProps, ref } from 'vue'
 import axios from 'axios'
 import SeatSelector from './SeatSelector.vue'
@@ -160,7 +161,7 @@ async function onClosePanel() {
         </div>
         <!-- 2) Drawer de compra -->
         <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
-            @close="closePanel" @confirm="submitPayment" />
+            @close="closePanel" @confirm="submitPayment" @remove="removeSeat" />
 
         <!-- 2) Botón “Reservar” -->
         <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats"
