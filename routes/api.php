@@ -4,13 +4,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MercadoPagoController;
 use App\Models\Order;
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\SeatMapController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\Api\SeatReservationController;
 use App\Http\Controllers\Api\SeatPurchaseController;
->>>>>>> ajustes-seats
 
 /*
 |--------------------------------------------------------------------------
@@ -28,14 +25,6 @@ Route::post('mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook
      ->name('mercadopago.webhook');
 
 // 2️⃣ Endpoint para el polling de status
-<<<<<<< HEAD
-Route::get('orders/{order}/status', function (Order $order) {
-    return response()->json([
-        // aquí comprueba el campo que utilizas para guardar el estado
-        'status' => $order->payment_status,
-    ]);
-});
-=======
 // Route::get('orders/{order}/status', function (Order $order) {
 //     return response()->json([
 //         // aquí comprueba el campo que utilizas para guardar el estado
@@ -89,4 +78,3 @@ Route::post(
 Route::post('/eventos/{evento}/purchase-simulated', 
     [SeatReservationController::class, 'purchaseSimulated']
 )->name('api.eventos.purchase-simulated');
->>>>>>> ajustes-seats

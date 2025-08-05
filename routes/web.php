@@ -25,8 +25,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Controllers\Admin\DashboardController;
-<<<<<<< HEAD
-=======
 use App\Http\Controllers\PurchaseController;
 use Filament\Http\Middleware\Authorize as FilamentAuthorize;
 use App\Http\Controllers\SeatPurchaseController;
@@ -36,7 +34,6 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\EntradaController;
 use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
 use App\Models\Order;
->>>>>>> ajustes-seats
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -243,16 +240,6 @@ Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'
 Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
      ->name('purchase.rejected');
 
-<<<<<<< HEAD
-// Para actualizar pagina de pending - compra pendiente
-Route::get('orders/{order}/status', function (Order $order) {
-    return response()->json([
-        'status' => $order->status, // asegúrate de que tu modelo tenga este campo
-    ]);
-});
-
-
-=======
 
 
 // RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
@@ -282,6 +269,5 @@ Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
 
 
 
->>>>>>> ajustes-seats
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc
 require __DIR__ . '/auth.php';

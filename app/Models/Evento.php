@@ -123,8 +123,6 @@ class Evento extends Model
             }
         });
     }
-}
-
 
     /**
      * Accesor para obtener la URL de la imagen de fondo.
@@ -137,3 +135,6 @@ class Evento extends Model
             : null;
     }
 }
+
+
+    
