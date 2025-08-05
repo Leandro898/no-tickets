@@ -6,6 +6,8 @@ use App\Filament\Resources\EventoResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
 use Illuminate\Contracts\Support\Htmlable;
+use Filament\Forms\Components\Toggle;
+use function redirect;
 
 
 
@@ -16,16 +18,19 @@ class ListEventos extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('Crear Evento')
-                ->url('/admin/eventos/create')
-                ->color('primary')
-                ->extraAttributes([
-                    'class' => 'btn-right',
-                ]),
-            // Este boton que sigue es para hacer aparece el otro boton de cancelar
-            /* Action::make('delete')
-                ->requiresConfirmation()
-                ->action(fn() => $this->post->delete()), */
+            Action::make('crear-normal')
+                ->label('Crear evento sin asientos')
+                ->icon('heroicon-o-calendar')
+                ->url(fn() => EventoResource::getUrl('create', [
+                    'has_seats' => 0,
+                ])),
+
+            Action::make('crear-con-butacas')
+                ->label('Crear evento con asientos')
+                ->icon('heroicon-o-ticket')
+                ->url(fn() => EventoResource::getUrl('create', [
+                    'has_seats' => 1,
+                ])),
         ];
     }
 
@@ -37,6 +42,8 @@ class ListEventos extends ListRecords
 
     protected function getTableRecordUrlUsing(): ?\Closure
     {
-        return fn($record) => EventoResource::getUrl('detalles', ['record' => $record]);
+        return fn($record) => EventoResource::getUrl('detalles', [
+            'record' => $record->slug, // o $record->id
+        ]);
     }
 }

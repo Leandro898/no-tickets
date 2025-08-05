@@ -2,32 +2,46 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\EventoResource\Pages;
 use App\Models\Evento;
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Form;
+use App\Filament\Resources\EventoResource\Pages\ListEventos;
+use App\Filament\Resources\EventoResource\Pages\CreateEvento;
+use App\Filament\Resources\EventoResource\Pages\EditEvento;
+use App\Filament\Resources\EventoResource\Pages\GestionarEntradas;
+use App\Filament\Resources\EventoResource\Pages\ReportesEvento;
+use App\Filament\Resources\EventoResource\Pages\EventoDetalles;
+use App\Filament\Resources\EventoResource\Pages\ConfigureSeats;
+
 use Filament\Resources\Resource;
-use Filament\Tables\Table;
+use Filament\Forms\Form;
+use Filament\Forms;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
+
+use Filament\Tables\Table;
+use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
-use App\Filament\Resources\EventoResource\RelationManagers\EntradasRelationManager;
-use App\Filament\Resources\EventoResource\Pages\ListEventos;
-use Filament\Forms\Components\Hidden;
-use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\CreateAction;
+
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\EventoResource\Pages\ListaDigital;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Toggle;
 use App\Filament\Resources\EntradaResource;
+
+
+
 
 class EventoResource extends Resource
 {
@@ -37,10 +51,16 @@ class EventoResource extends Resource
     protected static ?string $pluralModelLabel = 'Eventos';
     protected static ?string $navigationGroup = null; // **NULL para que no esté en grupo**
     protected static ?int $navigationSort = 1;
+    // ← aquí le dices “usa slug como clave primaria para las rutas”
+    protected static ?string $recordRouteKeyName = 'slug';
+
 
     public static function form(Form $form): Form
     {
         return $form->schema([
+            Hidden::make('has_seats')
+                ->default(fn() => request()->boolean('has_seats'))
+                ->dehydrated(true),
             Section::make('Datos principales')
                 ->description('Completa la información general del evento.')
                 ->schema([
@@ -89,7 +109,7 @@ class EventoResource extends Resource
                 ->columnSpanFull()
                 ->icon('heroicon-o-information-circle')
                 ->collapsible(),
-                //->collapsed()
+            //->collapsed()
 
             // Section::make('Restricciones y requisitos')
             //     ->description('Configura los requisitos para los asistentes.')
@@ -220,17 +240,17 @@ class EventoResource extends Resource
     public static function getPages(): array
     {
         return [
-            //'index' => ListEventos::class,
-            'index' => Pages\ListEventos::route('/'),
-            'create' => Pages\CreateEvento::route('/create'),
-            'edit' => Pages\EditEvento::route('/{record}/edit'),
-            'gestionar-entradas' => Pages\GestionarEntradas::route('/{record}/gestionar-entradas'),
-            'reportes' => Pages\ReportesEvento::route('/{record}/reportes'),
-            //'view' => Pages\EventoDetalles::route('/{record}'),
-            'detalles' => Pages\EventoDetalles::route('/{record}/detalles'),
-            'lista-digital' => Pages\ListaDigital::route('/{record}/lista-digital'),
+            'index'              => ListEventos::route('/'),
+            'create'             => CreateEvento::route('/create'),
+            'edit'               => EditEvento::route('/{record}/edit'),
+            'gestionar-entradas' => GestionarEntradas::route('/{record}/gestionar-entradas'),
+            'reportes'           => ReportesEvento::route('/{record}/reportes'),
+            'detalles'           => EventoDetalles::route('/{record}/detalles'),
+            'lista-digital'      => ListaDigital::route('/{record}/lista-digital'),
+            'configure-seats' => ConfigureSeats::route('/{record}/asientos'),
         ];
     }
+
 
     public static function getRelations(): array
     {
@@ -241,7 +261,8 @@ class EventoResource extends Resource
 
     public static function getRecordUrl($record, string $pageName = 'detalles'): string
     {
-        return static::getUrl('detalles', ['record' => $record]);
+        // ahora $record ya resolverá al slug
+        return static::getUrl($pageName, ['record' => $record]);
     }
 
     public static function getModel(): string
@@ -254,5 +275,4 @@ class EventoResource extends Resource
         return parent::getEloquentQuery()
             ->where('organizador_id', auth()->id());
     }
-
 }

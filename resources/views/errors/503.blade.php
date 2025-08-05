@@ -77,8 +77,8 @@
     <body>
         <div class="maintenance-container">
             <h1 class="maintenance-title">Próximamente...</h1>
-            <img src="{{ asset('images/logo-innova.png') }}" alt="Logo Innova Ticket" class="maintenance-logo">
-            <p class="maintenance-text">Innova Ticket</p>
+            <img src="{{ asset('images/logo-innova.png') }}" alt="Logo Tickets Pro" class="maintenance-logo">
+            <p class="maintenance-text">Tickets Pro</p>
         </div>
     </body>
 

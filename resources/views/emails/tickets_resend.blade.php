@@ -28,7 +28,11 @@
       <li>Presentá el PDF en tu celular o impreso en el evento (el QR está incluido).</li>
       <li>No compartas tu entrada, el QR es personal y único.</li>
     </ol>
+<<<<<<< HEAD
     <p style="margin-top:32px;">¡Nos vemos en el evento!<br>El equipo de <strong>Innova Ticket</strong></p>
+=======
+    <p style="margin-top:32px;">¡Nos vemos en el evento!<br>El equipo de <strong>Tickets Pro</strong></p>
+>>>>>>> ajustes-seats
   </div>
 
 </body>

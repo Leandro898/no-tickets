@@ -29,35 +29,47 @@ class CreateEntrada extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Obtener el evento_id de la URL o de los datos del formulario
-        $eventoId = $this->data['evento_id'] ?? request()->query('evento_id');
-        
-        if (!$eventoId) {
+        $eventoId = $data['evento_id'] ?? request()->query('evento_id');
+
+        if (! $eventoId) {
             Notification::make()
                 ->title('Error')
                 ->body('Debe seleccionar un evento válido')
                 ->danger()
                 ->send();
-                
-            $this->halt(); // Detiene el proceso de creación
+
+            $this->halt();
         }
 
         $data['evento_id'] = $eventoId;
 
-        // Asegúrate de que stock_actual se inicialice si stock_inicial está presente
-        if (isset($data['stock_inicial']) && !isset($data['stock_actual'])) {
+        if (isset($data['stock_inicial']) && ! isset($data['stock_actual'])) {
             $data['stock_actual'] = $data['stock_inicial'];
         }
 
         return $data;
     }
 
+
     protected function getRedirectUrl(): string
     {
-        // Aseguramos que $this->record->evento_id exista. Si la creación falló, $this->record podría ser nulo.
-        $eventoId = $this->record ? $this->record->evento_id : request()->query('evento_id');
-        return EventoResource::getUrl('gestionar-entradas', ['record' => $eventoId]);
+        $evento = $this->record->evento;
+
+        if ($evento->has_seats) {
+            // Redirige al mapa de asientos
+            return EventoResource::getUrl('configure-seats', [
+                'record' => $evento->id,
+            ]);
+        }
+
+        // Si no tiene butacas numeradas, va a gestionar entradas
+        return EventoResource::getUrl('gestionar-entradas', [
+            'record' => $evento->id,
+        ]);
     }
+
+
+
 
     // QUITAR MIGAS DE PAN
     public function getBreadcrumbs(): array

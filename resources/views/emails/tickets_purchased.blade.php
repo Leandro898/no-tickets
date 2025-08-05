@@ -64,7 +64,7 @@
     {{-- FOOTER --}}
     <div style="text-align:center;font-size:12px;color:#777;margin-top:20px;">
       <p style="margin:0 0 8px;">
-        © Innova Ticket. Todos los derechos reservados.
+        © Tickets Pro. Todos los derechos reservados.
       </p>
       <p style="margin:0;">
         <a href="{{ url('/') }}" style="color:#7f3fd2;text-decoration:none;margin:0 6px;">Inicio</a>

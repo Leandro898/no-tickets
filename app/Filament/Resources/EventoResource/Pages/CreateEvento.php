@@ -14,13 +14,17 @@ class CreateEvento extends CreateRecord
 {
     protected static string $resource = EventoResource::class;
 
-    // PROPIEDAD PARA OVERRIDA BLADE
-    protected static string $view = 'vendor.filament-panels.pages.evento-create';
-
     protected function getRedirectUrl(): string
     {
-        return EntradaResource::getUrl('create', ['evento_id' => $this->record->id]);
+        return EntradaResource::getUrl('manage-entradas', [
+            // Aquí envías el slug del evento, no el evento_id
+            'slug'      => $this->record->slug,
+            // El has_seats irá como query string
+            'has_seats' => $this->record->has_seats ? 1 : 0,
+        ]);
     }
+
+
 
     public function getBreadcrumbs(): array
     {
@@ -49,18 +53,5 @@ class CreateEvento extends CreateRecord
                 ->url($this->getResource()::getUrl('index')),
         ];
     }
-
-    /**
-     * Aquí personalizamos el botón de Crear para que pida confirmación.
-     */
-    protected function getFormActions(): array
-    {
-        return [
-            // Botón crear
-            CreateAction::make('create')
-                ->label('Crear Evento')
-                ->createAnother(false),
-                
-        ];
-    }
+    
 }

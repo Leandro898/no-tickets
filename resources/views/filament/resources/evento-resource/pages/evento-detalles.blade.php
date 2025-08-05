@@ -36,6 +36,7 @@
 
             <div class="h-8"></div> {{-- Espaciador de 80px de alto --}}
 
+<<<<<<< HEAD
             {{-- BOTONES DE ACCIÓN --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->id])" icon="heroicon-o-pencil-square"
@@ -60,6 +61,50 @@
                 </x-filament::button> --}}
                 <livewire:suspender-evento :eventoId="$record->id" />
 
+=======
+
+            {{-- BOTONES DE ACCIÓN --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <x-filament::button tag="a" :href="route('filament.admin.resources.eventos.edit', ['record' => $record->slug])" icon="heroicon-o-pencil-square"
+                    class="btn-detalles">
+                    Editar evento
+                </x-filament::button>
+
+
+
+                <x-filament::button tag="a" :href="\App\Filament\Resources\EntradaResource\Pages\ManageEntradas::getUrl([
+                    'slug' => $record->slug,
+                ])" icon="heroicon-o-pencil" class="btn-detalles">
+                    Editar Entradas
+                </x-filament::button>
+
+
+
+
+
+
+
+
+
+                <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ReportesEvento::getUrl([
+                    'record' => $record->slug,
+                ])" icon="heroicon-o-chart-bar"
+                    class="btn-detalles">Reportes</x-filament::button>
+
+                <x-filament::button type="button" icon="heroicon-o-link" class="btn-detalles"
+                    x-on:click="mostrarModal = true">Copiar link</x-filament::button>
+
+                <x-filament::button tag="a" :href="\App\Filament\Resources\EventoResource\Pages\ListaDigital::getUrl([
+                    'record' => $record->slug,
+                ])" icon="heroicon-o-list-bullet"
+                    class="btn-detalles">Lista digital</x-filament::button>
+
+                {{-- <x-filament::button type="button" wire:click="suspender">
+                    Suspender evento
+                </x-filament::button> --}}
+                <livewire:suspender-evento :eventoId="$record->id" />
+
+>>>>>>> ajustes-seats
             </div>
         </div>
 

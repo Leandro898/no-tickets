@@ -25,13 +25,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Controllers\Admin\DashboardController;
+<<<<<<< HEAD
+=======
+use App\Http\Controllers\PurchaseController;
+use Filament\Http\Middleware\Authorize as FilamentAuthorize;
+use App\Http\Controllers\SeatPurchaseController;
+use App\Http\Controllers\SeatMapController;
+use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\Admin\EntradaController;
+use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
+use App\Models\Order;
+>>>>>>> ajustes-seats
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // --------------------------- EVENTOS ---------------------------
 Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
-Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+
+//RUTA REPETIDA???
+//Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
 
 // ---------------------- COMPRA CON SPLIT ----------------------
 Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');
@@ -56,7 +70,7 @@ Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleC
 Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
 //Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
 
-Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
+// Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
 
 Route::get('/purchase/success/{order}', [MercadoPagoController::class, 'success'])->name('purchase.success');
 Route::get('/purchase/failure/{order}', [MercadoPagoController::class, 'failure'])->name('purchase.failure');
@@ -229,6 +243,7 @@ Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'
 Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
      ->name('purchase.rejected');
 
+<<<<<<< HEAD
 // Para actualizar pagina de pending - compra pendiente
 Route::get('orders/{order}/status', function (Order $order) {
     return response()->json([
@@ -237,5 +252,36 @@ Route::get('orders/{order}/status', function (Order $order) {
 });
 
 
+=======
+
+
+// RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
+
+Route::get(
+    'eventos/{evento}/checkout-seats',
+    [SeatMapController::class, 'showCheckout']
+)->name('eventos.checkout-seats');
+
+// Ruta para el checkout de asientos
+Route::get(
+    'eventos/{evento}/checkout',
+    [CheckoutController::class, 'show']
+)->name('eventos.checkout');
+
+
+// Ruta que procesa la creación de la orden (checkout)
+Route::post('orders', [OrderController::class, 'store'])
+    ->name('orders.create');
+// Ruta que muestra la página de agradecimiento después de la compra
+Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
+    ->name('orders.thankyou');
+
+
+
+
+
+
+
+>>>>>>> ajustes-seats
 // ——— aquí ya conectas las rutas “normales” de login/registro/etc
 require __DIR__ . '/auth.php';

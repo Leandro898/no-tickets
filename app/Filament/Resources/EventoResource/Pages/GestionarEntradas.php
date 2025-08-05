@@ -19,7 +19,8 @@ class GestionarEntradas extends Page
 
     public function mount($record): void
     {
-        $this->evento = Evento::findOrFail($record);
+        // Ahora busca el evento por slug
+        $this->evento = Evento::where('slug', $record)->firstOrFail();
     }
 
     protected function getViewData(): array

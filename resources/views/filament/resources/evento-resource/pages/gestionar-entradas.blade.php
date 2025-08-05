@@ -10,7 +10,7 @@
         {{-- Header: botón volver --}}
         <div class="flex justify-end">
             <x-filament::button
-                :href="EventoDetalles::getUrl(['record' => $evento->id])"
+                :href="EventoDetalles::getUrl(['record' => $evento->slug])"
                 size="sm"
                 icon="heroicon-o-arrow-left"
                 tag="a"

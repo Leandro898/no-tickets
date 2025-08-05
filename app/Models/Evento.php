@@ -26,15 +26,48 @@ class Evento extends Model
         'edad_min_hombres',
         'edad_min_mujeres',
         'requerir_dni',
+        'has_seats',
+        'bg_image_url',
+        'map_data',
     ];
 
-    // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'
+    protected $casts = [
+        // …otros casts…
+        'has_seats' => 'boolean',
+    ];
+
+    // Buscar por slug
     public function getRouteKeyName(): string
     {
-        // si la URL arranca con "admin", usamos ID; si no, slug
-        return request()->is('admin/*') ? 'id' : 'slug';
+        return 'slug';
     }
 
+    // Para que Laravel haga Route Model Binding usando 'slug' en lugar de 'id'
+    // public function getRouteKeyName(): string
+    // {
+    //     if (request()->is('admin/*') || request()->is('filament/*') || request()->is('api/*')) {
+    //         return 'id';
+    //     }
+    //     return 'slug';
+    // }
+
+    /**
+     * Relación con el modelo Shape.
+     * Un evento puede tener múltiples shapes.
+     */
+    public function shapes()
+    {
+        return $this->hasMany(Shape::class);
+    }
+
+
+    // Relacion con asientos
+    public function seats()
+    {
+        return $this->hasMany(Seat::class);
+    }
+
+    // Relacion con entradas
     public function entradas()
     {
         return $this->hasMany(Entrada::class);
@@ -89,5 +122,18 @@ class Evento extends Model
                 }
             }
         });
+    }
+}
+
+
+    /**
+     * Accesor para obtener la URL de la imagen de fondo.
+     * Si no hay imagen, retorna una cadena vacía.
+     */
+    public function getBgImageUrlAttribute(): ?string
+    {
+        return ! empty($this->attributes['bg_image_url'])
+            ? asset('storage/' . ltrim($this->attributes['bg_image_url'], '/'))
+            : null;
     }
 }

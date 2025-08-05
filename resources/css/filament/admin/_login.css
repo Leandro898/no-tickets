@@ -18,7 +18,7 @@
         @apply ring-0 !important;
     }
 
-    /* Logo del panel de texto "Innova Ticket" (texto o SVG) */
+    /* Logo del panel de texto "Tickets Pro" (texto o SVG) */
     body .fi-logo {
         @apply text-[35px];
     }

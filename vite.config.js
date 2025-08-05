@@ -1,18 +1,28 @@
+// vite.config.js
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import vue from '@vitejs/plugin-vue';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     plugins: [
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/css/filament/admin/filament.css', // Esta ruta para el tema de Filament para personalizarlo
+                'resources/css/filament/admin/filament.css',
                 'resources/js/app.js',
-                // 'resources/js/scanner-new.js', // Agrego el archivo de scanner para que funcione con Vite
-                //LOS ARCHIVOS DEL SCANNER
                 'resources/js/scanner/index.js',
-              ],
+            ],
             refresh: true,
         }),
+        vue(),
     ],
+    resolve: {
+        alias: {
+            // Para que import { createApp } from 'vue' funcione bien
+            vue: 'vue/dist/vue.esm-bundler.js',
+            // Alias “@” apunta a resources/js
+            '@': fileURLToPath(new URL('./resources/js', import.meta.url)),
+        },
+    },
 });

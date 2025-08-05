@@ -35,6 +35,15 @@ class Entrada extends Model
         'max_por_compra' => 'integer',
     ];
 
+    /**
+     * Relación 1:N con Seat:
+     *   una Entrada (ticket) puede tener muchos asientos asignados.
+     */
+    public function seats()
+    {
+        return $this->hasMany(\App\Models\Seat::class, 'entrada_id', 'id');
+    }
+    
     public function evento(): BelongsTo
     {
         return $this->belongsTo(Evento::class);
@@ -67,4 +76,6 @@ class Entrada extends Model
             }
         });
     }
+
+    
 }

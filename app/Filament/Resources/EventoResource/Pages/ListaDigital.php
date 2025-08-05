@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action   as TableAction; // ← para el menú de cada fila
 use Filament\Actions\Action          as PageAction;  // ← para el header
+use App\Models\Evento;
 use Filament\Forms\Components\Toggle;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\ToggleColumn;
@@ -32,7 +33,12 @@ class ListaDigital extends Page implements HasTable
 
     protected $listeners = ['reenviarEntrada', 'toggleEstado'];
 
-    public int $record;
+    public ?Evento $evento = null;
+
+    public function mount($record)
+    {
+        $this->evento = Evento::where('slug', $record)->firstOrFail();
+    }
 
     /* ---------- Básico ---------- */
 
@@ -51,8 +57,9 @@ class ListaDigital extends Page implements HasTable
     public function getTableQuery(): Builder
     {
         return PurchasedTicket::query()
-            ->whereHas('entrada', fn($q) => $q->where('evento_id', $this->record));
+            ->whereHas('entrada', fn($q) => $q->where('evento_id', $this->evento->id));
     }
+
 
     /* ---------- Columnas ---------- */
 
@@ -216,14 +223,14 @@ class ListaDigital extends Page implements HasTable
     }
 
     /*------------- Botón “Volver a detalles” -------------*/
-    protected function getHeaderActions(): array // (en v3 sigue llamándose así para Page)
+    protected function getHeaderActions(): array
     {
         return [
             PageAction::make('volver')
                 ->label('Ir a detalles')
                 ->icon('heroicon-o-arrow-left')
                 ->url(
-                    EventoResource::getUrl('detalles', ['record' => $this->record])
+                    EventoResource::getUrl('detalles', ['record' => $this->evento->slug])
                 )
                 ->color('primary')
                 ->button()
