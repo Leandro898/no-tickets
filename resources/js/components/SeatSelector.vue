@@ -23,7 +23,7 @@
                 <v-stage ref="stageRef" :config="{
                     width: BASE_CANVAS_WIDTH,
                     height: BASE_CANVAS_HEIGHT,
-                    draggable: true,
+                    draggable: !mobile,
                     scaleX: scale,
                     scaleY: scale
                 }" @wheel="onWheel" @mousedown="e => { if (!isMobile) startMarquee(e) }"
@@ -198,12 +198,12 @@ onMounted(async () => {
     // 3) Espero al siguiente “tick” para que el <div ref="containerRef"> ya esté en el DOM
     await nextTick()
 
-    // 4) Librero el zoom/pan y listeners
+    // 4) Aplico zoom/pan inicial y listeners de resize + click fuera
     updateScale()
     window.addEventListener('resize', updateScale)
     document.addEventListener('mousedown', onClosePopup)
 
-    // 5) Arranco la limpieza periódica de reservas expiradas
+    // 5) Limpieza periódica de reservas expiradas
     reserveCleanupInterval = setInterval(() => {
         const now = Date.now()
         seats.value.forEach(s => {
@@ -213,6 +213,32 @@ onMounted(async () => {
             }
         })
     }, 1000)
+
+    // 6) Handler de pinch-to-zoom en móviles
+    let lastDist = 0
+    const stage = stageRef.value.getStage()
+    stage.on('touchmove', e => {
+        const touches = e.evt.touches
+        if (touches.length === 2) {
+            e.evt.preventDefault()
+            const dist = Math.hypot(
+                touches[1].clientX - touches[0].clientX,
+                touches[1].clientY - touches[0].clientY
+            )
+            if (lastDist) {
+                const scaleBy = dist / lastDist
+                const oldScale = stage.scaleX()
+                const newScale = oldScale * scaleBy
+                stage.scale({ x: newScale, y: newScale })
+                scale.value = newScale
+                stage.batchDraw()
+            }
+            lastDist = dist
+        }
+    })
+    stage.on('touchend', () => {
+        lastDist = 0
+    })
 })
 
 onBeforeUnmount(() => {
@@ -238,7 +264,7 @@ function updateScale() {
     console.log('[SeatSelector] updateScale', { mobile, cw, ch, rsBase });
 
     // 4) factor extra en móvil
-    const mobileFactor = mobile ? 1.05 : 1;  // prueba 0.7, 0.75…
+    const mobileFactor = mobile ? 0.80 : 1;  // prueba 0.7, 0.75…
     const rs = rsBase * mobileFactor;
 
     // 5) aplica escala
