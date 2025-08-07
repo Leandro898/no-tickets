@@ -71,8 +71,9 @@
                                     seat.status === 'reservado' ? '#d97706' :
                                         seat.selected ? '#7c3aed' :
                                             '#a1a1aa'
-                                    " :strokeWidth="2" :listening="seat.status === 'disponible'" @mouseover="onCircleEnter(idx, $event)"
-                            @mouseout="onCircleLeave" @click="toggle(idx, $event)" @tap="toggle(idx, $event)" />
+                                    " :strokeWidth="2" :listening="seat.status === 'disponible'"
+                            @mouseover="onCircleEnter(idx, $event)" @mouseout="onCircleLeave"
+                            @click="toggle(idx, $event)" @tap="toggle(idx, $event)" />
 
                         <!-- Selección rectangular (marquee) -->
                         <v-rect v-if="marquee.visible" :config="marqueeRectConfig" />
@@ -86,10 +87,10 @@
                         Asiento {{ popupSeat.label || popupSeat.id }}
                     </div>
                     <div>
-                        <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
+                        <!-- <b>Sector:</b> {{ popupSeat.sector || '—' }}<br>
                         <b>Fila:</b> {{ popupSeat.row || '—' }}<br>
-                        <b>Número:</b> {{ popupSeat.number || '—' }}<br>
-                        <b>Precio:</b> ${{ popupSeat.price || '--' }}
+                        <b>Número:</b> {{ popupSeat.number || '—' }}<br> -->
+                        <b>Precio:</b> ${{ popupSeat.price ?? '--' }}
                     </div>
                 </div>
             </div>

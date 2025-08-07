@@ -1,41 +1,50 @@
-<!-- resources/js/components/SeatCheckout.vue -->
-<script setup>
+<template>
+    <div class="seat-checkout-container">
+        <!-- El lienzo de asientos -->
+        <div class="seat-canvas">
+            <SeatSelector :key="mapKey" :evento-slug="props.eventoSlug" @selection-change="onSelectionChange"
+                class="w-full h-full" />
+        </div>
 
+        <!-- Botón RESERVAR siempre visible -->
+        <div class="reserve-button-container">
+            <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats" class="reserve-btn">
+                🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
+            </button>
+        </div>
+
+        <!-- Drawer de compra -->
+        <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
+            @close="closePanel" @confirm="submitPayment" @remove="removeSeat" />
+    </div>
+</template>
+
+<script setup>
 import { defineProps, ref } from 'vue'
 import axios from 'axios'
 import SeatSelector from './SeatSelector.vue'
 import PurchasePanel from './PurchasePanel.vue'
 
 const props = defineProps({
-    eventoSlug: { type: String, required: true },
-    purchaseRoute: { type: String, required: true },
+    eventoSlug: String,
+    purchaseRoute: String,
 })
 
-// 1) Estado local
-const mapKey = ref(0);
-const selectedSeats = ref([])     // aquí guardamos los objetos asiento
-const showPurchase = ref(false) // controla visibilidad del drawer
-
-// Contdor de expiración de reserva
+const mapKey = ref(0)
+const selectedSeats = ref([])
+const showPurchase = ref(false)
 const reservedUntil = ref(null)
 
-// Este método recibirá el array de IDs desde SeatSelector
-// 2) Cuando SeatSelector emite los asientos seleccionados:
 function onSelectionChange(seats) {
-    selectedSeats.value = seats   // ahora son {id,label,price}
-    // showPurchase.value = seats.length > 0
+    selectedSeats.value = seats
 }
 
 async function reserveSeats() {
+    const ids = selectedSeats.value.map(s => s.id)
     try {
-        // 1) Reserva y obtenemos reserved_until
-        const ids = selectedSeats.value.map(s => s.id)
-        const res = await axios.post('/api/asientos/reservar', { seats: ids })
-        reservedUntil.value = new Date(res.data.reserved_until)
+        const { data } = await axios.post('/api/asientos/reservar', { seats: ids })
+        reservedUntil.value = new Date(data.reserved_until)
         showPurchase.value = true
-
-        // 2) Ahora abrimos el panel de compra
-        // (el PurchasePanel recibirá reservedUntil como prop)
     } catch (err) {
         if (err.response?.status === 409) {
             alert(`❌ Ya no están disponibles: ${err.response.data.ocupados.join(', ')}`)
@@ -43,11 +52,9 @@ async function reserveSeats() {
         } else {
             alert('❌ Error al reservar')
         }
-        return
     }
 }
 
-// Cuando el usuario confirma dentro del timer:
 async function submitPayment({ seats, buyer }) {
     try {
         const payload = {
@@ -55,32 +62,14 @@ async function submitPayment({ seats, buyer }) {
             buyer_full_name: buyer.name,
             buyer_email: buyer.email,
             buyer_dni: buyer.dni || '',
-        };
-        const res = await axios.post(props.purchaseRoute, payload);
-        window.location.href = res.data.redirect_url;
-    } catch (err) {
-        // Si viene 422, muestro el mensaje concreto
-        if (err.response?.status === 422) {
-            const data = err.response.data;
-            // Validaciones de FormRequest:
-            if (data.errors) {
-                // Ejemplo: { errors: { seats: [...], buyer_full_name: [...] } }
-                const msgs = Object.values(data.errors)
-                    .flat()
-                    .join('\n');
-                alert(`❌ Errores de validación:\n${msgs}`);
-            }
-            // Excepciones lanzadas manualmente en el controller:
-            else if (data.error) {
-                alert(`❌ ${data.error}`);
-            }
-        } else {
-            console.error(err);
-            alert('❌ Error inesperado. Mira la consola.');
         }
+        const { data } = await axios.post(props.purchaseRoute, payload)
+        window.location.href = data.redirect_url
+    } catch (err) {
+        // manejo simplificado…
+        alert('❌ Error al procesar el pago')
     }
 }
-
 
 function closePanel() {
     showPurchase.value = false
@@ -89,96 +78,60 @@ function closePanel() {
     mapKey.value++
 }
 
-// 4) Recarga el mapa (por ejemplo recargando la página o volviendo a fetch)
-function loadMap() {
-    window.location.reload()
-}
-
-// 5) Al terminar la compra simulada
-function onPurchased(order) {
-    // order viene del backend (purchase-simulated)
-    alert(`¡Compra simulada OK! Orden ID: ${order.id}`)
-    // aquí podrías redirigir a "Mis Entradas" o similar
-}
-
-
-// Al pulsar “Comprar”, redirigimos a tu ruta de checkout pasando los IDs
-function goToCheckout() {
-    if (selectedSeats.value.length === 0) {
-        alert('Por favor, seleccioná al menos un asiento.')
-        return
-    }
-    const params = new URLSearchParams()
-    selectedSeats.value.forEach(id => params.append('seats[]', id))
-    window.location.href = `${props.purchaseRoute}?${params.toString()}`
-}
-
-// 6) Liberar un asiento
-// Esta función se llamará desde el componente PurchasePanel
-// cuando el usuario pulse el botón de "Quitar" en un asiento.
-// También se llamará al cerrar el panel de compra si hay asientos seleccionados.
-// Liberamos el asiento del backend y lo quitamos de la selección.
-// Si no hay asientos seleccionados, ocultamos el panel de compra.
 async function removeSeat(id) {
-    try {
-        await axios.post('/api/asientos/liberar', { seats: [id] })
-    } catch (e) {
-        console.error('No se pudo liberar asiento', id, e)
-    }
+    await axios.post('/api/asientos/liberar', { seats: [id] })
     selectedSeats.value = selectedSeats.value.filter(s => s.id !== id)
     if (!selectedSeats.value.length) showPurchase.value = false
 }
-
-/*
- * Al cerrar el panel de compra, liberamos los asientos seleccionados
- * y limpiamos la selección.
- */
-// Esta función se llamará desde el componente PurchasePanel
-// cuando el usuario cierre el panel de compra.
-// También se llamará al cerrar el panel desde el botón de "Cerrar".
-// Si hay asientos seleccionados, los liberamos.
-
-async function onClosePanel() {
-    const ids = selectedSeats.value.map(s => s.id)
-    if (ids.length) {
-        try {
-            await axios.post('/api/asientos/liberar', { seats: ids })
-        } catch (e) {
-            console.error('Error liberando al cerrar:', e)
-        }
-    }
-    selectedSeats.value = []
-    showPurchase.value = false
-}
 </script>
 
-<template>
-    <div class="flex-1 w-full flex items-center justify-center px-2 overflow-hidden">
-        <!-- 1) El lienzo con los asientos -->
-        <div class="w-full h-[calc(100vh-80px)] flex items-center justify-center">
-            <SeatSelector :key="mapKey" :evento-slug=" props.eventoSlug" @selection-change="onSelectionChange"
-                class="w-full h-full" />
-        </div>
-        <!-- 2) Drawer de compra -->
-        <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
-            @close="closePanel" @confirm="submitPayment" @remove="removeSeat" />
+<style scoped>
+.seat-checkout-container {
+    position: relative;
+    min-height: calc(100vh - 80px);
+    /* ajustá según tu header/footer */
+}
 
-        <!-- 2) Botón “Reservar” -->
-        <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats"
-            class="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-            🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
-        </button>
+.seat-canvas {
+    width: 100%;
+    height: calc(100vh - 80px);
+}
 
-        <!-- 2) Indicador de cuántos asientos seleccionó
-        <p class="text-lg">
-            Asientos seleccionados: <strong>{{ selectedSeats.length }}</strong>
-        </p> -->
+/* — botón RESERVAR — */
+.reserve-button-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+}
 
-        <!-- 3) Botón para proceder al checkout -->
-        <!-- <button @click="goToCheckout"
-            class="px-6 py-2 bg-violet-600 text-white rounded hover:bg-violet-700 disabled:opacity-50"
-            :disabled="selectedSeats.length === 0">
-            Comprar {{ selectedSeats.length }} asiento{{ selectedSeats.length > 1 ? 's' : '' }}
-        </button> -->
-    </div>
-</template>
+.reserve-btn {
+    background: #16a34a;
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+}
+
+.reserve-btn:hover {
+    background: #15803d;
+}
+
+/* En pantallas muy chicas, que ocupe todo el ancho al pie */
+@media (max-width: 640px) {
+    .reserve-button-container {
+        bottom: 0.5rem;
+        left: 0.5rem;
+        right: 0.5rem;
+    }
+
+    .reserve-btn {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+}
+</style>

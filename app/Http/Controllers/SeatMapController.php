@@ -233,26 +233,23 @@ class SeatMapController extends Controller
      */
     public function getMap(Evento $evento)
     {
-        // 🔥 **Limpieza automática de expirados** 🔥
+        // Limpieza automática de reservados expirados
         \App\Models\Seat::where('status', 'reservado')
             ->where('reserved_until', '<', now())
             ->update([
                 'status'         => 'disponible',
                 'reserved_until' => null,
             ]);
-            
-        // ── 1) Limpiar bg_image_url
-        $bg       = $evento->bg_image_url;    // "seat_maps/archivo.png"
-        $relative = $bg
-            ? Str::afterLast($bg, '/storage/') // queda: "seat_maps/archivo.png"
-            : null;
 
-        // ── 2) Reconstruir URL pública
-        $bgUrl = $relative
-            ? asset("storage/{$relative}")    // ej: http://localhost:8000/storage/seat_maps/archivo.png
-            : null;
+        // Imagen de fondo
+        $bg       = $evento->bg_image_url;
+        $relative = $bg ? Str::afterLast($bg, '/storage/') : null;
+        $bgUrl    = $relative ? asset("storage/{$relative}") : null;
 
-        // ── 3) Asientos
+        // Traemos entradas del evento (ID => [nombre, precio])
+        $entradas = $evento->entradas()->get(['id', 'nombre', 'precio'])->keyBy('id');
+
+        // Asientos con los datos extendidos
         $seats = $evento->seats()
             ->select([
                 'id',
@@ -271,14 +268,38 @@ class SeatMapController extends Controller
                 'rotation',
                 'status',
                 'reserved_until'
-            ])->get();
+            ])->get()
+            ->map(function ($seat) use ($entradas) {
+                $entrada = $seat->entrada_id ? $entradas[$seat->entrada_id] ?? null : null;
+                return [
+                    'id'            => $seat->id,
+                    'type'          => $seat->type,
+                    'x'             => $seat->x,
+                    'y'             => $seat->y,
+                    'row'           => $seat->row,
+                    'prefix'        => $seat->prefix,
+                    'number'        => $seat->number,
+                    'entrada_id'    => $seat->entrada_id,
+                    'width'         => $seat->width,
+                    'height'        => $seat->height,
+                    'radius'        => $seat->radius,
+                    'label'         => $seat->label,
+                    'font_size'     => $seat->font_size,
+                    'rotation'      => $seat->rotation,
+                    'status'        => $seat->status,
+                    'reserved_until' => $seat->reserved_until,
+                    // ----------- estos dos son los que vas a mostrar en el pop-up ------------
+                    'nombre_entrada' => $entrada ? $entrada->nombre : null,   // ejemplo: "Popular", "Platea"
+                    'price'         => $entrada ? $entrada->precio : null,   // precio real del asiento
+                ];
+            })
+            ->values(); // para que sea array simple
 
-        // ── 4) Shapes
+        // Shapes
         $shapes = $evento->shapes()
             ->select(['type', 'x', 'y', 'width', 'height', 'rotation', 'label', 'font_size'])
             ->get();
 
-        // ── 5) Devolver JSON limpio ✅
         return response()->json([
             'seats'  => $seats,
             'shapes' => $shapes,

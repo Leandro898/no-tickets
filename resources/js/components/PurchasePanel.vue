@@ -23,18 +23,17 @@
                 <li v-for="s in seats" :key="s.id" class="seat-item">
                     <span>🎫 Asiento {{ s.label || s.id }}</span>
                     <span class="seat-price">${{ s.price || 0 }}</span>
-                    <button class="remove-btn" @click="emit('remove', s.id)" aria-label="Quitar asiento">✕</button>
+                    <button class="remove-btn" @click="emit('remove', s.id)">✕</button>
                 </li>
             </ul>
 
             <div class="total-row">
                 <span>Total:</span>
-                <strong>${{ totalPrice }}</strong>
+                <strong>${{ totalPrice.toFixed(2) }}</strong>
+
             </div>
 
-            <div v-if="error" class="text-red-600 mb-2">
-                {{ error }}
-            </div>
+            <div v-if="error" class="text-red-600 mb-2">{{ error }}</div>
 
             <form class="drawer-form" @submit.prevent="submitPurchase">
                 <div class="form-group">
@@ -72,22 +71,14 @@ const remainingMs = computed(() =>
         ? new Date(props.reservedUntil).getTime() - now.value
         : 0
 )
-const remainingSec = computed(() =>
-    Math.max(0, Math.ceil(remainingMs.value / 1000))
-)
-const minutes = computed(() =>
-    String(Math.floor(remainingSec.value / 60)).padStart(2, '0')
-)
-const seconds = computed(() =>
-    String(remainingSec.value % 60).padStart(2, '0')
-)
+const remainingSec = computed(() => Math.max(0, Math.ceil(remainingMs.value / 1000)))
+const minutes = computed(() => String(Math.floor(remainingSec.value / 60)).padStart(2, '0'))
+const seconds = computed(() => String(remainingSec.value % 60).padStart(2, '0'))
 
 watch(() => props.visible, visible => {
     if (visible && props.reservedUntil) {
-        timerInterval = setInterval(() => now.value = Date.now(), 250)
-    } else {
-        clearInterval(timerInterval)
-    }
+        timerInterval = setInterval(() => (now.value = Date.now()), 250)
+    } else clearInterval(timerInterval)
 })
 onBeforeUnmount(() => clearInterval(timerInterval))
 
@@ -95,9 +86,11 @@ onBeforeUnmount(() => clearInterval(timerInterval))
 const buyer = ref({ name: '', email: '' })
 const loading = ref(false)
 const error = ref(null)
-
 const totalPrice = computed(() =>
-    props.seats.reduce((sum, s) => sum + (s.price || 0), 0)
+    props.seats.reduce(
+        (sum, s) => sum + (parseFloat(s.price) || 0),
+        0
+    )
 )
 
 function submitPurchase() {
@@ -109,7 +102,7 @@ function submitPurchase() {
     loading.value = true
     emit('confirm', {
         seats: props.seats.map(s => s.id),
-        buyer: { ...buyer.value }
+        buyer: { ...buyer.value },
     })
     loading.value = false
 }
@@ -117,7 +110,6 @@ function submitPurchase() {
 
 <style scoped>
 .purchase-drawer {
-    /* Drawer lateral en desktop */
     position: fixed;
     top: 0;
     right: 0;
@@ -132,7 +124,7 @@ function submitPurchase() {
     transition: transform 0.3s ease;
 }
 
-/* Bottom sheet en móviles */
+/* Bottom-sheet en móviles */
 @media (max-width: 640px) {
     .purchase-drawer {
         top: auto;
@@ -141,7 +133,6 @@ function submitPurchase() {
         right: 0;
         width: 100%;
         max-height: 80vh;
-        height: auto;
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
         box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
