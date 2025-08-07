@@ -1,6 +1,7 @@
 <!-- resources/js/components/SeatSelector.vue -->
 <template>
-    <div class="seat-selector-wrapper">
+    <div v-bind="$attrs" class="seat-selector-wrapper w-full h-full">
+
 
         <!-- Loader mientras baja la data -->
         <div v-if="loading" class="loader-container">
@@ -100,9 +101,11 @@
 
 
 <script setup>
-import { defineProps, defineEmits, ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { defineProps, defineEmits, ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import axios from 'axios'
 import { BASE_CANVAS_WIDTH, BASE_CANVAS_HEIGHT } from '@/constants/seatMap'
+
+defineOptions({ inheritAttrs: false })
 
 // Props & emits
 const props = defineProps({
@@ -167,6 +170,7 @@ const popupStyle = computed(() => {
 // Carga inicial
 onMounted(async () => {
     try {
+        // 1) Cargo datos del mapa
         const { data } = await axios.get(`/api/eventos/${props.eventoSlug}/map`)
         seats.value = data.seats.map(s => ({
             id: s.id,
@@ -177,34 +181,38 @@ onMounted(async () => {
             price: s.price,
             status: s.status,
             reservedUntil: s.reserved_until ? new Date(s.reserved_until) : null,
-            selected: false
+            selected: false,
         }))
         shapes.value = data.shapes.map(s => ({ ...s, fontSize: s.font_size || 18 }))
         if (data.bgUrl) {
-            const img = new Image(); img.src = data.bgUrl
-            await new Promise(r => img.onload = r)
+            const img = new Image()
+            img.src = data.bgUrl
+            await new Promise(r => (img.onload = r))
             bgImage.value = img
         }
-
-        // Init zoom/pan & listeners
-        updateScale()
-        window.addEventListener('resize', updateScale)
-        document.addEventListener('mousedown', onClosePopup)
-
-        // Limpiar reservas expiradas
-        reserveCleanupInterval = setInterval(() => {
-            const now = Date.now()
-            seats.value.forEach(s => {
-                if (s.status === 'reservado' && s.reservedUntil?.getTime() < now) {
-                    s.status = 'disponible'
-                    s.reservedUntil = null
-                }
-            })
-        }, 1000)
-
     } finally {
+        // 2) Quito el loader y renderizo el canvas
         loading.value = false
     }
+
+    // 3) Espero al siguiente “tick” para que el <div ref="containerRef"> ya esté en el DOM
+    await nextTick()
+
+    // 4) Librero el zoom/pan y listeners
+    updateScale()
+    window.addEventListener('resize', updateScale)
+    document.addEventListener('mousedown', onClosePopup)
+
+    // 5) Arranco la limpieza periódica de reservas expiradas
+    reserveCleanupInterval = setInterval(() => {
+        const now = Date.now()
+        seats.value.forEach(s => {
+            if (s.status === 'reservado' && s.reservedUntil?.getTime() < now) {
+                s.status = 'disponible'
+                s.reservedUntil = null
+            }
+        })
+    }, 1000)
 })
 
 onBeforeUnmount(() => {
@@ -216,21 +224,39 @@ onBeforeUnmount(() => {
 // — Funciones auxiliares —
 
 function updateScale() {
-    const c = containerRef.value
-    const st = stageRef.value?.getStage()
-    if (!c || !st) return
-    const cw = c.offsetWidth, ch = c.offsetHeight
-    let rs = Math.min(cw / BASE_CANVAS_WIDTH, ch / BASE_CANVAS_HEIGHT, 1)
-    if (isMobile) rs *= 0.5
-    scale.value = rs
-    st.scale({ x: rs, y: rs })
-    const offX = isMobile ? 20 : 0
-    const offY = isMobile ? -190 : -20
-    const x = (cw - BASE_CANVAS_WIDTH * rs) / 2 + offX
-    const y = (ch - BASE_CANVAS_HEIGHT * rs) / 2 + offY
-    st.position({ x, y })
-    st.batchDraw()
+    // 1) detecta móvil
+    const mobile = window.innerWidth <= 640;
+
+    // 2) medidas del contenedor
+    const cw = containerRef.value.offsetWidth;
+    const ch = containerRef.value.offsetHeight;
+
+    // 3) escala base
+    const rsBase = Math.min(cw / BASE_CANVAS_WIDTH, ch / BASE_CANVAS_HEIGHT, 1);
+
+    // → log de depuración
+    console.log('[SeatSelector] updateScale', { mobile, cw, ch, rsBase });
+
+    // 4) factor extra en móvil
+    const mobileFactor = mobile ? 1.05 : 1;  // prueba 0.7, 0.75…
+    const rs = rsBase * mobileFactor;
+
+    // 5) aplica escala
+    scale.value = rs;
+    const stage = stageRef.value.getStage();
+    stage.scale({ x: rs, y: rs });
+
+    // 6) posición: centrado X siempre, Y=0 en móvil
+    const x = (cw - BASE_CANVAS_WIDTH * rs) / 2;
+    const y = mobile ? 0 : (ch - BASE_CANVAS_HEIGHT * rs) / 2;
+    stage.position({ x, y });
+    stage.batchDraw();
 }
+
+
+
+
+
 
 function toggle(idx, e) {
     const s = seats.value[idx]
@@ -357,6 +383,14 @@ function hidePopupOnMove() {
     background: #f0f0f0;
 }
 
+/* en móviles, quito el centrado vertical y agrego un padding */
+@media (max-width: 640px) {
+    .stage-container {
+        align-items: flex-start;
+        padding-top: 1rem;
+        /* separa un poco del header */
+    }
+}
 /* Pop-up: la clase queda vacía porque todo va en popupStyle */
 .seat-popup {}
 </style>

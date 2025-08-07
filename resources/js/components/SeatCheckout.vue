@@ -122,16 +122,17 @@ async function removeSeat(id) {
 
 /* En pantallas muy chicas, que ocupe todo el ancho al pie */
 @media (max-width: 640px) {
-    .reserve-button-container {
-        bottom: 0.5rem;
-        left: 0.5rem;
-        right: 0.5rem;
+    .seat-canvas {
+        /* habilita scroll si el mapa sigue siendo más ancho que la pantalla */
+        overflow-x: auto;
+        /* opcional: un poco de “padding” para que no quede pegado al borde */
+        padding: 0 0.5rem;
     }
 
-    .reserve-btn {
-        width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
+    /* si quieres que el contenedor interno mantenga su ancho original */
+    .seat-canvas>* {
+        min-width: 800px;
+        /* pon aquí el ancho base (BASE_CANVAS_WIDTH) */
     }
 }
 </style>
