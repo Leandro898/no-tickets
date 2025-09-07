@@ -15,7 +15,7 @@
       html { overflow-y: scroll; }
     </style> -->
   </head>
-  <body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-y-scroll')">
+  <body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-x-hidden')">
 
     {{-- HEADER / NAV --}}
     @include('layouts.front-nav')

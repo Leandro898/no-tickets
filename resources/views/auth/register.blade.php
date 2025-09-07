@@ -3,7 +3,7 @@
 
 @section('title', 'Crear cuenta')
 
-@section('body-class', 'bg-gradient-to-br from-purple-50 to-purple-100 overflow-y-scroll')
+@section('body-class', 'bg-gradient-to-br from-purple-50 to-purple-100')
 
 @section('content')
 <div x-data="{ role: 'cliente', loading: false }" class="min-h-screen flex items-center justify-center p-8">

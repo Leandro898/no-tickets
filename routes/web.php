@@ -62,8 +62,13 @@ Route::post(
 )->name('eventos.comprar.split.storeDatos');
 
 // ----------------------- MERCADO PAGO -------------------------
-Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])->name('mercadopago.connect');
-Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])->name('mercadopago.callback');
+Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])
+    ->middleware(['auth', 'role:admin|productor'])
+    ->name('mercadopago.connect');
+
+Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])
+    ->name('mercadopago.callback');
+
 Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
 //Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
 

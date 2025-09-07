@@ -45,8 +45,8 @@
         />
       </div>
 
-      {{-- Password --}}
-      <div>
+      {{-- Password con ojito --}}
+      <div class="relative">
         <label for="password" class="block text-sm font-medium text-gray-700">
           Password
         </label>
@@ -56,8 +56,14 @@
           type="password"
           required
           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm
-                 focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+                 focus:outline-none focus:ring-purple-500 focus:border-purple-500 pr-12" 
         />
+        {{-- Botón ojo con Iconify --}}
+        <button type="button" id="togglePassword" 
+                class="absolute right-0 pr-3 flex items-center text-gray-500
+                       top-1/2 transform -translate-y-1/2">
+            <iconify-icon icon="heroicons:eye" id="eye-icon" class="text-2xl"></iconify-icon>
+        </button>
       </div>
 
       {{-- Remember + Olvidaste --}}
@@ -74,7 +80,7 @@
         @if(Route::has('password.request'))
           <a
             href="{{ route('password.request') }}"
-            class="text-sm text-purple-700 hover:underline"
+            class="text-sm text-purple-700 hover:underline ml-4"
           >
             Olvidaste tu contraseña?
           </a>
@@ -106,4 +112,25 @@
     </p>
   </div>
 </div>
+
+{{-- Scripts --}}
+<script src="https://code.iconify.design/iconify-icon/2.1.0/iconify-icon.min.js"></script>
+
+{{-- Script para mostrar/ocultar contraseña --}}
+<script>
+document.getElementById('togglePassword').addEventListener('click', function () {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    
+    passwordInput.setAttribute('type', type);
+
+    // Cambiamos el icono según el estado
+    if (type === 'password') {
+        eyeIcon.setAttribute('icon', 'heroicons:eye');
+    } else {
+        eyeIcon.setAttribute('icon', 'heroicons:eye-slash');
+    }
+});
+</script>
 @endsection

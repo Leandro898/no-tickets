@@ -21,8 +21,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 // 1️⃣ Webhook de Mercado Pago
-Route::post('mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])
-     ->name('mercadopago.webhook');
+Route::match(['GET', 'POST'], 'mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])
+    ->name('mercadopago.webhook');
+
 
 // 2️⃣ Endpoint para el polling de status
 // Route::get('orders/{order}/status', function (Order $order) {
