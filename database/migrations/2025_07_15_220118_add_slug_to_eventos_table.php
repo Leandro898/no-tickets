@@ -14,11 +14,10 @@ return new class extends Migration
         Schema::table('eventos', function (Blueprint $table) {
 
             $table->string('slug')->unique()->after('nombre');
-=======
+
             if (! Schema::hasColumn('eventos', 'slug')) {
                 $table->string('slug')->after('nombre');
             }
->>>>>>> ajustes-seats
         });
     }
 
@@ -34,7 +33,9 @@ return new class extends Migration
             if (Schema::hasColumn('eventos', 'slug')) {
                 $table->dropColumn('slug');
             }
- ajustes-seats
+ 
+
+            
         });
     }
 };
