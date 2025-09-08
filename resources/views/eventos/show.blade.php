@@ -53,7 +53,7 @@
       {{-- Entradas --}}
       @foreach($evento->entradas as $entrada)
       @if($entrada->stock_actual > 0)
-      <form action="#" method="POST" x-data="{ qty: 1 }" class="bg-white p-5 rounded-xl shadow border border-purple-100">
+      <form action="{{ route('eventos.comprar.split.store', $evento) }}" method="POST" x-data="{ qty: 1 }" class="bg-white p-5 rounded-xl shadow border border-purple-100">
         @csrf
         <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
 
