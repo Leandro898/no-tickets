@@ -1,203 +1,141 @@
 {{-- resources/views/eventos/show.blade.php --}}
 @extends('layouts.app')
 
-{{-- Meta título --}}
 @section('title', $evento->nombre.' – Detalles del Evento')
-
-{{-- Forzamos scroll vertical y degradado de fondo --}}
-@section('body-class', 'bg-gradient-to-br from-purple-50 min-h-screen overflow-y-scroll')
-
-@push('styles')
-  <style>
-    /* Quitar flechas de inputs numéricos */
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type=number] {
-      -moz-appearance: textfield;
-    }
-  </style>
-@endpush
+@section('body-class', 'bg-gray-50 min-h-screen') {{-- sin scroll forzado --}}
 
 @section('content')
-  <div class="max-w-7xl mx-auto px-4 pt-6 pb-8">
-    {{-- Botón "Volver a Eventos" --}}
-    <div class="flex justify-end mb-4">
-      <a href="/"
-         class="inline-flex items-center gap-2 bg-white hover:bg-purple-50 border border-purple-200
-                text-purple-700 font-semibold px-4 py-2 rounded-lg shadow transition">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-             viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 19l-7-7 7-7" />
-        </svg>
-        Volver a eventos
+<div class="max-w-7xl mx-auto px-6 py-10">
+
+  {{-- Botón volver y Título --}}
+  <div class="mb-4 lg:mb-12">
+    <div class="flex justify-end mb-8">
+      <a href="/" class="bg-white border border-purple-200 text-purple-700 px-4 py-2 rounded-lg shadow hover:bg-purple-50 transition">
+        ← Volver a eventos
       </a>
     </div>
-
-    {{-- Título del evento --}}
-    <h1 class="text-3xl sm:text-4xl font-extrabold text-purple-700 text-center mb-6">
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-purple-700 text-center pb-16">
       {{ $evento->nombre }}
     </h1>
+  </div>
 
-    <div class="flex flex-col lg:flex-row items-start gap-8">
-      {{-- Columna izquierda: imagen + descripción --}}
-      <div class="w-full lg:w-1/2 space-y-6">
-        {{-- Banner --}}
-        <div class="flex justify-center">
-          @if($evento->imagen)
-            <img
-              src="{{ asset('storage/'.$evento->imagen) }}"
-              alt="Banner de {{ $evento->nombre }}"
-              class="w-full max-w-xs md:max-w-sm object-contain rounded-lg shadow-lg"
-            />
-          @else
-            <div class="w-64 h-40 bg-gray-100 flex items-center justify-center rounded-lg shadow-lg">
-              <span class="text-gray-400">Sin imagen disponible</span>
-            </div>
-          @endif
-        </div>
+  {{-- Contenedor principal con 2 columnas y separación --}}
+  <div class="flex flex-col lg:flex-row lg:space-x-10">
 
-        {{-- Acerca del evento --}}
-        <div class="bg-white rounded-2xl p-6 shadow-lg">
-          <h2 class="text-2xl font-bold text-purple-700 mb-3">Acerca del evento</h2>
-          <p class="text-gray-800">{{ $evento->descripcion }}</p>
-        </div>
-      </div>
-
-      {{-- Columna derecha --}}
-      <div class="w-full lg:w-1/2 space-y-6">
-        {{-- Contador dinámico --}}
-        <div class="text-center">
-          <span id="countdown"
-                class="inline-block bg-purple-600 text-white font-semibold px-5 py-3 rounded-lg shadow-lg">
-            Cargando…
-          </span>
-        </div>
-
-        {{-- Entradas desde --}}
-        <div class="flex justify-center">
-          <div class="bg-purple-600 text-white rounded-xl p-2 text-center shadow max-w-xs w-full">
-            <div class="text-xs sm:text-sm font-medium">Entradas desde</div>
-            <div class="text-lg sm:text-xl font-extrabold my-0.5">
-              ${{ number_format($evento->entradas->min('precio'), 0, ',', '.') }}
-            </div>
-          </div>
-        </div>
-
-        {{-- Si el evento tiene asientos, mostrar mapa --}}
-        @if ($evento->has_seats)
-          <div class="mt-6">
-            <div id="seat-map-app"
-                 data-evento-id="{{ $evento->id }}"
-                 class="w-full h-[600px] bg-white border rounded-lg shadow-xl flex items-center justify-center"></div>
-            <div class="mt-4 text-center text-purple-700">
-              Seleccioná tus asientos haciendo click en el mapa.
-            </div>
-          </div>
+    {{-- Columna izquierda (solo imagen) --}}
+    <div class="lg:w-1/2 flex flex-col gap-8">
+      {{-- Imagen --}}
+      <div class="w-full flex justify-center lg:justify-start">
+        @if($evento->imagen)
+        <img src="{{ asset('storage/'.$evento->imagen) }}" alt="{{ $evento->nombre }}"
+          class="rounded-lg shadow-lg max-w-full object-cover" />
         @else
-          {{-- Muestra el sistema tradicional de entradas --}}
-          @foreach($evento->entradas as $entrada)
-            @if($entrada->stock_actual > 0)
-              <form action="{{ route('eventos.comprar.split.store', $evento) }}"
-                    method="POST" x-data="{ qty: 1 }"
-                    class="bg-white rounded-xl p-5 shadow border border-purple-100 mb-4">
-                @csrf
-                <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
-                {{-- Fecha y hora --}}
-                <div class="text-sm font-bold text-gray-700 mb-2">
-                  {{ \Carbon\Carbon::parse($evento->fecha_inicio)
-                        ->locale('es')
-                        ->translatedFormat('l d \d\e F, H:i') }} hs
-                </div>
-                {{-- Nombre y precio --}}
-                <div class="flex justify-between items-center mb-4">
-                  <div class="text-lg font-semibold text-gray-800">{{ $entrada->nombre }}</div>
-                  <div class="text-lg font-bold text-gray-900">
-                    ${{ number_format($entrada->precio, 0, ',', '.') }}
-                  </div>
-                </div>
-                {{-- Stepper --}}
-                <div class="flex justify-center items-center space-x-4 mb-4">
-                  <button type="button" @click="qty = Math.max(1, qty - 1)"
-                          class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
-                    −
-                  </button>
-                  <input type="number" name="cantidad" x-model.number="qty"
-                         min="1" max="{{ $entrada->stock_actual }}"
-                         class="w-16 h-10 text-center border border-gray-300 rounded-lg" />
-                  <button type="button"
-                          @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
-                          class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
-                    +
-                  </button>
-                </div>
-                {{-- Total y botón Comprar --}}
-                <div class="flex justify-between items-center">
-                  <div class="text-gray-700 font-medium">
-                    Total:
-                    <span class="font-bold"
-                          x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`">
-                    </span>
-                  </div>
-                  <button type="submit"
-                          class="bg-green-500 hover:bg-green-600 text-white font-extrabold text-lg px-6 py-3 rounded-full">
-                    Comprar
-                  </button>
-                </div>
-              </form>
-            @else
-              <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center mb-4">
-                Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
-              </div>
-            @endif
-          @endforeach
+        <div class="w-64 h-40 bg-gray-200 flex items-center justify-center rounded-lg shadow">
+          Sin imagen disponible
+        </div>
         @endif
-
       </div>
     </div>
+
+    {{-- Separación al medio --}}
+    <div class="hidden lg:block w-10"></div>
+
+    {{-- Columna derecha (contador, entradas y descripción) --}}
+    <div class="lg:w-1/2 flex flex-col gap-6 mt-8 lg:mt-0">
+
+      {{-- Contador dinámico --}}
+      <div class="text-center mb-4">
+        <span id="countdown" class="inline-block bg-purple-600 text-white px-5 py-3 rounded-lg font-semibold shadow">
+          Cargando…
+        </span>
+      </div>
+
+      {{-- Entradas --}}
+      @foreach($evento->entradas as $entrada)
+      @if($entrada->stock_actual > 0)
+      <form action="#" method="POST" x-data="{ qty: 1 }" class="bg-white p-5 rounded-xl shadow border border-purple-100">
+        @csrf
+        <input type="hidden" name="entrada_id" value="{{ $entrada->id }}">
+
+        {{-- Nombre y precio --}} {{-- Tipo de entrada --}}
+        <div class="flex justify-between mb-1">
+          <div class="mb-4">
+            <span class="font-bold text-gray-800">Tipo de entrada:</span> <span class="font-medium text-gray-600">{{ $entrada->nombre }}</span>
+          </div>
+          <span class="font-bold">${{ number_format($entrada->precio,0,',','.') }}</span>
+        </div>
+
+        {{-- Stepper cantidad sin modificadores --}}
+        <div class="flex justify-center items-center space-x-4 my-6">
+          <button type="button" @click="qty = Math.max(1, qty - 1)"
+            class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+            −
+          </button>
+          <input type="number" name="cantidad" x-model.number="qty"
+            min="1" max="{{ $entrada->stock_actual }}"
+            class="w-16 h-10 text-center border border-gray-300 rounded-lg appearance-none" readonly />
+          <button type="button" @click="qty = Math.min({{ $entrada->stock_actual }}, qty + 1)"
+            class="w-10 h-10 bg-purple-100 hover:bg-purple-200 rounded-lg text-purple-700 font-bold text-xl">
+            +
+          </button>
+        </div>
+
+        {{-- Total y botón Comprar --}}
+        <div class="flex justify-between items-center">
+          <div class="text-gray-700 font-medium">
+            Total:
+            <span class="font-bold" x-text="`$${(qty * {{ $entrada->precio }}).toLocaleString('de-DE')}`"></span>
+          </div>
+          <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full font-bold">
+            Comprar
+          </button>
+        </div>
+      </form>
+      @else
+      <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center mb-4">
+        Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
+      </div>
+      @endif
+      @endforeach
+
+      {{-- Descripción --}}
+      <div class="bg-white p-6 rounded-2xl shadow-lg">
+        <h2 class="text-2xl font-bold text-purple-700 mb-3">Acerca del evento</h2>
+        <p class="text-gray-800">{{ $evento->descripcion }}</p>
+      </div>
+
+    </div>
   </div>
+</div>
 @endsection
 
 @push('scripts')
-  {{-- Alpine.js para stepper y contador --}}
-  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  {{-- Contador dinámico --}}
-  <script>
-    (function(){
-      const target = new Date("{{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('Y/m/d H:i:s') }}").getTime();
-      const el = document.getElementById('countdown');
-      function update() {
-        const now = Date.now();
-        const diff = target - now;
-        if (diff <= 0) {
-          el.textContent = '¡El evento ha comenzado!';
-          clearInterval(timer);
-          return;
-        }
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        el.textContent = `Faltan ${d} d | ${h} h | ${m} m | ${s} s`;
-      }
-      update();
-      const timer = setInterval(update, 1000);
-    })();
-  </script>
-  {{-- Script para montar el componente Vue SOLO si hay asientos --}}
-  @if ($evento->has_seats)
-    <script type="module">
-      import { createApp } from 'vue';
-      import SeatMapView from '/resources/js/components/SeatMapView.vue'; // Ajustá el path según tu estructura real
+{{-- Alpine.js para stepper --}}
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-      const el = document.getElementById('seat-map-app');
-      if (el) {
-        const eventoId = el.dataset.eventoId;
-        createApp(SeatMapView, { eventoId }).mount(el);
+{{-- Contador dinámico --}}
+<script>
+  (function() {
+    const target = new Date("{{ \Carbon\Carbon::parse($evento->fecha_inicio)->format('Y/m/d H:i:s') }}").getTime();
+    const el = document.getElementById('countdown');
+
+    function update() {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff <= 0) {
+        el.textContent = '¡El evento ha comenzado!';
+        clearInterval(timer);
+        return;
       }
-    </script>
-  @endif
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      el.textContent = `Faltan ${d} d | ${h} h | ${m} m | ${s} s`;
+    }
+
+    update();
+    const timer = setInterval(update, 1000);
+  })();
+</script>
 @endpush
