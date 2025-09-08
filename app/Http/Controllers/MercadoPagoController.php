@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\TicketsPurchasedMail; // Importa tu clase Mailable
-use Illuminate\Support\Facades\Mail; // Importa la Facade Mail
+use App\Mail\TicketsPurchasedMail;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Client\Preference\PreferenceClient;
@@ -27,68 +27,66 @@ use App\Mail\PurchaseWelcomeMail;
 use Illuminate\Support\Facades\URL;
 use App\Models\MagicLink;
 use App\Notifications\MagicLinkLogin;
+use Exception;
 
 
 class MercadoPagoController extends Controller
 {
     public function __construct()
     {
-        // Leemos directamente del config/mercadopago.php
-        $token       = config('mercadopago.platform_access_token');
-        $sandboxMode = config('mercadopago.sandbox', true);
-
-        if (! $token) {
-            //Log::critical('MercadoPago: falta configurar platform_access_token en config/mercadopago.php (o en .env MERCADO_PAGO_ACCESS_TOKEN)');
-            // opcional: abort(500, 'MercadoPago sin token');
-        }
-
-        // 1) Access Token (vendedor o plataforma)
-        MercadoPagoConfig::setAccessToken($token);
-
-        // 2) Entorno: LOCAL = sandbox, SERVER = producción
-        MercadoPagoConfig::setRuntimeEnviroment(
-            $sandboxMode
-                ? MercadoPagoConfig::LOCAL
-                : MercadoPagoConfig::SERVER
-        );
-
-        // Log::info('MercadoPagoConfig inicializado', [
-        //     'sandbox' => $sandboxMode,
-        // ]);
+        // NOTA: Para el Split Payment, el Access Token se setea dinámicamente
+        // en el controlador de la compra (CompraEntradaSplitController)
+        // en lugar de leerlo aquí desde la configuración.
     }
 
     /**
-     * Crea una preferencia de pago en Mercado Pago.
+     * Crea una preferencia de pago en Mercado Pago con fee para la plataforma.
      *
-     * @param  array   $items             Lista de items en el formato que espera Mercado Pago.
-     * @param  array   $payer             Datos del comprador.
-     * @param  string  $externalReference Tu ID de orden.
-     * @param  array   $backUrls          ['success'=>…, 'failure'=>…, 'pending'=>…]
-     * @return Preference
-     *
-     * @throws MPApiException
-     * @throws \Exception
+     * @param string $accessToken El access token del vendedor.
+     * @param array $items Los items de la preferencia.
+     * @param array $payer Los datos del comprador.
+     * @param int $orderId El ID de la orden en tu base de datos.
+     * @param array $backUrls Las URLs de retorno.
+     * @param float $commission La comisión de la plataforma.
+     * @param float $totalAmount El monto total de la compra.
+     * @return object La preferencia de Mercado Pago creada.
      */
-    public function createPreference(array $items, array $payer, string $externalReference, array $backUrls): Preference
-    {
-        // Preparar la carga
-        $requestData = [
-            'items'               => $items,
-            'payer'               => $payer,
-            'back_urls'           => $backUrls,
-            'auto_return'         => 'approved',
-            'notification_url'    => config('mercadopago.notification_url'),
-            'statement_descriptor' => 'ENTRADAS',
-            'external_reference'  => $externalReference,
-            'binary_mode'         => false,
-        ];
+    public function createPreference(
+        string $accessToken,
+        array $items,
+        array $payer,
+        int $orderId,
+        array $backUrls,
+        float $commission,
+        float $totalAmount
+    ) {
+        try {
+            // Inicializa la configuración de Mercado Pago con el access token del vendedor
+            MercadoPagoConfig::setAccessToken($accessToken);
+            $client = new PreferenceClient();
 
-        Log::info('Enviando preferencia a MercadoPago', ['request' => $requestData]);
+            // Usamos un valor fijo de 150.00 para la comisión de la plataforma.
+            // Esto sobrescribe cualquier valor pasado en el parámetro $commission.
+            $fixedCommission = 150.0;
 
-        $client = new PreferenceClient();
-        $preference = $client->create($requestData);
+            $preference = $client->create([
+                "items" => $items,
+                "payer" => $payer,
+                "back_urls" => $backUrls,
+                "auto_return" => "approved",
+                "notification_url" => config('app.url') . "/api/mercadopago/webhook",
+                "statement_descriptor" => "ENTRADAS",
+                "external_reference" => (string) $orderId,
+                "binary_mode" => false,
+                "marketplace_fee" => $fixedCommission,
+            ]);
 
-        return $preference;
+            return $preference;
+        } catch (MPApiException $e) {
+            throw new Exception("Error de API de Mercado Pago: " . $e->getMessage());
+        } catch (Exception $e) {
+            throw new Exception("Error general: " . $e->getMessage());
+        }
     }
 
     /**
@@ -98,12 +96,10 @@ class MercadoPagoController extends Controller
      */
     public function handleWebhook(Request $request)
     {
-        Log::info('Webhook recibido', $request->all());
-
         // Extraemos el ID del pago
         $paymentId = null;
-        $topic     = $request->input('topic');
-        $type      = $request->input('type');
+        $topic = $request->input('topic');
+        $type = $request->input('type');
 
         if ($topic === 'payment' && $request->has('id')) {
             $paymentId = $request->input('id');
@@ -113,12 +109,16 @@ class MercadoPagoController extends Controller
             $paymentId = $request->input('data.id');
         }
 
-        if (! $paymentId) {
-            Log::warning('Webhook: no se encontró paymentId en el payload.');
+        if (!$paymentId) {
             return response()->json(['status' => 'ignored'], 200);
         }
 
         try {
+            // Este es el cambio clave: para obtener los detalles del pago,
+            // debemos usar el Access Token de la plataforma, no el del vendedor.
+            // Lo volvemos a setear para asegurarnos de que el cliente de pago
+            // use la credencial correcta.
+            MercadoPagoConfig::setAccessToken(config('mercadopago.platform_access_token'));
             $payment = (new PaymentClient())->get($paymentId);
 
             DB::transaction(function () use ($payment) {
@@ -126,8 +126,7 @@ class MercadoPagoController extends Controller
                     ->where('id', $payment->external_reference)
                     ->first();
 
-                if (! $order) {
-                    Log::warning("Webhook: Orden no encontrada (external_reference={$payment->external_reference}).");
+                if (!$order) {
                     return;
                 }
 
@@ -136,13 +135,12 @@ class MercadoPagoController extends Controller
                 if ($order->payment_status !== $newStatus) {
                     $order->update([
                         'payment_status' => $newStatus,
-                        'mp_payment_id'  => $payment->id,
+                        'mp_payment_id' => $payment->id,
                     ]);
-                    Log::info("Orden {$order->id} actualizada a '{$newStatus}'.");
                 }
 
                 // Si se aprobó y aún no hay tickets, generarlos
-                if ($newStatus === 'approved' && ! $order->purchasedTickets()->exists()) {
+                if ($newStatus === 'approved' && !$order->purchasedTickets()->exists()) {
                     $itemsData = json_decode($order->items_data, true);
 
                     foreach ($itemsData as $item) {
@@ -150,7 +148,7 @@ class MercadoPagoController extends Controller
 
                         for ($i = 0; $i < $item['cantidad']; $i++) {
                             // Generar código único y QR
-                            $uuid   = (string) Str::uuid();
+                            $uuid = (string) Str::uuid();
                             $qrPath = "qrcodes/{$uuid}.png";
 
                             Storage::disk('public')->put(
@@ -160,35 +158,31 @@ class MercadoPagoController extends Controller
 
                             // Crear el registro en BD
                             $ticket = PurchasedTicket::create([
-                                'order_id'     => $order->id,
-                                'entrada_id'   => $entrada->id,
-                                'unique_code'  => $uuid,
-                                'short_code'   => $uuid,
-                                'qr_path'      => $qrPath,
-                                'status'       => 'valid',
-                                'buyer_name'   => $order->buyer_full_name,
-                                'ticket_type'  => $entrada->nombre,
+                                'order_id' => $order->id,
+                                'entrada_id' => $entrada->id,
+                                'unique_code' => $uuid,
+                                'short_code' => $uuid,
+                                'qr_path' => $qrPath,
+                                'status' => 'valid',
+                                'buyer_name' => $order->buyer_full_name,
+                                'ticket_type' => $entrada->nombre,
                             ]);
-
-                            Log::info("PurchasedTicket {$ticket->id} creado (QR en {$qrPath}).");
 
                             // Generar y guardar el PDF
                             $pdf = \PDF::loadView('tickets.pdf', [
                                 'ticket' => $ticket,
-                                'order'  => $order,
+                                'order' => $order,
                             ]);
 
                             $filename = "entrada-{$ticket->short_code}.pdf";
                             $fullPath = storage_path("app/private/tickets/{$filename}");
 
-                            if (! file_exists(dirname($fullPath))) {
+                            if (!file_exists(dirname($fullPath))) {
                                 mkdir(dirname($fullPath), 0755, true);
                             }
 
                             $pdf->save($fullPath);
                             $ticket->update(['pdf_path' => "tickets/{$filename}"]);
-
-                            Log::info("PDF generado para ticket {$ticket->id}: {$fullPath}");
                         }
 
                         // Reducir stock
@@ -199,14 +193,11 @@ class MercadoPagoController extends Controller
 
             return response()->json(['status' => 'success'], 200);
         } catch (MPApiException $e) {
-            Log::error("MPApiException en webhook: {$e->getMessage()}");
             return response()->json(['status' => 'error', 'message' => 'MP API error'], 500);
         } catch (\Exception $e) {
-            Log::error("Error interno en webhook: {$e->getMessage()}");
             return response()->json(['status' => 'error', 'message' => 'Internal error'], 500);
         }
     }
-
 
 
     /**
@@ -243,14 +234,14 @@ class MercadoPagoController extends Controller
         }
 
         // 2️⃣ Comprobar si es la primera vez que usamos este email
-        $isNew = ! User::where('email', $order->buyer_email)->exists();
+        $isNew = !User::where('email', $order->buyer_email)->exists();
 
         // 3️⃣ Crear o recuperar el usuario, con password aleatoria
         //    para cumplir la restricción NOT NULL en la tabla users
         $user = User::firstOrCreate(
             ['email' => $order->buyer_email],
             [
-                'name'     => $order->buyer_full_name,
+                'name' => $order->buyer_full_name,
                 'password' => bcrypt(Str::random(16)),
             ]
         );
@@ -261,9 +252,11 @@ class MercadoPagoController extends Controller
                 //
                 // —— PRIMERA COMPRA —— envío de bienvenida + enlace para configurar contraseña + tickets
                 //
+                /** @var \Illuminate\Contracts\Auth\PasswordBroker $broker */
+                $broker = Password::broker();
 
                 // 4.1) Generar token y URL de reset de contraseña
-                $token    = Password::broker()->createToken($user);
+                $token = $broker->createToken($user);
                 $resetUrl = url(route('password.reset', [
                     'token' => $token,
                     'email' => $user->email,
@@ -272,8 +265,6 @@ class MercadoPagoController extends Controller
                 // 4.2) Enviar el Mailable con los adjuntos PDF y el reset link
                 Mail::to($user->email)
                     ->send(new PurchaseWelcomeMail($order, $resetUrl));
-
-                Log::info("PurchaseWelcomeMail enviada (bienvenida + tickets + reset) a {$user->email}");
             } else {
                 //
                 // —— COMPRA ADICIONAL —— solo envío de tickets adjuntos
@@ -282,8 +273,6 @@ class MercadoPagoController extends Controller
                 $tickets = $order->purchasedTickets; // Collection de PurchasedTicket
                 Mail::to($user->email)
                     ->send(new TicketsPurchasedMail($order, $tickets));
-
-                Log::info("TicketsPurchasedMail enviada a {$user->email}");
             }
 
             // 4.3) Marcar la orden para no volver a enviar el email
@@ -291,7 +280,7 @@ class MercadoPagoController extends Controller
         }
 
         // 5️⃣ Asignar rol “cliente” si no lo tiene
-        if (! $user->hasRole('cliente')) {
+        if (!$user->hasRole('cliente')) {
             $user->assignRole('cliente');
         }
 
@@ -306,16 +295,13 @@ class MercadoPagoController extends Controller
 
     public function failure(Request $request, Order $order)
     {
-        //Log::warning('MercadoPago Failed redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.failure', compact('order'));
     }
 
     public function pending(Request $request, Order $order)
     {
-        //Log::info('MercadoPago Pending redireccin para orden ' . $order->id, $request->all());
         $order->refresh();
         return view('purchase.pending', compact('order'));
     }
 }
-

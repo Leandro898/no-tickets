@@ -134,6 +134,7 @@ class Evento extends Model
             ? asset('storage/' . ltrim($this->attributes['bg_image_url'], '/'))
             : null;
     }
+
 }
 
 

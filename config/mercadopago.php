@@ -8,8 +8,10 @@ return [
     'redirect_uri' => env('MP_REDIRECT_URI'),
 
     // Configuración opcional para plataforma (si vas a hacer pagos como plataforma)
+    'platform_user_id' => env('MP_PLATFORM_USER_ID'),
     'platform_access_token' => env('MERCADO_PAGO_ACCESS_TOKEN'),
     'public_key' => env('MP_PUBLIC_KEY'),
     'notification_url' => env('MERCADO_PAGO_WEBHOOK_URL'),
     'sandbox' => env('MERCADO_PAGO_SANDBOX', true),
+    'platform_fee_percentage' => env('MERCADOPAGO_PLATFORM_FEE_PERCENTAGE', 0.0),
 ];
