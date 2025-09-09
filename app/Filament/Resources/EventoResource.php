@@ -22,7 +22,6 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 
 use Filament\Tables\Table;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 
@@ -87,19 +86,23 @@ class EventoResource extends Resource
                             ->label('Fecha y Hora de Inicio')
                             ->required()
                             ->seconds(false)
+                            ->native(false)
                             ->extraAttributes(['class' => 'input-brand'])
                             ->validationMessages([
                                 'required' => 'Por favor, ingresa la :attribute.',
-                            ]),
+                            ])
+                            ->displayFormat('d/m/Y H:i'),
 
                         DateTimePicker::make('fecha_fin')
                             ->required()
                             ->seconds(false)
+                            ->native(false)
                             ->label('Fecha y Hora de Fin')
                             ->extraAttributes(['class' => 'input-brand'])
                             ->validationMessages([
                                 'required' => 'Por favor, ingresa la :attribute.',
-                            ]),
+                            ])
+                            ->displayFormat('d/m/Y H:i'),
                     ])->columns(2),
                 ])
                 ->columnSpanFull()
@@ -225,8 +228,8 @@ class EventoResource extends Resource
 
                 // // Puedes añadir un filtro por organizador si lo necesitas:
                 // // SelectFilter::make('organizador')
-                // //     ->relationship('organizador', 'name')
-                // //     ->label('Filtrar por Organizador'),
+                // //    ->relationship('organizador', 'name')
+                // //    ->label('Filtrar por Organizador'),
             ]);
 
 
@@ -236,13 +239,13 @@ class EventoResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'              => ListEventos::route('/'),
-            'create'             => CreateEvento::route('/create'),
-            'edit'               => EditEvento::route('/{record}/edit'),
+            'index'            => ListEventos::route('/'),
+            'create'           => CreateEvento::route('/create'),
+            'edit'             => EditEvento::route('/{record}/edit'),
             'gestionar-entradas' => GestionarEntradas::route('/{record}/gestionar-entradas'),
-            'reportes'           => ReportesEvento::route('/{record}/reportes'),
-            'detalles'           => EventoDetalles::route('/{record}/detalles'),
-            'lista-digital'      => ListaDigital::route('/{record}/lista-digital'),
+            'reportes'         => ReportesEvento::route('/{record}/reportes'),
+            'detalles'         => EventoDetalles::route('/{record}/detalles'),
+            'lista-digital'    => ListaDigital::route('/{record}/lista-digital'),
             'configure-seats' => ConfigureSeats::route('/{record}/asientos'),
         ];
     }
