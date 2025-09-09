@@ -34,6 +34,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Admin\EntradaController;
 use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
 use App\Models\Order;
+use App\Livewire\PublicInvitationForm;
 
 //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -268,7 +269,8 @@ Route::post('orders', [OrderController::class, 'store'])
 Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
     ->name('orders.thankyou');
 
-
+// Ruta para el formulario público de invitaciones
+Route::get('/eventos/{slug}/invitacion', PublicInvitationForm::class);
 
 
 
