@@ -15,15 +15,27 @@
         @forelse ($entradas as $e)
         <div class="relative bg-white border border-gray-100 rounded-2xl shadow-md flex flex-col justify-between min-h-[270px] p-0 overflow-hidden hover:shadow-lg transition-shadow">
 
-            {{-- Botón editar --}}
-            <button
-                wire:click.stop="openEdit({{ $e->id }})"
-                class="absolute right-4 top-4 p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
-                title="Editar">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 5.487a2.2 2.2 0 113.11 3.11L9.067 19.5H5v-4.067l11.862-11.946z" />
-                </svg>
-            </button>
+            {{-- Botones de editar y eliminar --}}
+            <div class="absolute right-4 top-4 flex gap-2">
+                {{-- Botón editar --}}
+                <button
+                    wire:click.stop="openEdit({{ $e->id }})"
+                    class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
+                    title="Editar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 5.487a2.2 2.2 0 113.11 3.11L9.067 19.5H5v-4.067l11.862-11.946z" />
+                    </svg>
+                </button>
+                {{-- Botón eliminar --}}
+                <button
+                    wire:click.stop="openDeleteModal({{ $e->id }})"
+                    class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-300 transition"
+                    title="Eliminar">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
 
             {{-- Encabezado: Nombre tipo badge --}}
             <div class="pt-8 px-7 pb-1">
@@ -166,6 +178,36 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- Modal de confirmación de eliminación --}}
+    @if ($confirmingDelete)
+    <div
+        class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-[9999]"
+        wire:click.away="cancelDelete">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm relative">
+            <h3 class="font-bold text-2xl mb-4 text-gray-800">
+                Confirmar Eliminación
+            </h3>
+            <p class="text-gray-600 mb-6">
+                ¿Estás seguro de que quieres eliminar esta entrada? Esta acción no se puede deshacer.
+            </p>
+            <div class="flex justify-end gap-2">
+                <button
+                    type="button"
+                    wire:click="cancelDelete"
+                    class="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-800 font-semibold hover:bg-gray-50 transition">
+                    Cancelar
+                </button>
+                <button
+                    type="button"
+                    wire:click="deleteEntrada"
+                    class="px-4 py-2 rounded-lg bg-red-600 text-white font-bold hover:bg-red-700 transition">
+                    Eliminar
+                </button>
+            </div>
         </div>
     </div>
     @endif

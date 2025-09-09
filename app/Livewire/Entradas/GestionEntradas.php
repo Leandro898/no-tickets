@@ -11,13 +11,17 @@ class GestionEntradas extends Component
     public $evento_id;
     public $entradas = [];
 
-    // Para el modal:
+    // Para el modal de creación/edición:
     public $showModal = false;
     public $entrada_id      = null;
     public $nombre          = '';
     public $precio          = null;
     public $stock_inicial   = null;
     public $stock_a_agregar = null; // Nuevo campo para agregar stock
+
+    // Para el modal de eliminación:
+    public $confirmingDelete = false;
+    public $entradaToDeleteId = null;
 
     protected function rules()
     {
@@ -48,12 +52,13 @@ class GestionEntradas extends Component
 
     public function openCreate()
     {
-        $this->reset(['entrada_id', 'nombre', 'precio', 'stock_inicial', 'stock_a_agregar']);
+        $this->reset(['entrada_id', 'nombre', 'precio', 'stock_inicial', 'stock_a_agregar', 'confirmingDelete', 'entradaToDeleteId']);
         $this->showModal = true;
     }
 
     public function openEdit(int $id)
     {
+        $this->reset(['nombre', 'precio', 'stock_inicial', 'stock_a_agregar', 'confirmingDelete', 'entradaToDeleteId']);
         $e = Entrada::findOrFail($id);
         $this->entrada_id      = $e->id;
         $this->nombre          = $e->nombre;
@@ -107,7 +112,6 @@ class GestionEntradas extends Component
         $entrada = Entrada::findOrFail($id);
 
         // Asumimos que reponer stock significa restaurar al stock inicial
-        // O podrías definir una cantidad fija para reponer
         $cantidad_a_reponer = $entrada->stock_inicial - $entrada->stock_actual;
 
         if ($cantidad_a_reponer > 0) {
@@ -117,6 +121,30 @@ class GestionEntradas extends Component
 
         $this->loadEntradas();
         $this->dispatch('message', 'Stock repuesto con éxito.');
+    }
+
+    // Métodos para la eliminación segura con modal de confirmación
+    public function openDeleteModal(int $id)
+    {
+        $this->entradaToDeleteId = $id;
+        $this->confirmingDelete = true;
+    }
+
+    public function cancelDelete()
+    {
+        $this->confirmingDelete = false;
+        $this->entradaToDeleteId = null;
+    }
+
+    public function deleteEntrada()
+    {
+        if ($this->entradaToDeleteId) {
+            $entrada = Entrada::findOrFail($this->entradaToDeleteId);
+            $entrada->delete();
+            $this->loadEntradas();
+            $this->cancelDelete();
+            $this->dispatch('message', 'Entrada eliminada con éxito.');
+        }
     }
 
     public function render()
