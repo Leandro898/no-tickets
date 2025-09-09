@@ -80,95 +80,96 @@ class CompraEntradaSplitController extends Controller
      * Paso 2 (POST): recibo los datos personales, creo la orden
      * y genero la preferencia de Mercado Pago.
      */
-
     public function storeDatos(Request $request)
     {
-        // **CORRECCIÓN CLAVE:** Validar y guardar los datos del formulario en la sesión
-        // Se cambió 'name' por 'nombre' en la validación
         $datosCompra = $request->validate([
             'nombre' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
         ]);
         $request->session()->put('datosCompra', $datosCompra);
 
-        // Código para procesar el formulario y crear la orden
         $compra = $request->session()->get('compra');
 
         if (!$compra || !$datosCompra) {
             return redirect()->route('home')->withErrors(['error' => 'No se encontraron datos de compra en la sesión.']);
         }
 
-        // Calcular el subtotal de la compra (precio entrada * cantidad)
-        $entrada = Entrada::find($compra['entrada_id']);
-        if (!$entrada) {
-            return redirect()->back()->withErrors(['error' => 'La entrada seleccionada no es válida.']);
-        }
-
-        $subtotal = $entrada->precio * $compra['cantidad'];
-
-        // Obtener la entrada del evento para saber el ID del vendedor
-        // Ahora cargamos la relación correcta, 'organizador'.
-        $entrada = Entrada::with('evento.organizador')->find($compra['entrada_id']);
-
-        if (!$entrada || !$entrada->evento || !$entrada->evento->organizador) {
-            return redirect()->back()->withErrors(['error' => 'No se pudo procesar la compra.']);
-        }
-
-        // Usamos tu método getter para obtener el access token del vendedor
-        $vendorAccessToken = $entrada->evento->organizador->getMercadoPagoAccessToken();
-        $vendorId = $entrada->evento->organizador->mp_user_id;
-
-        // Calcular la comisión de la plataforma
-        $commission = $subtotal * config('mercadopago.platform_fee_percentage');
-
-        // Crear la orden en la base de datos
-        $order = Order::create([
-            'buyer_full_name' => $datosCompra['nombre'], // Se cambió aquí también para que coincida
-            'buyer_email' => $datosCompra['email'],
-            'subtotal' => $subtotal,
-            'commission' => $commission,
-            // CORRECCIÓN: El campo en la base de datos se llama 'total_amount', no 'final_amount'.
-            'total_amount' => $subtotal,
-            'event_id' => $entrada->evento_id,
-            'seller_user_id' => $entrada->evento->organizador->id,
-            'payment_status' => 'pending',
-            'items_data' => json_encode([
-                [
-                    'entrada_id' => $entrada->id,
-                    'cantidad' => $compra['cantidad'],
-                    'nombre' => $entrada->nombre,
-                    'precio' => $entrada->precio,
-                ],
-            ]),
-        ]);
-
-        // Preparar los datos de la preferencia
-        $items = [
-            [
-                'title' => $entrada->nombre,
-                'quantity' => (int)$compra['cantidad'],
-                'unit_price' => (float)$entrada->precio,
-            ],
-        ];
-
-        $payer = [
-            'email' => $datosCompra['email'],
-            'name' => $datosCompra['nombre'], // Y aquí
-            'identification' => [
-                'type' => 'DNI',
-                'number' => '',
-            ],
-        ];
-
-        $backUrls = [
-            'success' => route('purchase.success', ['order' => $order->id]),
-            'failure' => route('purchase.failure', ['order' => $order->id]),
-            'pending' => route('purchase.pending', ['order' => $order->id]),
-        ];
+        // Usamos una transacción para garantizar la integridad de los datos
+        DB::beginTransaction();
 
         try {
-            // CORRECCIÓN CLAVE: Usamos el método `createPreference` del controlador de MercadoPago
-            // para crear la preferencia con el token del vendedor.
+            $entrada = Entrada::lockForUpdate()->find($compra['entrada_id']);
+
+            if (!$entrada) {
+                // Si la entrada no existe o ha sido eliminada.
+                throw new Exception('La entrada seleccionada no es válida.');
+            }
+
+            // **MODIFICACIÓN CLAVE**: Volvemos a validar el stock justo antes de descontarlo.
+            // Esto previene race conditions (múltiples usuarios comprando al mismo tiempo).
+            if ($compra['cantidad'] > $entrada->stock_actual) {
+                throw new Exception('No hay stock suficiente disponible en este momento. Por favor, intente con una cantidad menor.');
+            }
+
+            // **MODIFICACIÓN CLAVE**: Descontamos el stock actual de la entrada
+            $entrada->stock_actual -= $compra['cantidad'];
+            $entrada->save();
+
+            // Continuamos con la lógica de creación de la orden
+            $subtotal = $entrada->precio * $compra['cantidad'];
+
+            $entrada->load('evento.organizador');
+
+            if (!$entrada || !$entrada->evento || !$entrada->evento->organizador) {
+                throw new Exception('No se pudo procesar la compra.');
+            }
+
+            $vendorAccessToken = $entrada->evento->organizador->getMercadoPagoAccessToken();
+            $vendorId = $entrada->evento->organizador->mp_user_id;
+            $commission = $subtotal * config('mercadopago.platform_fee_percentage');
+
+            $order = Order::create([
+                'buyer_full_name' => $datosCompra['nombre'],
+                'buyer_email' => $datosCompra['email'],
+                'subtotal' => $subtotal,
+                'commission' => $commission,
+                'total_amount' => $subtotal,
+                'event_id' => $entrada->evento_id,
+                'seller_user_id' => $entrada->evento->organizador->id,
+                'payment_status' => 'pending',
+                'items_data' => json_encode([
+                    [
+                        'entrada_id' => $entrada->id,
+                        'cantidad' => $compra['cantidad'],
+                        'nombre' => $entrada->nombre,
+                        'precio' => $entrada->precio,
+                    ],
+                ]),
+            ]);
+
+            $items = [
+                [
+                    'title' => $entrada->nombre,
+                    'quantity' => (int)$compra['cantidad'],
+                    'unit_price' => (float)$entrada->precio,
+                ],
+            ];
+
+            $payer = [
+                'email' => $datosCompra['email'],
+                'name' => $datosCompra['nombre'],
+                'identification' => [
+                    'type' => 'DNI',
+                    'number' => '',
+                ],
+            ];
+
+            $backUrls = [
+                'success' => route('purchase.success', ['order' => $order->id]),
+                'failure' => route('purchase.failure', ['order' => $order->id]),
+                'pending' => route('purchase.pending', ['order' => $order->id]),
+            ];
+
             $preference = (new MercadoPagoController())->createPreference(
                 $vendorAccessToken,
                 $items,
@@ -179,11 +180,15 @@ class CompraEntradaSplitController extends Controller
                 $subtotal
             );
 
+            DB::commit(); // Confirmar la transacción
             $request->session()->forget(['compra', 'datosCompra']);
 
-            // Redirigir al usuario al Checkout Pro
             return redirect()->away($preference->init_point);
         } catch (\Exception $e) {
+            DB::rollBack(); // Revertir la transacción en caso de error
+            Log::error('Error en el proceso de compra: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             return redirect()->back()->withErrors(['error' => 'Ocurrió un error al procesar el pago. Por favor, inténtelo de nuevo más tarde.']);
         }
     }
