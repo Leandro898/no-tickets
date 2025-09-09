@@ -69,16 +69,16 @@ class EventoResource extends Resource
                             'unique'   => 'El :attribute ya está registrado.',
                         ]),
 
-                TextInput::make('ubicacion')
-                    ->label('Ubicación')
-                    ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
-                    ->columnSpanFull()
-                    ->required()
-                    ->extraAttributes(['class' => 'input-brand'])
-                    ->validationMessages([
-                        'required' => 'Por favor, ingresa la :attribute.',
-                        'unique'   => 'El :attribute ya está registrado.',
-                    ]),
+                    TextInput::make('ubicacion')
+                        ->label('Ubicación')
+                        ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
+                        ->columnSpanFull()
+                        ->required()
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->validationMessages([
+                            'required' => 'Por favor, ingresa la :attribute.',
+                            'unique'   => 'El :attribute ya está registrado.',
+                        ]),
 
                     Grid::make(2)->schema([
                         DateTimePicker::make('fecha_inicio')
@@ -108,6 +108,35 @@ class EventoResource extends Resource
                 ->icon('heroicon-o-information-circle')
                 ->collapsible(),
             //->collapsed()
+
+            Section::make('Configuración de Invitaciones')
+                ->description('Habilita esta opción para convertir el evento en privado y restringir el acceso con una contraseña y un cupo máximo.')
+                ->schema([
+                    Toggle::make('es_privado')
+                        ->label('¿Evento Privado?')
+                        ->reactive()
+                        ->helperText('Activa esta opción para que el evento solo sea accesible mediante invitación con una contraseña.'),
+
+                    TextInput::make('password_invitacion')
+                        ->label('Contraseña de Invitación')
+                        ->required(fn(callable $get) => $get('es_privado'))
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->visible(fn(callable $get) => $get('es_privado'))
+                        ->helperText('Esta contraseña se solicitará a tus invitados para registrarse.'),
+
+                    TextInput::make('cupo_invitaciones')
+                        ->label('Cupo Máximo de Invitados')
+                        ->numeric()
+                        ->minValue(1)
+                        ->default(100)
+                        ->extraAttributes(['class' => 'input-brand'])
+                        ->required(fn(callable $get) => $get('es_privado'))
+                        ->visible(fn(callable $get) => $get('es_privado'))
+                        ->helperText('Número total de personas que pueden registrarse con la contraseña.'),
+                ])
+                ->icon('heroicon-o-lock-closed')
+                ->collapsible()
+                ->collapsed(),
 
             // Section::make('Restricciones y requisitos')
             //     ->description('Configura los requisitos para los asistentes.')
