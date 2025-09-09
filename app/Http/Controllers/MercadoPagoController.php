@@ -264,7 +264,7 @@ class MercadoPagoController extends Controller
 
                 // 4.2) Enviar el Mailable con los adjuntos PDF y el reset link
                 Mail::to($user->email)
-                    ->send(new PurchaseWelcomeMail($order, $resetUrl));
+                    ->queue(new PurchaseWelcomeMail($order, $resetUrl));
             } else {
                 //
                 // —— COMPRA ADICIONAL —— solo envío de tickets adjuntos
@@ -272,7 +272,7 @@ class MercadoPagoController extends Controller
 
                 $tickets = $order->purchasedTickets; // Collection de PurchasedTicket
                 Mail::to($user->email)
-                    ->send(new TicketsPurchasedMail($order, $tickets));
+                    ->queue(new TicketsPurchasedMail($order, $tickets));
             }
 
             // 4.3) Marcar la orden para no volver a enviar el email

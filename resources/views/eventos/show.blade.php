@@ -93,7 +93,7 @@
       </form>
       @else
       <div class="bg-red-50 text-red-600 rounded-xl p-5 shadow border border-red-100 text-center mb-4">
-        Entradas de <strong>{{ $entrada->nombre }}</strong> agotadas.
+        Entradas agotadas.
       </div>
       @endif
       @endforeach

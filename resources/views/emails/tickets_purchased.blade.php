@@ -1,16 +1,20 @@
 {{-- resources/views/emails/thanks.blade.php --}}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>¡Gracias por tu compra!</title>
 </head>
+
 <body style="margin:0;padding:0;background:#f5f0ff;font-family:Arial,sans-serif;color:#333;">
   <div style="max-width:600px;margin:0 auto;padding:20px;">
 
     {{-- HEADER --}}
     <div style="background:#7f3fd2;padding:15px;text-align:center;border-radius:8px 8px 0 0;">
-      <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" style="max-height:40px;" />
+      <span style="font-size:24px;font-weight:bold;color:#ffffff;line-height:1.2;">
+        {{ config('app.name') }}
+      </span>
     </div>
 
     {{-- CUADRO PRINCIPAL --}}
@@ -30,9 +34,9 @@
             </ul>
             <div style="text-align:left;">
               <a href="{{ route('mis-entradas') }}"
-                 style="display:inline-block;padding:12px 24px;background:#1dd570;color:#fff;
+                style="display:inline-block;padding:12px 24px;background:#1dd570;color:#fff;
                         text-decoration:none;font-weight:bold;border-radius:6px;font-size:14px;"
-                 target="_blank">
+                target="_blank">
                 Ver mis entradas
               </a>
             </div>
@@ -43,8 +47,7 @@
             <img
               src="{{ asset('storage/' . $order->event->imagen) }}"
               alt="Poster {{ $order->event->nombre }}"
-              style="display:block;width:100%;max-width:160px;height:auto;border-radius:4px;"
-            />
+              style="display:block;width:100%;max-width:160px;height:auto;border-radius:4px;" />
           </td>
         </tr>
       </table>
@@ -75,4 +78,5 @@
 
   </div>
 </body>
+
 </html>
