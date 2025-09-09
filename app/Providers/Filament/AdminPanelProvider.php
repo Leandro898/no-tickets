@@ -96,5 +96,11 @@ class AdminPanelProvider extends PanelProvider
             'panels::topbar.start',
             fn() => view('components.logo-mobile')
         );
+
+        // 3) Hook para agregar un espaciador al final de las páginas
+        FilamentView::registerRenderHook(
+            'panels::page.end',
+            fn() => view('components.scroll-spacer')
+        );
     }
 }

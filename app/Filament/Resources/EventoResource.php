@@ -69,17 +69,16 @@ class EventoResource extends Resource
                             'unique'   => 'El :attribute ya está registrado.',
                         ]),
 
-                    Textarea::make('ubicacion')
-                        ->label('Ubicación')
-                        ->rows(4)
-                        ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
-                        ->columnSpanFull()
-                        ->required()
-                        ->extraAttributes(['class' => 'input-brand'])
-                        ->validationMessages([
-                            'required' => 'Por favor, ingresa la :attribute.',
-                            'unique'   => 'El :attribute ya está registrado.',
-                        ]),
+                TextInput::make('ubicacion')
+                    ->label('Ubicación')
+                    ->placeholder('Agrega aquí la ubicación del evento. Ejemplo: nombre del lugar, dirección, ciudad, etc.')
+                    ->columnSpanFull()
+                    ->required()
+                    ->extraAttributes(['class' => 'input-brand'])
+                    ->validationMessages([
+                        'required' => 'Por favor, ingresa la :attribute.',
+                        'unique'   => 'El :attribute ya está registrado.',
+                    ]),
 
                     Grid::make(2)->schema([
                         DateTimePicker::make('fecha_inicio')

@@ -1,0 +1,1 @@
+<div class="h-32 md:h-24"></div>
