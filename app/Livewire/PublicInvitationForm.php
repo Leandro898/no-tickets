@@ -109,7 +109,6 @@ class PublicInvitationForm extends Component
     {
         Log::info('Render: El método render está siendo llamado. Estado de passwordCorrect: ' . ($this->passwordCorrect ? 'true' : 'false'));
 
-        return view('livewire.public-invitation-form', ['evento' => $this->evento])
-            ->layout('layouts.app');
+        return view('livewire.public-invitation-form', ['evento' => $this->evento]);
     }
 }

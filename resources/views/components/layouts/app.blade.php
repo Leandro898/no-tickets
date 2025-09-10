@@ -1,15 +1,42 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Scanner Test</title>
-    @vite('resources/css/app.css')
-    @livewireStyles
-</head>
-<body class="bg-gray-100 text-gray-900">
-    {{ $slot }}
-    @livewireScripts
+<html lang="{{ str_replace('_','-',app()->getLocale()) }}">
 
-    
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', config('app.name'))</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/tickets-pro.png') }}">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+    @stack('styles')
+</head>
+
+<body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-x-hidden')">
+    {{-- HEADER / NAV --}}
+    @include('layouts.front-nav')
+    {{-- SLIDER (full width, fuera del main) --}}
+    @yield('slider')
+    {{-- CONTENIDO --}}
+    <main class="flex-1 flex flex-col items-center justify-center w-full px-2 py-4">
+        {{ $slot }}
+    </main>
+    {{-- FOOTER --}}
+    <footer class="bg-gray-900 text-gray-300 text-sm py-6">
+        <div class="container mx-auto text-center space-y-2">
+            <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
+            <div class="flex justify-center gap-4">
+                <a href="#" class="hover:text-white">Política de privacidad</a>
+                <a href="#" class="hover:text-white">Términos de uso</a>
+                <a href="#" class="hover:text-white">Contacto</a>
+            </div>
+        </div>
+    </footer>
+    @livewireScripts
+    @stack('scripts')
+    <script src="//unpkg.com/alpinejs" defer></script>
+    {{-- Menu flotante --}}
+    @include('components.front-floating-menu')
 </body>
+
 </html>
