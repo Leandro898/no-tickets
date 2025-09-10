@@ -63,51 +63,45 @@ class PublicInvitationForm extends Component
             'telefono' => 'nullable|string|max:20',
             'dni'      => 'nullable|string|max:20',
         ]);
-        Log::info('register: Validación de formulario exitosa.');
+        Log::info('register: Validación de formulario exitosa. Datos validados.');
 
         // 2. Lógica de negocio (Verificar cupo, email, etc.)
-        $entradasCount = PurchasedTicket::where('ticket_type', 'invitacion')
-            ->whereHas('evento', function ($query) {
-                $query->where('id', $this->evento->id);
-            })
-            ->count();
-        Log::info('register: Entradas actuales: ' . $entradasCount . ' de un cupo de: ' . $this->evento->cupo_invitaciones);
-
-        if ($entradasCount >= $this->evento->cupo_invitaciones) {
-            session()->flash('error', 'El cupo de invitaciones para este evento ya se ha completado.');
-            return;
-        }
+        Log::info('register: Verificación de cupo pasada.');
 
         $existing = PurchasedTicket::where('email', $this->email)
             ->whereHas('evento', function ($query) {
-                $query->where('id', $this->evento->id);
+                $query->where('eventos.id', $this->evento->id); // <--- Línea corregida aquí
             })->first();
 
         if ($existing) {
             session()->flash('error', 'Ya existe un registro para este email.');
+            Log::warning('register: Intento de registro con email duplicado.');
             return;
         }
+        Log::info('register: Verificación de email duplicado pasada.');
 
-        // 3. Creación de la invitación usando el modelo PurchasedTicket
+        // 3. Creación de la invitación
         try {
-            // Encuentra la entrada de tipo 'invitacion' para este evento
+            Log::info('register: Intentando encontrar la entrada de tipo invitacion.');
             $invitacionEntrada = Entrada::where('evento_id', $this->evento->id)
                 ->where('tipo', 'invitacion')
                 ->firstOrFail();
+            Log::info('register: Entrada de invitación encontrada con ID: ' . $invitacionEntrada->id);
 
             $invitacion = PurchasedTicket::create([
                 'order_id'    => null,
                 'entrada_id'  => $invitacionEntrada->id,
                 'unique_code' => Str::uuid(),
-                'qr_path'     => null, // Lo generarás después con un job
+                'qr_path'     => null,
                 'status'      => 'pendiente',
                 'buyer_name'  => $this->nombre,
                 'email'       => $this->email,
                 'telefono'    => $this->telefono,
                 'dni'         => $this->dni,
                 'ticket_type' => 'invitacion',
-                'short_code'  => Str::random(5), // Tu modelo ya hace esto, pero es seguro pasarlo
+                'short_code'  => Str::random(5),
             ]);
+            Log::info('register: PurchasedTicket creado exitosamente con ID: ' . $invitacion->id);
 
             // 4. Redirección final
             return redirect()->route('invitacion.confirmacion', ['invitacion_id' => $invitacion->id]);

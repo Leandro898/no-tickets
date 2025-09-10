@@ -34,7 +34,6 @@
     </footer>
     @livewireScripts
     @stack('scripts')
-    <script src="//unpkg.com/alpinejs" defer></script>
     {{-- Menu flotante --}}
     @include('components.front-floating-menu')
 </body>
