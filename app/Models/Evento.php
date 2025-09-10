@@ -12,6 +12,8 @@ class Evento extends Model
 {
     use HasFactory;
 
+    // En App\Models\Evento.php
+
     protected $fillable = [
         'nombre',
         'slug',
@@ -29,6 +31,9 @@ class Evento extends Model
         'has_seats',
         'bg_image_url',
         'map_data',
+        'es_privado', // <-- Agregado
+        'password_invitacion', // <-- Agregado
+        'cupo_invitaciones', // <-- Agregado
     ];
 
     protected $casts = [

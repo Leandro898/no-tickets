@@ -1,280 +1,289 @@
-<?php
+    <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EventoController;
-use App\Http\Controllers\CompraEntradaSplitController;
-use App\Http\Controllers\TicketValidationController;
-use App\Http\Controllers\MercadoPagoController;
-use App\Http\Controllers\MercadoPagoOAuthController;
-use App\Http\Controllers\ScannerController;
-use App\Http\Controllers\Auth\RegistroProductorController;
-use App\Http\Controllers\Auth\GoogleController;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Controllers\TicketScanController;
-use Illuminate\Support\Facades\Response;
-use App\Http\Controllers\MisEntradasController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\TicketReenvioController;
-use App\Livewire\MostrarTicket;
-use App\Http\Controllers\TicketPdfController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\Admin\TicketScannerController;
-use App\Filament\Pages\TicketScanner;
-use App\Http\Controllers\MagicLinkController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\PurchaseController;
-use Filament\Http\Middleware\Authorize as FilamentAuthorize;
-use App\Http\Controllers\SeatPurchaseController;
-use App\Http\Controllers\SeatMapController;
-use App\Http\Controllers\CheckoutController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\Admin\EntradaController;
-use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
-use App\Models\Order;
-use App\Livewire\PublicInvitationForm;
+    use Illuminate\Support\Facades\Route;
+    use App\Http\Controllers\EventoController;
+    use App\Http\Controllers\CompraEntradaSplitController;
+    use App\Http\Controllers\TicketValidationController;
+    use App\Http\Controllers\MercadoPagoController;
+    use App\Http\Controllers\MercadoPagoOAuthController;
+    use App\Http\Controllers\ScannerController;
+    use App\Http\Controllers\Auth\RegistroProductorController;
+    use App\Http\Controllers\Auth\GoogleController;
+    use Illuminate\Support\Facades\Storage;
+    use App\Http\Controllers\TicketScanController;
+    use Illuminate\Support\Facades\Response;
+    use App\Http\Controllers\MisEntradasController;
+    use App\Http\Controllers\Auth\AuthenticatedSessionController;
+    use App\Http\Controllers\TicketReenvioController;
+    use App\Livewire\MostrarTicket;
+    use App\Http\Controllers\TicketPdfController;
+    use App\Http\Controllers\HomeController;
+    use App\Http\Controllers\Admin\TicketScannerController;
+    use App\Filament\Pages\TicketScanner;
+    use App\Http\Controllers\MagicLinkController;
+    use Illuminate\Http\Request;
+    use Illuminate\Support\Facades\Auth;
+    use App\Models\User;
+    use App\Http\Controllers\Admin\DashboardController;
+    use App\Http\Controllers\PurchaseController;
+    use Filament\Http\Middleware\Authorize as FilamentAuthorize;
+    use App\Http\Controllers\SeatPurchaseController;
+    use App\Http\Controllers\SeatMapController;
+    use App\Http\Controllers\CheckoutController;
+    use App\Http\Controllers\OrderController;
+    use App\Http\Controllers\Admin\EntradaController;
+    use App\Filament\Resources\EntradaResource\Pages\ManageEntradas;
+    use App\Models\Order;
+    use App\Livewire\PublicInvitationForm;
+    use App\Models\Evento;
 
-//RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
-Route::get('/', [HomeController::class, 'index'])->name('home');
+    //RUTA DE INICIO CON UN CONTROLADOR PARA PODER HACER CONSULTAS Y TRAER DATOS DE LOS EVENTOS AL FRONT
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// --------------------------- EVENTOS ---------------------------
-Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
+    // --------------------------- EVENTOS ---------------------------
+    Route::get('/eventos', [EventoController::class, 'index'])->name('eventos.index');
 
-//RUTA REPETIDA???
-//Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+    //RUTA REPETIDA???
+    //Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
 
-// ---------------------- COMPRA CON SPLIT ----------------------
-Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');
-Route::post('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'store'])->name('eventos.comprar.split.store');
-
-
-// Paso 2: muestra el formulario de datos del comprador
-Route::get(
-    '/eventos/{evento}/comprar-split/datos',
-    [CompraEntradaSplitController::class, 'showDatos']
-)->name('eventos.comprar.split.showDatos');
-
-// Paso 2 (POST): procesa los datos del comprador y crea la orden
-Route::post(
-    '/eventos/{evento}/comprar-split/datos',
-    [CompraEntradaSplitController::class, 'storeDatos']
-)->name('eventos.comprar.split.storeDatos');
-
-// ----------------------- MERCADO PAGO -------------------------
-Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])
-    ->middleware(['auth', 'role:admin|productor'])
-    ->name('mercadopago.connect');
-
-Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])
-    ->name('mercadopago.callback');
-
-Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
-//Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
-
-// Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
-
-Route::get('/purchase/success/{order}', [MercadoPagoController::class, 'success'])->name('purchase.success');
-Route::get('/purchase/failure/{order}', [MercadoPagoController::class, 'failure'])->name('purchase.failure');
-Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'])->name('purchase.pending');
-
-// --------------------------- TICKETS --------------------------
-Route::get('/tickets', [CompraEntradaSplitController::class, 'index'])->name('tickets.index');
-Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
-//Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
-// Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
+    // ---------------------- COMPRA CON SPLIT ----------------------
+    Route::get('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'show'])->name('eventos.comprar.split');
+    Route::post('/eventos/{evento}/comprar-split', [CompraEntradaSplitController::class, 'store'])->name('eventos.comprar.split.store');
 
 
+    // Paso 2: muestra el formulario de datos del comprador
+    Route::get(
+        '/eventos/{evento}/comprar-split/datos',
+        [CompraEntradaSplitController::class, 'showDatos']
+    )->name('eventos.comprar.split.showDatos');
+
+    // Paso 2 (POST): procesa los datos del comprador y crea la orden
+    Route::post(
+        '/eventos/{evento}/comprar-split/datos',
+        [CompraEntradaSplitController::class, 'storeDatos']
+    )->name('eventos.comprar.split.storeDatos');
+
+    // ----------------------- MERCADO PAGO -------------------------
+    Route::get('/mercadopago/connect', [MercadoPagoOAuthController::class, 'connect'])
+        ->middleware(['auth', 'role:admin|productor'])
+        ->name('mercadopago.connect');
+
+    Route::get('/mercadopago/callback', [MercadoPagoOAuthController::class, 'handleCallback'])
+        ->name('mercadopago.callback');
+
+    Route::post('/mercadopago/unlink', [MercadoPagoOAuthController::class, 'unlinkMPAccount'])->name('mercadopago.unlink');
+    //Route::view('/mercadopago/error', 'mercadopago.error')->name('mercadopago.error');
+
+    // Route::post('/api/mercadopago/webhook', [MercadoPagoController::class, 'handleWebhook'])->name('mercadopago.webhook');
+
+    Route::get('/purchase/success/{order}', [MercadoPagoController::class, 'success'])->name('purchase.success');
+    Route::get('/purchase/failure/{order}', [MercadoPagoController::class, 'failure'])->name('purchase.failure');
+    Route::get('/purchase/pending/{order}', [MercadoPagoController::class, 'pending'])->name('purchase.pending');
+
+    // --------------------------- TICKETS --------------------------
+    Route::get('/tickets', [CompraEntradaSplitController::class, 'index'])->name('tickets.index');
+    Route::get('/ticket/{code}/validate', [TicketValidationController::class, 'showValidationPage'])->name('ticket.validate');
+    //Route::post('/ticket/{code}/scan', [TicketValidationController::class, 'scanTicket'])->name('ticket.scan');
+    // Route::get('/scan-interface', [TicketValidationController::class, 'showScannerInterface'])->name('ticket.scanner.interface');
 
 
-// ULTIMO SCANNER
-Route::middleware(['auth'])->get('/scanner', function () {
-    return view('filament.pages.scan-qr-redirect');
-})->name('scanner.index');
 
-// VALIDAR QRs
-// Route::middleware(['auth', 'role:scanner'])->group(function () {
-//     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
-// });
 
-// RUTAS PARA REGISTRO CON EMAIL
-Route::get('/registro', function () {
-    return view('auth.productor.opciones');
-})->name('registro.opciones');
+    // ULTIMO SCANNER
+    Route::middleware(['auth'])->get('/scanner', function () {
+        return view('filament.pages.scan-qr-redirect');
+    })->name('scanner.index');
 
-Route::get('/registro/email', [RegistroProductorController::class, 'showEmailForm'])->name('registro.email');
-Route::post('/registro/email', [RegistroProductorController::class, 'handleEmail']);
+    // VALIDAR QRs
+    // Route::middleware(['auth', 'role:scanner'])->group(function () {
+    //     Route::post('/validar-ticket', [TicketScanController::class, 'validar']);
+    // });
 
-//REGISTRO CONTRASEÑA
-Route::get('/registro/password', [RegistroProductorController::class, 'showPasswordForm'])->name('registro.password');
-Route::post('/registro/password', [RegistroProductorController::class, 'handlePassword']);
+    // RUTAS PARA REGISTRO CON EMAIL
+    Route::get('/registro', function () {
+        return view('auth.productor.opciones');
+    })->name('registro.opciones');
 
-//RUTAS PARA VERIFICACION DE EMAIL
-Route::get('/registro/verificacion', [RegistroProductorController::class, 'showVerificationForm'])->name('registro.verificacion');
-Route::post('/registro/verificacion', [RegistroProductorController::class, 'verifyCode']);
+    Route::get('/registro/email', [RegistroProductorController::class, 'showEmailForm'])->name('registro.email');
+    Route::post('/registro/email', [RegistroProductorController::class, 'handleEmail']);
 
-//RUTA PARA REENVIO DE CODIGO
-Route::post('/registro/re-enviar-codigo', [RegistroProductorController::class, 'reenviarCodigo'])->name('registro.reenviar');
+    //REGISTRO CONTRASEÑA
+    Route::get('/registro/password', [RegistroProductorController::class, 'showPasswordForm'])->name('registro.password');
+    Route::post('/registro/password', [RegistroProductorController::class, 'handlePassword']);
 
-//RUTAS PARA REGISTRARTE CON GOOGLE
-Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
-Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
+    //RUTAS PARA VERIFICACION DE EMAIL
+    Route::get('/registro/verificacion', [RegistroProductorController::class, 'showVerificationForm'])->name('registro.verificacion');
+    Route::post('/registro/verificacion', [RegistroProductorController::class, 'verifyCode']);
 
-//RUTA PARA COPIAR EVENTOS DESDE EL PANEL DE DETALLES DE EVENTO DE UN PRODUCTOR
-Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
+    //RUTA PARA REENVIO DE CODIGO
+    Route::post('/registro/re-enviar-codigo', [RegistroProductorController::class, 'reenviarCodigo'])->name('registro.reenviar');
 
-// //RUTA PARA DESCARGAR ENTRADAS POR WhatsApp
-// Route::get('/descargar/qr/{filename}', function ($filename) {
-//     $path = 'qrcodes/' . $filename;
+    //RUTAS PARA REGISTRARTE CON GOOGLE
+    Route::get('/auth/google', [GoogleController::class, 'redirect'])->name('auth.google');
+    Route::get('/auth/google/callback', [GoogleController::class, 'callback']);
 
-//     if (!Storage::disk('public')->exists($path)) {
-//         abort(404);
-//     }
+    //RUTA PARA COPIAR EVENTOS DESDE EL PANEL DE DETALLES DE EVENTO DE UN PRODUCTOR
+    Route::get('/eventos/{evento}', [EventoController::class, 'show'])->name('eventos.show');
 
-//     return Storage::disk('public')->download($path, 'entrada-' . $filename);
-// })->name('qr.download');
+    // //RUTA PARA DESCARGAR ENTRADAS POR WhatsApp
+    // Route::get('/descargar/qr/{filename}', function ($filename) {
+    //     $path = 'qrcodes/' . $filename;
 
-// //OPCION PARA RECIBIR O DESCARGAR ENTRADAS POR WHATSAPP
-// Route::get('/orden/{order}/reenviar-whatsapp', [TicketScanController::class, 'reenviarWhatsApp'])->name('orden.reenviar.whatsapp');
+    //     if (!Storage::disk('public')->exists($path)) {
+    //         abort(404);
+    //     }
 
-//RUTA PARA QUE SE PUEDA DESCARGAR LA ENTRADA DESPUES DE COMPRARLA
+    //     return Storage::disk('public')->download($path, 'entrada-' . $filename);
+    // })->name('qr.download');
 
-Route::get('/descargar-entrada/{filename}', function ($filename) {
-    $path = storage_path('app/public/qrcodes/' . $filename);
+    // //OPCION PARA RECIBIR O DESCARGAR ENTRADAS POR WHATSAPP
+    // Route::get('/orden/{order}/reenviar-whatsapp', [TicketScanController::class, 'reenviarWhatsApp'])->name('orden.reenviar.whatsapp');
 
-    if (!file_exists($path)) {
-        abort(404);
-    }
+    //RUTA PARA QUE SE PUEDA DESCARGAR LA ENTRADA DESPUES DE COMPRARLA
 
-    return Response::download($path);
-})->name('qr.descargar');
+    Route::get('/descargar-entrada/{filename}', function ($filename) {
+        $path = storage_path('app/public/qrcodes/' . $filename);
 
-//RUTA PARA VER MIS ENTRADAS
-Route::middleware(['auth'])->group(function () {
-    Route::get('/mis-entradas', [MisEntradasController::class, 'index'])->name('mis-entradas');
-});
+        if (!file_exists($path)) {
+            abort(404);
+        }
 
-// Rutas DASHBOARD USUARIO
-Route::middleware(['auth'])->group(function () {
-    // Redirige /dashboard a /mis-entradas
-    Route::redirect('/dashboard', '/mis-entradas')
-        ->name('dashboard');
-});
+        return Response::download($path);
+    })->name('qr.descargar');
 
-// REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
-Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
-
-//RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO - bien perrito malvado con la docu
-Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
-
-//RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
-Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
-    ->name('ticket.descargar')
-    ->middleware('auth');
-
-// SCANNER FINAL NUEVO
-Route::middleware(['auth', 'role:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        // Esto mapea GET /admin/ticket-scanner → TicketScanner Page
-        // (Filament lo hace por slug automáticamente)
-
-        // AJAX endpoint:
-        Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
-            ->name('ticket-scanner.scan');
+    //RUTA PARA VER MIS ENTRADAS
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/mis-entradas', [MisEntradasController::class, 'index'])->name('mis-entradas');
     });
 
-//RUTAS PARA LA CONFIRMACION DE LOS QR EN LA BASE DE DATOS
-// web.php o api.php
-Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
-Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
-
-//RUTA PARA SERVIR ARCHIVOS DESDE CARPETA PRIVADA
-Route::get('/ticket/{ticket}/ver', [TicketPdfController::class, 'view'])
-    ->name('ticket.view')
-    ->middleware('auth');
-
-// Aviso de verificación en /verify-email
-Route::get('/verify-email', function () {
-    // Carga resources/views/auth/verify-email.blade.php
-    return view('auth.verify-email');
-})
-    ->middleware('auth')
-    ->name('verification.notice');
-
-// 1) La pantalla “Revisa tu correo” (para el flash de email_to_verify)
-Route::get('/check-email', function () {
-    return view('auth.check-email', [
-        'email' => session('email_to_verify'),
-    ]);
-})
-->middleware('guest')
-->name('auth.check-email');
-
-// 2) La ruta firmada que hace el Auth::login()
-//    Fíjate en el {user} para que Laravel inyecte el User::find($id)
-Route::get('/magic-login/{user}', [MagicLinkController::class, 'login'])
-    ->middleware(['signed', 'guest'])
-    ->name('magic.login');
-
-// 3) Si el usuario no tiene contraseña, mostramos el form para crearla
-Route::get('/setup-password', [MagicLinkController::class, 'showSetupPassword'])
-    ->middleware('auth')
-    ->name('password.setup');
-
-// 4) Procesar el POST del form de creación de contraseña
-Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
-    ->middleware('auth')
-    ->name('password.setup.store');
-
-//prueba
-Route::get('/test-counter', fn() => view('test-counter'));
-
-Route::middleware(['auth', 'role:admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Rutas DASHBOARD USUARIO
+    Route::middleware(['auth'])->group(function () {
+        // Redirige /dashboard a /mis-entradas
+        Route::redirect('/dashboard', '/mis-entradas')
+            ->name('dashboard');
     });
 
-// RUTAS PARA ACTUALIZAR EL ESTADO DEL PEDIDO DE FORMA AUTOMATICA
-Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'])
-     ->name('purchase.approved');
+    // REENVIO DE TICKETS DESDE EL PANEL DE USUARIO
+    Route::middleware(['auth'])->get('/ticket/{ticket}/reenviar', [TicketReenvioController::class, 'reenviar'])->name('ticket.reenviar');
 
-Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
-     ->name('purchase.rejected');
+    //RUTA PARA VER LOS TICKETS DESDE EL PANEL DEL USUARIO - bien perrito malvado con la docu
+    Route::get('/ticket/{ticket}', MostrarTicket::class)->name('ticket.mostrar');
+
+    //RUTA PARA PODER GENERAR LA ENTRADA COMO PDF EN EL PANEL DE USUARIO
+    Route::get('/ticket/{ticket}/descargar', [TicketPdfController::class, 'download'])
+        ->name('ticket.descargar')
+        ->middleware('auth');
+
+    // SCANNER FINAL NUEVO
+    Route::middleware(['auth', 'role:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            // Esto mapea GET /admin/ticket-scanner → TicketScanner Page
+            // (Filament lo hace por slug automáticamente)
+
+            // AJAX endpoint:
+            Route::post('ticket-scanner/scan', [TicketScannerController::class, 'scan'])
+                ->name('ticket-scanner.scan');
+        });
+
+    //RUTAS PARA LA CONFIRMACION DE LOS QR EN LA BASE DE DATOS
+    // web.php o api.php
+    Route::post('/admin/ticket-scanner/buscar', [TicketScannerController::class, 'buscar'])->name('admin.ticket-scanner.buscar');
+    Route::post('/admin/ticket-scanner/validar', [TicketScannerController::class, 'validar'])->name('admin.ticket-scanner.validar');
+
+    //RUTA PARA SERVIR ARCHIVOS DESDE CARPETA PRIVADA
+    Route::get('/ticket/{ticket}/ver', [TicketPdfController::class, 'view'])
+        ->name('ticket.view')
+        ->middleware('auth');
+
+    // Aviso de verificación en /verify-email
+    Route::get('/verify-email', function () {
+        // Carga resources/views/auth/verify-email.blade.php
+        return view('auth.verify-email');
+    })
+        ->middleware('auth')
+        ->name('verification.notice');
+
+    // 1) La pantalla “Revisa tu correo” (para el flash de email_to_verify)
+    Route::get('/check-email', function () {
+        return view('auth.check-email', [
+            'email' => session('email_to_verify'),
+        ]);
+    })
+    ->middleware('guest')
+    ->name('auth.check-email');
+
+    // 2) La ruta firmada que hace el Auth::login()
+    //    Fíjate en el {user} para que Laravel inyecte el User::find($id)
+    Route::get('/magic-login/{user}', [MagicLinkController::class, 'login'])
+        ->middleware(['signed', 'guest'])
+        ->name('magic.login');
+
+    // 3) Si el usuario no tiene contraseña, mostramos el form para crearla
+    Route::get('/setup-password', [MagicLinkController::class, 'showSetupPassword'])
+        ->middleware('auth')
+        ->name('password.setup');
+
+    // 4) Procesar el POST del form de creación de contraseña
+    Route::post('/setup-password', [MagicLinkController::class, 'setupPassword'])
+        ->middleware('auth')
+        ->name('password.setup.store');
+
+    //prueba
+    Route::get('/test-counter', fn() => view('test-counter'));
+
+    Route::middleware(['auth', 'role:admin'])
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        });
+
+    // RUTAS PARA ACTUALIZAR EL ESTADO DEL PEDIDO DE FORMA AUTOMATICA
+    Route::get('purchase/approved/{order}',    [PurchaseController::class, 'success'])
+        ->name('purchase.approved');
+
+    Route::get('purchase/rejected/{order}',    [PurchaseController::class, 'failed'])
+        ->name('purchase.rejected');
 
 
 
-// RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
+    // RUTAS PARA LA COMPRA DE ENTRADAS CON ASIENTOS
 
-Route::get(
-    'eventos/{evento}/checkout-seats',
-    [SeatMapController::class, 'showCheckout']
-)->name('eventos.checkout-seats');
+    Route::get(
+        'eventos/{evento}/checkout-seats',
+        [SeatMapController::class, 'showCheckout']
+    )->name('eventos.checkout-seats');
 
-// Ruta para el checkout de asientos
-Route::get(
-    'eventos/{evento}/checkout',
-    [CheckoutController::class, 'show']
-)->name('eventos.checkout');
-
-
-// Ruta que procesa la creación de la orden (checkout)
-Route::post('orders', [OrderController::class, 'store'])
-    ->name('orders.create');
-// Ruta que muestra la página de agradecimiento después de la compra
-Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
-    ->name('orders.thankyou');
-
-// Ruta para el formulario público de invitaciones
-Route::get('/eventos/{slug}/invitacion', PublicInvitationForm::class);
+    // Ruta para el checkout de asientos
+    Route::get(
+        'eventos/{evento}/checkout',
+        [CheckoutController::class, 'show']
+    )->name('eventos.checkout');
 
 
+    // Ruta que procesa la creación de la orden (checkout)
+    Route::post('orders', [OrderController::class, 'store'])
+        ->name('orders.create');
+    // Ruta que muestra la página de agradecimiento después de la compra
+    Route::get('orders/{order}/gracias', [OrderController::class, 'thankyou'])
+        ->name('orders.thankyou');
+
+    // Ruta para el formulario público de invitaciones
+    Route::get('/eventos/{slug}/invitacion', PublicInvitationForm::class);
+
+    // // Ruta temporal para depuración
+    // Route::get('/eventos/{slug}/invitacion', function ($slug) {
+    //     $evento = Evento::where('slug', $slug)->firstOrFail();
+    //     // Define la variable que la vista necesita
+    //     $passwordCorrect = false;
+    //     // Pasa ambas variables a la vista
+    //     return view('livewire.public-invitation-form', compact('evento', 'passwordCorrect'));
+    // });
 
 
 
-// ——— aquí ya conectas las rutas “normales” de login/registro/etc
-require __DIR__ . '/auth.php';
+
+    // ——— aquí ya conectas las rutas “normales” de login/registro/etc
+    require __DIR__ . '/auth.php';

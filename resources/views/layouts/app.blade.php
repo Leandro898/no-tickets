@@ -1,20 +1,21 @@
   <!DOCTYPE html>
   <html lang="{{ str_replace('_','-',app()->getLocale()) }}">
+
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- ESTA LÍNEA: -->
-      <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/tickets-pro.png') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    
+    @livewireStyles {{-- Directiva de Livewire para estilos --}}
+
     @stack('styles')
-    <!-- <style>
-      html { overflow-y: scroll; }
-    </style> -->
+
   </head>
+
   <body class="@yield('body-class', 'bg-purple-50 min-h-screen flex flex-col overflow-x-hidden')">
 
     {{-- HEADER / NAV --}}
@@ -34,18 +35,20 @@
         <p>© {{ date('Y') }} {{ config('app.name') }}. Todos los derechos reservados.</p>
         <div class="flex justify-center gap-4">
           <a href="#" class="hover:text-white">Política de privacidad</a>
-          <a href="#"   class="hover:text-white">Términos de uso</a>
+          <a href="#" class="hover:text-white">Términos de uso</a>
           <a href="#" class="hover:text-white">Contacto</a>
         </div>
       </div>
     </footer>
 
+    @livewireScripts {{-- Directiva de Livewire para scripts --}}
     @stack('scripts')
 
     <!-- Alpine.js para dropdowns y otros componentes -->
     <script src="//unpkg.com/alpinejs" defer></script>
     {{-- Menu flotante --}}
     @include('components.front-floating-menu')
-    
+
   </body>
+
   </html>
