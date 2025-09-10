@@ -273,14 +273,11 @@
     // Ruta para el formulario público de invitaciones
     Route::get('/eventos/{slug}/invitacion', PublicInvitationForm::class);
 
-    // // Ruta temporal para depuración
-    // Route::get('/eventos/{slug}/invitacion', function ($slug) {
-    //     $evento = Evento::where('slug', $slug)->firstOrFail();
-    //     // Define la variable que la vista necesita
-    //     $passwordCorrect = false;
-    //     // Pasa ambas variables a la vista
-    //     return view('livewire.public-invitation-form', compact('evento', 'passwordCorrect'));
-    // });
+    // Ruta para confirmar registro
+    Route::get('/invitacion/confirmacion', function () {
+        return view('invitacion-confirmacion');
+    })->name('invitacion.confirmacion');
+    
 
 
 

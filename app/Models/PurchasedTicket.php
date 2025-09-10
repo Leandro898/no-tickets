@@ -20,6 +20,9 @@ class PurchasedTicket extends Model
         'status',
         'scanned_at',
         'buyer_name',
+        'email', // <-- Añade este campo
+        'telefono', // <-- Añade este campo
+        'dni', // <-- Añade este campo
         'ticket_type',
         'short_code',
     ];
