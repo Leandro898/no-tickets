@@ -274,8 +274,9 @@
     Route::get('/eventos/{slug}/invitacion', PublicInvitationForm::class);
 
     // Ruta para confirmar registro
-    Route::get('/invitacion/confirmacion', function () {
-        return view('invitacion-confirmacion');
+    // Ruta para confirmar registro (ahora acepta el ID)
+    Route::get('/invitacion/confirmacion/{invitacion_id}', function ($invitacion_id) {
+        return view('invitacion-confirmacion', compact('invitacion_id'));
     })->name('invitacion.confirmacion');
     
 
