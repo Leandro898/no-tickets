@@ -1,5 +1,7 @@
     <?php
 
+    use Illuminate\Support\Facades\Log;
+    use Illuminate\Support\Facades\Mail;
     use Illuminate\Support\Facades\Route;
     use App\Http\Controllers\EventoController;
     use App\Http\Controllers\CompraEntradaSplitController;
@@ -278,9 +280,9 @@
     Route::get('/invitacion/confirmacion/{invitacion_id}', function ($invitacion_id) {
         return view('invitacion-confirmacion', compact('invitacion_id'));
     })->name('invitacion.confirmacion');
+
+
     
-
-
 
 
     // ——— aquí ya conectas las rutas “normales” de login/registro/etc

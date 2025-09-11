@@ -2,19 +2,19 @@
 
 namespace App\Livewire;
 
+use Livewire\Component;
 use App\Models\Evento;
-use App\Models\Entrada; // Mantén este modelo si lo usas en otro lugar
-use App\Models\PurchasedTicket; // Asegúrate de importar este modelo
-use Illuminate\Validation\ValidationException;
+use App\Models\Entrada;
+use App\Models\PurchasedTicket;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Livewire\Component;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\InvitacionEnviada;
 
 class PublicInvitationForm extends Component
 {
-    // Agrega esta propiedad estática para definir el layout
-    //protected static string $layout = 'layouts.app';
-
     public $errorMessage = '';
 
     public Evento $evento;
@@ -55,8 +55,6 @@ class PublicInvitationForm extends Component
     public function register()
     {
         Log::info('register: Método de registro llamado.');
-
-        // 1. Validación de campos
         $this->validate([
             'nombre'   => 'required|string|max:255',
             'email'    => 'required|email|max:255',
@@ -65,12 +63,9 @@ class PublicInvitationForm extends Component
         ]);
         Log::info('register: Validación de formulario exitosa. Datos validados.');
 
-        // 2. Lógica de negocio (Verificar cupo, email, etc.)
-        Log::info('register: Verificación de cupo pasada.');
-
         $existing = PurchasedTicket::where('email', $this->email)
             ->whereHas('evento', function ($query) {
-                $query->where('eventos.id', $this->evento->id); // <--- Línea corregida aquí
+                $query->where('eventos.id', $this->evento->id);
             })->first();
 
         if ($existing) {
@@ -80,7 +75,6 @@ class PublicInvitationForm extends Component
         }
         Log::info('register: Verificación de email duplicado pasada.');
 
-        // 3. Creación de la invitación
         try {
             Log::info('register: Intentando encontrar la entrada de tipo invitacion.');
             $invitacionEntrada = Entrada::where('evento_id', $this->evento->id)
@@ -103,14 +97,41 @@ class PublicInvitationForm extends Component
             ]);
             Log::info('register: PurchasedTicket creado exitosamente con ID: ' . $invitacion->id);
 
-            // 4. Redirección final
+            Log::info('register: Generando código QR.');
+            $qrCodePath = 'qrcodes/invitacion-' . $invitacion->unique_code . '.svg';
+            Storage::disk('public')->put(
+                $qrCodePath,
+                QrCode::size(250)->generate(route('ticket.validate', ['code' => $invitacion->unique_code]))
+            );
+            Log::info('register: QR guardado en la ruta: ' . $qrCodePath);
+
+            $invitacion->qr_path = $qrCodePath;
+            $invitacion->save();
+
+            Log::info('register: Intentando poner el correo en la cola de envíos para: ' . $invitacion->email);
+
+            try {
+                Mail::to($invitacion->email)->queue(new InvitacionEnviada($invitacion));
+                Log::info('register: El método Mail::to()->queue() se ejecutó sin errores.');
+            } catch (\Exception $e) {
+                Log::error('Error al poner el correo en la cola: ' . $e->getMessage(), [
+                    'email' => $invitacion->email,
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
+
+            Log::info('register: Lógica de QR y email completada.');
+
             return redirect()->route('invitacion.confirmacion', ['invitacion_id' => $invitacion->id]);
         } catch (\Exception $e) {
-            Log::error('Error al registrar la invitación: ' . $e->getMessage());
+            Log::error('Error al registrar la invitación: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
             session()->flash('error', 'Ocurrió un error inesperado al procesar tu solicitud. Por favor, inténtalo de nuevo.');
             return;
         }
     }
+
     public function render()
     {
         Log::info('Render: El método render está siendo llamado. Estado de passwordCorrect: ' . ($this->passwordCorrect ? 'true' : 'false'));

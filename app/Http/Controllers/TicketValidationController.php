@@ -16,13 +16,16 @@ class TicketValidationController extends Controller
      */
     public function showValidationPage($code)
     {
-        $ticket = PurchasedTicket::with('entrada.evento')->where('unique_code', $code)->first();
+        // Busca el ticket usando el código único
+        $invitacion = PurchasedTicket::where('unique_code', $code)->first();
 
-        if (!$ticket) {
-            abort(404, 'Ticket no encontrado.');
+        // Si el ticket no existe, muestra un error 404
+        if (!$invitacion) {
+            abort(404);
         }
 
-        return view('ticket_validation_page', compact('ticket'));
+        // Pasa el objeto $invitacion a la vista
+        return view('ticket_validation_page', compact('invitacion'));
     }
 
     /**
@@ -86,7 +89,12 @@ class TicketValidationController extends Controller
     //     return response()->json(['status' => 'success', 'message' => 'Ticket validado exitosamente.']);
     // }
 
+    public function showConfirmation($invitacion_id)
+    {
+        $invitacion = PurchasedTicket::findOrFail($invitacion_id);
 
+        return view('invitacion.confirmacion', compact('invitacion'));
+    }
 
     /**
      * Muestra la interfaz del escáner QR dentro de la aplicación.

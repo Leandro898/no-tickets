@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\URL;
 use App\Models\MagicLink;
 use App\Notifications\MagicLinkLogin;
 use Exception;
+use Swift_SmtpTransport;
 
 
 class MercadoPagoController extends Controller
