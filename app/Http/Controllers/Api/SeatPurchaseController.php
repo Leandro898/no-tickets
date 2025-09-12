@@ -70,8 +70,8 @@ class SeatPurchaseController extends Controller
                     $seats->map(function ($s) {
                         return [
                             'entrada_id' => $s->entrada_id,
-                            'cantidad' => 1,
-                            'seat_id' => $s->id,
+                            'cantidad'   => 1,
+                            'seat_id'    => $s->id,
                         ];
                     })
                 ),
@@ -82,7 +82,10 @@ class SeatPurchaseController extends Controller
             if (! $org || ! $org->mp_access_token) {
                 throw new \Exception('El organizador no tiene Mercado Pago conectado.');
             }
-            MercadoPagoConfig::setAccessToken($org->mp_access_token);
+
+            // ⚠️ FIX: Pasar el access token como primer argumento.
+            $accessToken = $org->mp_access_token;
+            Log::info('DEBUG: Access Token a enviar a Mercado Pago: ' . (is_string($accessToken) ? 'es una cadena' : gettype($accessToken)));
 
             // 7️⃣ Preparar los ítems para la preferencia
             $items = $seats->map(fn($s) => [
@@ -94,7 +97,8 @@ class SeatPurchaseController extends Controller
             /** @var MercadoPagoController $mp */
             $mp = app(MercadoPagoController::class);
             $preference = $mp->createPreference(
-                $items,
+                $accessToken, // <-- Token de acceso (Arg 1)
+                $items, // <-- Ítems (Arg 2)
                 [
                     'email'          => $order->buyer_email,
                     'name'           => $order->buyer_full_name,
@@ -102,13 +106,15 @@ class SeatPurchaseController extends Controller
                         'type'   => 'DNI',
                         'number' => $order->buyer_dni ?? '',
                     ],
-                ],
-                (string) $order->id,
+                ], // <-- Payer (Arg 3)
+                (string) $order->id, // <-- External Reference (Arg 4)
                 [
                     'success' => route('purchase.success', ['order' => $order->id]),
                     'failure' => route('purchase.failure', ['order' => $order->id]),
                     'pending' => route('purchase.pending', ['order' => $order->id]),
-                ]
+                ], // <-- Back URLs (Arg 5)
+                0, // <-- Marketplace Fee (Arg 6)
+                $total // <-- Total Amount (Arg 7)
             );
 
             Log::info('DEBUG purchase — MP Preference creada', [
@@ -133,5 +139,17 @@ class SeatPurchaseController extends Controller
             DB::rollBack();
             return response()->json(['error' => $e->getMessage()], 422);
         }
+    }
+
+    public function store(Request $request, Evento $evento)
+    {
+        // Este método se deja aquí por si la ruta original lo utiliza, 
+        // pero la lógica de compra principal ahora está en el método `purchase`.
+        $data = $request->validate([
+            'seats' => 'required|array|min:1',
+            'seats.*' => 'integer|exists:asientos,id',
+        ]);
+
+        return redirect()->route('purchase.success', /* tu orden */);
     }
 }

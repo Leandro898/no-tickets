@@ -50,14 +50,14 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
     }
     onMounted(() => {
         updateSize()
-            containerRef.value.clientWidth,
+        containerRef.value.clientWidth,
             containerRef.value.clientHeight
-        
+
         window.addEventListener('resize', updateSize)
     })
 
     watch([canvasW, canvasH], ([w, h]) => {
-        
+
     })
 
     onBeforeUnmount(() => {
@@ -129,7 +129,7 @@ export function useSeatMap(eventoSlug, initialBgImageUrl, containerRef) {
             mapJSON.value = map
 
             await nextTick();
-            
+
             // 🟢 ACA el canvasW y canvasH ya están actualizados al tamaño visible del canvas
             const actualW = canvasW.value || BASE_CANVAS_WIDTH
             const actualH = canvasH.value || BASE_CANVAS_HEIGHT

@@ -12,6 +12,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\InvitacionEnviada;
+use Illuminate\Validation\ValidationException;
 
 class PublicInvitationForm extends Component
 {
@@ -111,10 +112,11 @@ class PublicInvitationForm extends Component
             Log::info('register: Intentando poner el correo en la cola de envíos para: ' . $invitacion->email);
 
             try {
-                Mail::to($invitacion->email)->queue(new InvitacionEnviada($invitacion));
-                Log::info('register: El método Mail::to()->queue() se ejecutó sin errores.');
+                // 💡 CAMBIO CLAVE: Cambiamos ->queue() por ->send() para que se ejecute de inmediato
+                Mail::to($invitacion->email)->send(new InvitacionEnviada($invitacion));
+                Log::info('register: El método Mail::to()->send() se ejecutó sin errores.');
             } catch (\Exception $e) {
-                Log::error('Error al poner el correo en la cola: ' . $e->getMessage(), [
+                Log::error('Error al enviar el correo: ' . $e->getMessage(), [
                     'email' => $invitacion->email,
                     'trace' => $e->getTraceAsString(),
                 ]);

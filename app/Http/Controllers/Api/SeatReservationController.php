@@ -37,7 +37,7 @@ class SeatReservationController extends Controller
             }
 
             // Marca como reservado
-            $expiresAt = now()->addMinutes(1);
+            $expiresAt = now()->addMinutes(10);
             foreach ($asientos as $asiento) {
                 $asiento->status         = 'reservado';
                 $asiento->reserved_until = $expiresAt;

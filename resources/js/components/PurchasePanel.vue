@@ -44,8 +44,10 @@
                     <label for="buyer-email">Email *</label>
                     <input id="buyer-email" v-model="buyer.email" type="email" required />
                 </div>
-                <button type="submit" class="submit-btn" :disabled="loading || remainingMs <= 0">
-                    💳 Proceder al pago
+                <!-- 💡 FIX: Usamos la prop 'isLoading' del padre para deshabilitar el botón -->
+                <button type="submit" class="submit-btn" :disabled="isLoading || remainingMs <= 0">
+                    <span v-if="isLoading">Procesando...</span>
+                    <span v-else>💳 Proceder al pago</span>
                 </button>
             </form>
         </section>
@@ -59,6 +61,8 @@ const props = defineProps({
     seats: { type: Array, required: true },
     visible: { type: Boolean, required: true },
     reservedUntil: { type: Date, default: null },
+    // 💡 FIX: Agregamos la prop que viene del componente padre
+    isLoading: { type: Boolean, default: false }
 })
 const emit = defineEmits(['close', 'remove', 'confirm'])
 
@@ -84,7 +88,7 @@ onBeforeUnmount(() => clearInterval(timerInterval))
 
 // Comprador y estado
 const buyer = ref({ name: '', email: '' })
-const loading = ref(false)
+// 💡 FIX: Eliminamos la variable local 'loading'
 const error = ref(null)
 const totalPrice = computed(() =>
     props.seats.reduce(
@@ -99,12 +103,12 @@ function submitPurchase() {
         error.value = 'Debes completar nombre y correo.'
         return
     }
-    loading.value = true
+    // 💡 FIX: Ya no asignamos el estado 'loading' localmente
     emit('confirm', {
         seats: props.seats.map(s => s.id),
         buyer: { ...buyer.value },
     })
-    loading.value = false
+    // 💡 FIX: Ya no asignamos el estado 'loading' localmente
 }
 </script>
 

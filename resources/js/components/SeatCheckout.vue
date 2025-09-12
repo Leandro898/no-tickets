@@ -8,14 +8,18 @@
 
         <!-- Botón RESERVAR siempre visible -->
         <div class="reserve-button-container">
-            <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats" class="reserve-btn">
-                🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
+            <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats" class="reserve-btn"
+                :disabled="isLoading">
+                <span v-if="isLoading">Procesando...</span>
+                <span v-else>
+                    🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
+                </span>
             </button>
         </div>
 
         <!-- Drawer de compra -->
         <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
-            @close="closePanel" @confirm="submitPayment" @remove="removeSeat" />
+            @close="closePanel" @confirm="submitPayment" />
     </div>
 </template>
 
@@ -34,6 +38,7 @@ const mapKey = ref(0)
 const selectedSeats = ref([])
 const showPurchase = ref(false)
 const reservedUntil = ref(null)
+const isLoading = ref(false) // 👈🏼 Nueva variable para controlar el estado de carga
 
 function onSelectionChange(seats) {
     selectedSeats.value = seats
@@ -41,6 +46,7 @@ function onSelectionChange(seats) {
 
 async function reserveSeats() {
     const ids = selectedSeats.value.map(s => s.id)
+    isLoading.value = true; // 👈🏼 Activar el estado de carga
     try {
         const { data } = await axios.post('/api/asientos/reservar', { seats: ids })
         reservedUntil.value = new Date(data.reserved_until)
@@ -52,10 +58,13 @@ async function reserveSeats() {
         } else {
             alert('❌ Error al reservar')
         }
+    } finally {
+        isLoading.value = false; // 👈🏼 Desactivar el estado de carga
     }
 }
 
 async function submitPayment({ seats, buyer }) {
+    isLoading.value = true; // 👈🏼 Activar el estado de carga
     try {
         const payload = {
             seats,
@@ -68,6 +77,8 @@ async function submitPayment({ seats, buyer }) {
     } catch (err) {
         // manejo simplificado…
         alert('❌ Error al procesar el pago')
+    } finally {
+        isLoading.value = false; // 👈🏼 Desactivar el estado de carga
     }
 }
 
@@ -118,6 +129,11 @@ async function removeSeat(id) {
 
 .reserve-btn:hover {
     background: #15803d;
+}
+
+.reserve-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
 }
 
 /* En pantallas muy chicas, que ocupe todo el ancho al pie */
