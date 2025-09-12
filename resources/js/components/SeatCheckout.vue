@@ -1,25 +1,23 @@
 <template>
     <div class="seat-checkout-container">
-        <!-- El lienzo de asientos -->
         <div class="seat-canvas">
             <SeatSelector :key="mapKey" :evento-slug="props.eventoSlug" @selection-change="onSelectionChange"
                 class="w-full h-full" />
         </div>
 
-        <!-- Botón RESERVAR siempre visible -->
         <div class="reserve-button-container">
             <button v-if="selectedSeats.length && !showPurchase" @click="reserveSeats" class="reserve-btn"
                 :disabled="isLoading">
                 <span v-if="isLoading">Procesando...</span>
                 <span v-else>
-                    🛎 Reservar {{ selectedSeats.length }} asiento<span v-if="selectedSeats.length > 1">s</span>
+                    🛎 Reservar {{ selectedSeats.length }} asiento
+                    <span v-if="selectedSeats.length > 1">s</span>
                 </span>
             </button>
         </div>
 
-        <!-- Drawer de compra -->
         <PurchasePanel :visible="showPurchase" :seats="selectedSeats" :reserved-until="reservedUntil"
-            @close="closePanel" @confirm="submitPayment" />
+            :isLoading="isLoading" @close="closePanel" @confirm="submitPayment" />
     </div>
 </template>
 
@@ -38,7 +36,7 @@ const mapKey = ref(0)
 const selectedSeats = ref([])
 const showPurchase = ref(false)
 const reservedUntil = ref(null)
-const isLoading = ref(false) // 👈🏼 Nueva variable para controlar el estado de carga
+const isLoading = ref(false)
 
 function onSelectionChange(seats) {
     selectedSeats.value = seats
@@ -46,7 +44,7 @@ function onSelectionChange(seats) {
 
 async function reserveSeats() {
     const ids = selectedSeats.value.map(s => s.id)
-    isLoading.value = true; // 👈🏼 Activar el estado de carga
+    isLoading.value = true
     try {
         const { data } = await axios.post('/api/asientos/reservar', { seats: ids })
         reservedUntil.value = new Date(data.reserved_until)
@@ -59,12 +57,13 @@ async function reserveSeats() {
             alert('❌ Error al reservar')
         }
     } finally {
-        isLoading.value = false; // 👈🏼 Desactivar el estado de carga
+        isLoading.value = false
     }
 }
 
 async function submitPayment({ seats, buyer }) {
-    isLoading.value = true; // 👈🏼 Activar el estado de carga
+    // Activamos el estado de carga justo al iniciar la función.
+    isLoading.value = true;
     try {
         const payload = {
             seats,
@@ -73,12 +72,12 @@ async function submitPayment({ seats, buyer }) {
             buyer_dni: buyer.dni || '',
         }
         const { data } = await axios.post(props.purchaseRoute, payload)
+        // Si la llamada es exitosa, nos redirigimos y no necesitamos deshabilitar el estado de carga.
         window.location.href = data.redirect_url
     } catch (err) {
-        // manejo simplificado…
+        // Si hay un error, volvemos a habilitar el botón para que el usuario pueda intentarlo de nuevo.
         alert('❌ Error al procesar el pago')
-    } finally {
-        isLoading.value = false; // 👈🏼 Desactivar el estado de carga
+        isLoading.value = false;
     }
 }
 
@@ -100,7 +99,6 @@ async function removeSeat(id) {
 .seat-checkout-container {
     position: relative;
     min-height: calc(100vh - 80px);
-    /* ajustá según tu header/footer */
 }
 
 .seat-canvas {
@@ -108,7 +106,6 @@ async function removeSeat(id) {
     height: calc(100vh - 80px);
 }
 
-/* — botón RESERVAR — */
 .reserve-button-container {
     position: fixed;
     bottom: 1.5rem;
@@ -136,19 +133,14 @@ async function removeSeat(id) {
     cursor: not-allowed;
 }
 
-/* En pantallas muy chicas, que ocupe todo el ancho al pie */
 @media (max-width: 640px) {
     .seat-canvas {
-        /* habilita scroll si el mapa sigue siendo más ancho que la pantalla */
         overflow-x: auto;
-        /* opcional: un poco de “padding” para que no quede pegado al borde */
         padding: 0 0.5rem;
     }
 
-    /* si quieres que el contenedor interno mantenga su ancho original */
     .seat-canvas>* {
         min-width: 800px;
-        /* pon aquí el ancho base (BASE_CANVAS_WIDTH) */
     }
 }
 </style>

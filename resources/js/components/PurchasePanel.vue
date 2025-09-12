@@ -1,7 +1,5 @@
-<!-- resources/js/components/PurchasePanel.vue -->
 <template>
     <div v-if="visible" class="purchase-drawer">
-        <!-- Temporizador de expiración -->
         <div class="p-4 bg-yellow-100 text-yellow-800 font-semibold">
             <template v-if="remainingMs > 0">
                 ⏳ Te quedan {{ minutes }}:{{ seconds }} para completar tu compra
@@ -11,13 +9,11 @@
             </template>
         </div>
 
-        <!-- Cabecera -->
         <header class="drawer-header">
             <h3 class="drawer-title">🛒 Resumen de tu compra</h3>
             <button class="close-btn" @click="emit('close')">✕</button>
         </header>
 
-        <!-- Lista de asientos y formulario -->
         <section class="drawer-body">
             <ul class="seat-list">
                 <li v-for="s in seats" :key="s.id" class="seat-item">
@@ -30,7 +26,6 @@
             <div class="total-row">
                 <span>Total:</span>
                 <strong>${{ totalPrice.toFixed(2) }}</strong>
-
             </div>
 
             <div v-if="error" class="text-red-600 mb-2">{{ error }}</div>
@@ -44,9 +39,8 @@
                     <label for="buyer-email">Email *</label>
                     <input id="buyer-email" v-model="buyer.email" type="email" required />
                 </div>
-                <!-- 💡 FIX: Usamos la prop 'isLoading' del padre para deshabilitar el botón -->
-                <button type="submit" class="submit-btn" :disabled="isLoading || remainingMs <= 0">
-                    <span v-if="isLoading">Procesando...</span>
+                <button type="submit" class="submit-btn" :disabled="isSubmitting || isLoading || remainingMs <= 0">
+                    <span v-if="isSubmitting || isLoading">Procesando...</span>
                     <span v-else>💳 Proceder al pago</span>
                 </button>
             </form>
@@ -61,7 +55,6 @@ const props = defineProps({
     seats: { type: Array, required: true },
     visible: { type: Boolean, required: true },
     reservedUntil: { type: Date, default: null },
-    // 💡 FIX: Agregamos la prop que viene del componente padre
     isLoading: { type: Boolean, default: false }
 })
 const emit = defineEmits(['close', 'remove', 'confirm'])
@@ -82,20 +75,27 @@ const seconds = computed(() => String(remainingSec.value % 60).padStart(2, '0'))
 watch(() => props.visible, visible => {
     if (visible && props.reservedUntil) {
         timerInterval = setInterval(() => (now.value = Date.now()), 250)
-    } else clearInterval(timerInterval)
+    } else {
+        clearInterval(timerInterval)
+    }
 })
 onBeforeUnmount(() => clearInterval(timerInterval))
 
 // Comprador y estado
 const buyer = ref({ name: '', email: '' })
-// 💡 FIX: Eliminamos la variable local 'loading'
+const isSubmitting = ref(false)
 const error = ref(null)
 const totalPrice = computed(() =>
-    props.seats.reduce(
-        (sum, s) => sum + (parseFloat(s.price) || 0),
-        0
-    )
+    props.seats.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0)
 )
+
+// Si el padre deja de estar en 'loading' (p.ej. por un error en la API),
+// reseteamos nuestro estado local para que el usuario pueda reintentar.
+watch(() => props.isLoading, (loading) => {
+    if (!loading) {
+        isSubmitting.value = false
+    }
+})
 
 function submitPurchase() {
     error.value = null
@@ -103,12 +103,12 @@ function submitPurchase() {
         error.value = 'Debes completar nombre y correo.'
         return
     }
-    // 💡 FIX: Ya no asignamos el estado 'loading' localmente
+    // Activamos el estado de carga local inmediatamente
+    isSubmitting.value = true
     emit('confirm', {
         seats: props.seats.map(s => s.id),
         buyer: { ...buyer.value },
     })
-    // 💡 FIX: Ya no asignamos el estado 'loading' localmente
 }
 </script>
 
@@ -237,5 +237,10 @@ function submitPurchase() {
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.submit-btn:disabled {
+    background-color: #9ca3af; /* Un color gris para indicar que está deshabilitado */
+    cursor: not-allowed;
 }
 </style>
