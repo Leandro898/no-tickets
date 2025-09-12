@@ -40,24 +40,23 @@ class InvitacionEnviada extends Mailable
     {
         Log::info("DEBUG - BUILD: El método build() ha sido llamado para la invitación #{$this->invitacion->id}");
 
- 
+
         // --- INICIO DEL CAMBIO ---
         // 1. Leer el contenido del archivo SVG del QR
         $qrContent = null;
         if (Storage::disk('public')->exists($this->invitacion->qr_path)) {
             $qrContent = Storage::disk('public')->get($this->invitacion->qr_path);
         }
- 
+
         // 2. Preparar el QR como un Data URI para incrustarlo en el HTML
         $qrCodeDataUri = $qrContent
             ? 'data:image/svg+xml;base64,' . base64_encode($qrContent)
             : null;
         // --- FIN DEL CAMBIO ---
- 
+
         try {
             Log::info("DEBUG - BUILD: Intentando cargar la vista PDF.");
             $pdfContent = Pdf::loadView('emails.invitacion-pdf', [
-                'invitacion' => $this->invitacion
                 'invitacion' => $this->invitacion,
                 'qrCodeDataUri' => $qrCodeDataUri, // 3. Pasamos el Data URI a la vista
             ])->output();
