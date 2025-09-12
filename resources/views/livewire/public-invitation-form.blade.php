@@ -47,8 +47,10 @@
             @error('dni')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
         </div>
         <button type="submit"
-            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-            Registrarme y obtener mi invitación
+            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
+            <span wire:loading.remove wire:target="register">Registrarme y obtener mi invitación</span>
+            <span wire:loading wire:target="register">Cargando...</span>
         </button>
     </form>
     @else
@@ -66,8 +68,10 @@
             @enderror
         </div>
         <button type="submit"
-            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
-            Acceder
+            class="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-700 hover:bg-purple-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
+            <span wire:loading.remove wire:target="submitPassword">Acceder</span>
+            <span wire:loading wire:target="submitPassword">Cargando...</span>
         </button>
     </form>
     @endif

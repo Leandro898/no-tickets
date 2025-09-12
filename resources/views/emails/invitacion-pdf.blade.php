@@ -60,7 +60,7 @@
 
         <div class="content">
             <p>¡Hola, <strong>{{ $invitacion->buyer_name }}</strong>!</p>
-            <p>Esta es tu invitación. Presenta el siguiente código QR en el acceso al evento.</p>
+            <p class="pb-6">Esta es tu invitación. Presenta el siguiente código QR en el acceso al evento.</p>
 
             <div class="qr-code">
                 @if ($qrCodeDataUri)
@@ -69,13 +69,11 @@
                 <p style="color: red; font-weight: bold;">Error: No se pudo cargar el código QR.</p>
                 @endif
             </div>
-
-            <p><strong>Código de invitación:</strong> {{ $invitacion->unique_code }}</p>
         </div>
 
         <div class="footer">
             <p>Este es un ticket de acceso único y personal. No lo compartas.</p>
-            <p>&copy; {{ date('Y') }} {{ $invitacion->evento->nombre }}.</p>
+            <p>&copy; {{ date('Y') }} Tickets Pro.</p>
         </div>
     </div>
 </body>

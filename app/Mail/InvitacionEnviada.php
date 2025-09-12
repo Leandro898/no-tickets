@@ -65,11 +65,12 @@ class InvitacionEnviada extends Mailable
             Log::error("ERROR - BUILD: Falló la carga de la vista 'emails.invitacion-pdf'. Asegúrate de que el archivo existe. Mensaje: " . $e->getMessage());
             return;
         }
-
-        // Verificamos la existencia del QR en el disco público
-        $qrExists = Storage::disk('public')->exists($this->invitacion->qr_path);
-
-        Log::info("DEBUG - BUILD: El archivo QR existe: " . ($qrExists ? 'Sí' : 'No'));
+        Log::info("DEBUG - BUILD: Generando contenido del PDF.");
+        $pdfContent = Pdf::loadView('emails.invitacion-pdf', [
+            'invitacion' => $this->invitacion,
+            'qrCodeDataUri' => $qrCodeDataUri,
+        ])->output();
+        Log::info("DEBUG - BUILD: Contenido del PDF generado.");
 
         // Preparamos el email
         $email = $this->subject('Tu Invitación para ' . $this->invitacion->evento->nombre)
@@ -80,16 +81,6 @@ class InvitacionEnviada extends Mailable
             'mime' => 'application/pdf',
         ]);
         Log::info("DEBUG - BUILD: Archivo PDF adjuntado.");
-
-        // Adjuntamos el QR si existe, usando la ruta del disco público
-        if ($qrExists) {
-            $email->attachFromStorageDisk('public', $this->invitacion->qr_path, 'invitacion-qr.svg', [
-                'mime' => 'image/svg+xml',
-            ]);
-            Log::info("DEBUG - BUILD: Archivo QR adjuntado.");
-        } else {
-            Log::error("ERROR - BUILD: No se encontró el archivo QR en 'public/{$this->invitacion->qr_path}'");
-        }
 
         return $email;
     }
